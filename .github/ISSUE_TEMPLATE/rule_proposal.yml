@@ -1,0 +1,25 @@
+name: Proposta di regola
+description: Proponi una nuova regola R-xxx o la modifica di una esistente
+labels: [rule]
+body:
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidenza
+      description: Report Mailtrap/MailUp, screenshot del client o test che dimostra il problema. Le regole senza evidenza non vengono accettate.
+    validations:
+      required: true
+  - type: dropdown
+    id: level
+    attributes:
+      label: Livello proposto
+      options: [MUST, SHOULD, MAY]
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Sostituzione consigliata
+      description: Il pattern HTML che risolve, nello stile delle regole esistenti
+    validations:
+      required: true

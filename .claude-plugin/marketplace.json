@@ -1,0 +1,35 @@
+{
+  "name": "padosoft",
+  "owner": {
+    "name": "Padosoft",
+    "url": "https://www.padosoft.com"
+  },
+  "metadata": {
+    "description": "Skill aziendali Padosoft, raggruppate per profilo: si installa il pacchetto dello stack, non tutto il catalogo.",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "padosoft-core",
+      "source": "./plugins/padosoft-core",
+      "displayName": "Padosoft Core",
+      "description": "Skill trasversali da tenere sempre attive: catalogo e router delle skill aziendali.",
+      "version": "0.1.0",
+      "author": { "name": "Padosoft" },
+      "license": "MIT",
+      "keywords": ["padosoft", "core", "router"],
+      "category": "productivity"
+    },
+    {
+      "name": "padosoft-email",
+      "source": "./plugins/padosoft-email",
+      "displayName": "Padosoft Email",
+      "description": "Email HTML che passano Mailtrap HTML Check, SpamAssassin e MailUp Check-up al primo invio.",
+      "version": "1.1.0",
+      "author": { "name": "Padosoft" },
+      "license": "MIT",
+      "keywords": ["email", "html-email", "mailtrap", "mailup", "deliverability"],
+      "category": "productivity"
+    }
+  ]
+}
