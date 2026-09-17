@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resources/padosoft_skills_banner.png" alt="padosoft/skills - Agent Skills marketplace for engineering teams" width="100%">
+  <img src="assets/padosoft_skills_banner.png" alt="padosoft/skills - Agent Skills marketplace for engineering teams" width="100%">
 </p>
 
 # padosoft/skills
