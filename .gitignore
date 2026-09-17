@@ -4,6 +4,7 @@ out/
 dist/
 *.png
 !assets/*.png
+!resources/*.png
 payload.json
 scripts/payload.json
 *.eml

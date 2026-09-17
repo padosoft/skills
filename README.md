@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="resources/padosoft_skills_banner.png" alt="padosoft/skills - Agent Skills marketplace for engineering teams" width="100%">
+</p>
+
 # padosoft/skills
 
 **Le Agent Skills di Padosoft: un repo, profili per stack, installazione in un comando.**
