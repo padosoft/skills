@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EMAIL_SKILL: skills/padosoft-email-html-builder
+
+jobs:
+  skills:
+    name: Valida skill, catalogo e linter
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Ogni SKILL.md rispetta la specifica Agent Skills
+        run: |
+          for d in skills/*/; do
+            python3 "$EMAIL_SKILL/scripts/validate_skill.py" "$d"
+          done
+
+      - name: Catalogo, profili e router allineati al frontmatter
+        run: python3 scripts/build_catalog.py --check
+
+      - name: Manifest dei plugin coerenti
+        run: python3 scripts/validate_plugins.py
+
+      - name: Test
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Il template di riferimento deve passare il linter
+        run: python3 "$EMAIL_SKILL/scripts/lint_email.py" "$EMAIL_SKILL/templates/reference-welcome-dark.html"
+
+      - name: La fixture con gli anti-pattern deve fallire
+        run: |
+          if python3 "$EMAIL_SKILL/scripts/lint_email.py" tests/fixtures/bad-email.html > /dev/null; then
+            echo "::error::La fixture bad-email.html dovrebbe fallire il lint"; exit 1
+          fi
+
+      - name: L'installer funziona in dry-run
+        run: bash scripts/install-profile.sh core --dry-run

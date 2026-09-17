@@ -1,0 +1,38 @@
+# Output di lavoro
+shots/
+out/
+dist/
+*.png
+!assets/*.png
+payload.json
+scripts/payload.json
+*.eml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node (solo per tool di screenshot opzionali)
+node_modules/
+package-lock.json
+
+# Segreti: mai committare token Mailtrap/MailUp
+.env
+.env.*
+!.env.example
+*.token
+secrets/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

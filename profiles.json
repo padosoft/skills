@@ -1,0 +1,17 @@
+{
+  "repo": "padosoft/skills",
+  "profiles": {
+    "core": [
+      "padosoft-skill-creator",
+      "padosoft-skills-router"
+    ],
+    "email": [
+      "padosoft-email-html-builder"
+    ]
+  },
+  "scope": {
+    "padosoft-email-html-builder": "project",
+    "padosoft-skill-creator": "global",
+    "padosoft-skills-router": "global"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "padosoft-core",
+  "displayName": "Padosoft Core",
+  "version": "0.1.0",
+  "description": "Skill trasversali Padosoft: router del catalogo e creazione di nuove skill secondo le convenzioni del repo.",
+  "author": {
+    "name": "Padosoft",
+    "url": "https://www.padosoft.com"
+  },
+  "repository": "https://github.com/padosoft/skills",
+  "license": "MIT",
+  "keywords": [
+    "padosoft",
+    "core",
+    "router"
+  ],
+  "skills": [
+    "../../skills/padosoft-skills-router",
+    "../../skills/padosoft-skill-creator"
+  ]
+}

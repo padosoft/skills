@@ -1,0 +1,22 @@
+[
+  { "query": "mi fai la mail di benvenuto per il nuovo ecommerce? tema scuro, tre categorie e un bottone", "should_trigger": true },
+  { "query": "questa DEM ha 23 warning su mailtrap, me la sistemi?", "should_trigger": true },
+  { "query": "il template della conferma ordine si rompe su outlook, i bordi arrotondati spariscono e le colonne vanno a capo", "should_trigger": true },
+  { "query": "ho bisogno di un template per la newsletter mensile, 600px, con tre card prodotto e footer con disiscrizione", "should_trigger": true },
+  { "query": "puoi convertire questo html in dark mode senza rompere gmail? te lo allego", "should_trigger": true },
+  { "query": "spam score 4.2, non capisco perche, ti giro il report di spamassassin della mail promo", "should_trigger": true },
+  { "query": "il preheader mi esce nel corpo del messaggio su yahoo", "should_trigger": true },
+  { "query": "devo mandare una prova su mailtrap della mail di recupero password, la prepari e la testi?", "should_trigger": true },
+  { "query": "la mail arriva tagliata su gmail dopo il footer", "should_trigger": true },
+  { "query": "mi scrivi il codice del bottone che funziona anche su outlook 2016?", "should_trigger": true },
+  { "query": "scrivimi tre oggetti diversi per la campagna di saldi, senza codice", "should_trigger": false },
+  { "query": "come configuro SPF e DKIM sul dominio su cloudflare?", "should_trigger": false },
+  { "query": "mi crei una landing page responsive in tailwind per la promo?", "should_trigger": false },
+  { "query": "come esporto i contatti disiscritti da mailup in csv?", "should_trigger": false },
+  { "query": "puoi leggere questa email che ho ricevuto e riassumermela?", "should_trigger": false },
+  { "query": "scrivi una funzione php che invii una mail con symfony mailer", "should_trigger": false },
+  { "query": "quanto costa il piano business di mailtrap?", "should_trigger": false },
+  { "query": "fammi un report delle aperture e click dell'ultima campagna", "should_trigger": false },
+  { "query": "sistema il css di questa pagina prodotto, il bottone non si vede bene su mobile", "should_trigger": false },
+  { "query": "traducimi in inglese il testo di questa newsletter", "should_trigger": false }
+]
