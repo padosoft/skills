@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
-## [Unreleased]
+## [1.1.0] - 2026-09-19
 
 ### Added
 - **Four skills extracted from two production projects** (a Bun/Hono API and its spec-first OpenAPI
@@ -53,6 +53,9 @@ real code, rather than on the example in the rule:
 - `scripts/build_catalog.py` wrote the generated files with the platform default newline, so every
   `make catalog` on Windows rewrote CATALOG.md, profiles.json, README.md and the router SKILL.md with CRLF,
   against `.gitattributes`. All four writes now pass an explicit LF newline.
+
+> Le voci `2.x` qui sotto sono il versionamento **ereditato dalla skill email**, precedente al
+> tag del repository. Le release del repo partono da `v1.0.0`.
 
 ## [2.1.0] - 2026-09-18
 
