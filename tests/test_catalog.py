@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Coerenza del catalogo: ogni skill dichiara profilo e scope, indice e router allineati."""
+"""Catalog consistency: every skill declares profile and scope, index and router aligned."""
 from __future__ import annotations
 
 import json
@@ -23,13 +23,13 @@ class TestFrontmatter(unittest.TestCase):
             with self.subTest(skill=s.name):
                 self.assertTrue(s.profiles)
                 self.assertIn(s.scope, bc.KNOWN_SCOPES)
-                self.assertTrue(s.name.startswith("padosoft-"), "il nome deve avere il prefisso di brand")
+                self.assertTrue(s.name.startswith("padosoft-"), "the name must carry the brand prefix")
 
     def test_global_skills_stay_few(self) -> None:
-        """Ogni skill globale costa contesto in OGNI sessione: il profilo core resta piccolo."""
+        """Every global skill costs context in EVERY session: the core profile stays small."""
         skills, _ = bc.load_skills()
         globals_ = [s.name for s in skills if s.scope == "global"]
-        self.assertLessEqual(len(globals_), 5, f"troppe skill globali: {globals_}")
+        self.assertLessEqual(len(globals_), 5, f"too many global skills: {globals_}")
 
 
 class TestGeneratedFiles(unittest.TestCase):
@@ -48,7 +48,7 @@ class TestGeneratedFiles(unittest.TestCase):
 
 class TestReadmeSection(unittest.TestCase):
     def test_readme_lists_every_skill(self) -> None:
-        """La sezione 'Skill disponibili' deve citare ogni skill: e' la pagina che legge un dev nuovo."""
+        """The 'Available skills' section must mention every skill: it is the page a new dev reads."""
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         section = readme.split(bc.README_START, 1)[1].split(bc.README_END, 1)[0]
         skills, _ = bc.load_skills()

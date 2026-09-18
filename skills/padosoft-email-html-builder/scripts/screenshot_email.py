@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-screenshot_email.py - Gate G2: screenshot di verifica di una email HTML.
+screenshot_email.py - Gate G2: verification screenshots of an HTML email.
 
-Genera fino a 4 PNG: desktop 600px, mobile 375px, e le stesse viste senza il blocco <style>
-(per verificare R-305: la mail deve restare leggibile anche quando il client lo rimuove).
+Generates up to 4 PNGs: desktop 600px, mobile 375px, and the same views without the <style> block
+(to verify R-305: the email must stay readable even when the client strips it).
 
-Uso:
+Usage:
     python3 scripts/screenshot_email.py email.html [--out-dir shots] [--no-style] [--width-desktop 700]
 
-Richiede Playwright con Chromium. Se non e' installato lo script esce con codice 3 e un messaggio
-esplicito: in quel caso salta il gate G2 e dichiaralo nel report, non fingere di averlo eseguito.
+Requires Playwright with Chromium. If it is not installed the script exits with code 3 and an explicit
+message: in that case skip gate G2 and declare it in the report, do not pretend you ran it.
 
-Exit code: 0 ok | 2 errore di input | 3 Playwright non disponibile
+Exit code: 0 ok | 2 input error | 3 Playwright not available
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ STYLE_BLOCK = re.compile(r"<style\b.*?</style>", re.S | re.I)
 
 
 def strip_style(html: str) -> str:
-    """Rimuove i blocchi <style> per simulare i client che li scartano (Gmail IMAP, Notes)."""
+    """Removes the <style> blocks to simulate the clients that drop them (Gmail IMAP, Notes)."""
     return STYLE_BLOCK.sub("", html)
 
 
@@ -34,18 +34,18 @@ def main() -> int:
     ap.add_argument("--out-dir", type=Path, default=Path("shots"))
     ap.add_argument("--width-desktop", type=int, default=700)
     ap.add_argument("--width-mobile", type=int, default=375)
-    ap.add_argument("--no-style", action="store_true", help="genera anche le varianti senza <style>")
+    ap.add_argument("--no-style", action="store_true", help="also generate the variants without <style>")
     args = ap.parse_args()
 
-    # Guard: input presente
+    # Guard: input present
     if not args.html.is_file():
-        print(f"File non trovato: {args.html}", file=sys.stderr)
+        print(f"File not found: {args.html}", file=sys.stderr)
         return 2
 
     try:
         from playwright.sync_api import sync_playwright  # type: ignore
     except ImportError:
-        print("Playwright non installato: salta il gate G2 e dichiaralo nel report "
+        print("Playwright not installed: skip gate G2 and declare it in the report "
               "(`pip install playwright && playwright install chromium`).", file=sys.stderr)
         return 3
 
@@ -59,7 +59,7 @@ def main() -> int:
     written: list[Path] = []
     try:
         with sync_playwright() as pw:
-            # executablePath non forzato: usa il Chromium gestito da Playwright
+            # executablePath not forced: it uses the Chromium managed by Playwright
             browser = pw.chromium.launch()
             try:
                 for label, markup in variants:
@@ -77,7 +77,7 @@ def main() -> int:
             finally:
                 browser.close()
     except Exception as exc:
-        print(f"Screenshot falliti: {exc}", file=sys.stderr)
+        print(f"Screenshots failed: {exc}", file=sys.stderr)
         return 2
 
     for p in written:

@@ -1,50 +1,50 @@
-# Checklist di revisione di una skill
+# Skill review checklist
 
-Da usare prima della PR, e in review. Se una voce non passa, la skill non e' pronta.
+To be used before the PR, and during review. If an item does not pass, the skill is not ready.
 
-## Attivazione
+## Activation
 
-- [ ] La `description` inizia con "Usa questa skill quando…" e elenca **situazioni**, non funzionalita'
-- [ ] Include almeno un caso in cui l'utente **non nomina** il dominio
-- [ ] Dichiara i confini: "Non usarla per…"
-- [ ] Sotto i 1024 caratteri
-- [ ] `evals/queries.json` ha almeno 8 positive e 8 negative, con near-miss veri (stesso dominio, compito diverso)
-- [ ] Nessuna sovrapposizione con una skill esistente: se c'e', o si uniscono o si separano i confini nelle due description
+- [ ] The `description` starts with "Use this skill when…" and lists **situations**, not features
+- [ ] It includes at least one case where the user **does not name** the domain
+- [ ] It states the boundaries: "Do not use it for…"
+- [ ] Under 1024 characters
+- [ ] `evals/queries.json` has at least 8 positives and 8 negatives, with real near misses (same domain, different task)
+- [ ] No overlap with an existing skill: if there is one, either merge them or separate the boundaries in the two descriptions
 
-## Contenuto
+## Content
 
-- [ ] SKILL.md sotto le 500 righe e i ~5000 token
-- [ ] Workflow numerato con almeno un gate di verifica
-- [ ] Almeno un pattern copiabile (snippet o comando), non solo descrizioni
-- [ ] Sezione gotcha con fatti che contraddicono le assunzioni ragionevoli
-- [ ] Un default esplicito dove esistono piu' strade
-- [ ] Template del report finale
-- [ ] Niente spiegazioni di cose che l'agente sa gia'
-- [ ] I dettagli stanno in `references/`, e SKILL.md dice **quando** leggerli
+- [ ] SKILL.md under 500 lines and ~5000 tokens
+- [ ] A numbered workflow with at least one verification gate
+- [ ] At least one copyable pattern (snippet or command), not just descriptions
+- [ ] A gotchas section with facts that contradict reasonable assumptions
+- [ ] An explicit default where several roads exist
+- [ ] A template for the final report
+- [ ] No explanations of things the agent already knows
+- [ ] The details live in `references/`, and SKILL.md says **when** to read them
 
-## Formato
+## Format
 
-- [ ] `name` uguale alla cartella, con prefisso `padosoft-`
-- [ ] Frontmatter solo con chiavi ammesse (`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools`)
-- [ ] `metadata.profiles` e `metadata.scope` presenti e coerenti (`global` implica `core`)
-- [ ] Ogni path citato fra backtick esiste dentro la skill
-- [ ] Script: solo standard library, `--help`, exit code distinti, nessun prompt interattivo
+- [ ] `name` identical to the folder, with the `padosoft-` prefix
+- [ ] Frontmatter with allowed keys only (`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools`)
+- [ ] `metadata.profiles` and `metadata.scope` present and consistent (`global` implies `core`)
+- [ ] Every path quoted in backticks exists inside the skill
+- [ ] Scripts: standard library only, `--help`, distinct exit codes, no interactive prompts
 
-## Integrazione nel repo
+## Integration into the repo
 
-- [ ] La skill e' inclusa in un pacchetto sotto `plugins/`
-- [ ] `make catalog` eseguito dopo l'ultima modifica al frontmatter
-- [ ] `make all` verde
-- [ ] CHANGELOG aggiornato
-- [ ] Provata in una sessione nuova su un compito reale, con le correzioni riportate nei gotcha
+- [ ] The skill is included in a package under `plugins/`
+- [ ] `make catalog` run after the last change to the frontmatter
+- [ ] `make all` green
+- [ ] CHANGELOG updated
+- [ ] Tried in a fresh session on a real task, with the corrections carried into the gotchas
 
-## Errori ricorrenti
+## Recurring mistakes
 
-| Sintomo | Causa quasi sempre |
+| Symptom | Almost always caused by |
 |---|---|
-| La skill non si attiva mai | Description scritta dal punto di vista della skill, non dell'utente |
-| Si attiva a sproposito | Mancano i confini ("Non usarla per…") o il dominio e' descritto troppo in astratto |
-| L'agente ignora una regola | La regola e' in `references/` invece che nei gotcha di SKILL.md |
-| L'agente prova tre strade prima di trovarne una | Nessun default dichiarato |
-| CI rossa su `build_catalog.py --check` | Manca `make catalog` dopo aver toccato il frontmatter |
-| CI rossa su `validate_plugins.py` | La skill non e' in nessun pacchetto di `plugins/` |
+| The skill never triggers | A description written from the skill's point of view, not the user's |
+| It triggers out of place | The boundaries are missing ("Do not use it for…") or the domain is described too abstractly |
+| The agent ignores a rule | The rule sits in `references/` instead of the gotchas in SKILL.md |
+| The agent tries three roads before finding one | No default declared |
+| CI red on `build_catalog.py --check` | `make catalog` missing after touching the frontmatter |
+| CI red on `validate_plugins.py` | The skill is in no package under `plugins/` |

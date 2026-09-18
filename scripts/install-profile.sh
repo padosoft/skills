@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# install-profile.sh - Installa le skill Padosoft di uno o piu' profili.
+# install-profile.sh - Installs the Padosoft skills of one or more profiles.
 #
-#   ./scripts/install-profile.sh core --global      # profilo core, per tutti i progetti
-#   ./scripts/install-profile.sh laravel email      # due profili, nel progetto corrente
-#   ./scripts/install-profile.sh --list             # profili disponibili
-#   ./scripts/install-profile.sh core --dry-run     # mostra i comandi senza eseguirli
+#   ./scripts/install-profile.sh core --global      # core profile, for every project
+#   ./scripts/install-profile.sh laravel email      # two profiles, in the current project
+#   ./scripts/install-profile.sh --list             # available profiles
+#   ./scripts/install-profile.sh core --dry-run     # print the commands without running them
 #
-# Funziona anche senza clonare il repo:
+# Works without cloning the repo too:
 #   curl -fsSL https://raw.githubusercontent.com/padosoft/skills/main/scripts/install-profile.sh | bash -s -- core --global
 #
-# Prerequisito: Node.js 18+ (per npx). Nessun account, nessuna configurazione.
+# Requirement: Node.js 18+ (for npx). No account, no configuration.
 set -euo pipefail
 
 REPO="${PADOSOFT_SKILLS_REPO:-padosoft/skills}"
@@ -23,37 +23,40 @@ for arg in "$@"; do
     --dry-run)   DRY=1 ;;
     --list)      LIST=1 ;;
     -h|--help)   sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    -*)          echo "Opzione sconosciuta: $arg" >&2; exit 2 ;;
+    -*)          echo "Unknown option: $arg" >&2; exit 2 ;;
     *)           PROFILES+=("$arg") ;;
   esac
 done
 
-# Guard: serve npx
-command -v npx >/dev/null || { echo "npx non trovato: installa Node.js 18+ (https://nodejs.org)" >&2; exit 2; }
+# Guard: npx is required
+command -v npx >/dev/null || { echo "npx not found: install Node.js 18+ (https://nodejs.org)" >&2; exit 2; }
 
-# profiles.json: locale se siamo nel repo, altrimenti scaricato
+# profiles.json: the local copy when running from the repo, otherwise downloaded
 LOCAL="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)/profiles.json"
 if [[ -f "$LOCAL" ]]; then JSON="$(cat "$LOCAL")"; else
-  command -v curl >/dev/null || { echo "curl non trovato e profiles.json non presente in locale" >&2; exit 2; }
+  command -v curl >/dev/null || { echo "curl not found and profiles.json missing locally" >&2; exit 2; }
   JSON="$(curl -fsSL "$RAW")"
 fi
 
-# parser minimale: nessuna dipendenza da jq
-names_of() {  # $1 = profilo -> stampa i nomi delle skill, uno per riga
+# minimal parser: no dependency on jq
+profiles_block() {  # the content of the "profiles" object, collapsed onto one line
   printf '%s' "$JSON" | tr -d '\n' \
-    | sed -n "s/.*\"profiles\"[[:space:]]*:[[:space:]]*{\(.*\)}[[:space:]]*,[[:space:]]*\"scope\".*/\1/p" \
-    | tr '}' '\n' | grep -F "\"$1\"" \
-    | grep -o '"[a-z0-9-]*"' | grep -v "^\"$1\"$" | tr -d '"'
+    | sed -n 's/.*"profiles"[[:space:]]*:[[:space:]]*{\(.*\)}[[:space:]]*,[[:space:]]*"scope".*/\1/p'
+}
+names_of() {  # $1 = profile -> prints the skill names, one per line
+  # The array of the requested profile only: the whole block is a single line, so matching
+  # the profile name alone would pick up every other profile's skills as well.
+  profiles_block \
+    | sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\[\([^]]*\)\].*/\1/p" \
+    | grep -o '"[^"]*"' | tr -d '"'
 }
 all_profiles() {
-  printf '%s' "$JSON" | tr -d '\n' \
-    | sed -n 's/.*"profiles"[[:space:]]*:[[:space:]]*{\(.*\)}[[:space:]]*,[[:space:]]*"scope".*/\1/p' \
-    | grep -o '"[a-z0-9-]*"[[:space:]]*:' | tr -d '":' | tr -d ' '
+  profiles_block | grep -o '"[a-z0-9-]*"[[:space:]]*:[[:space:]]*\[' | sed 's/^"\([^"]*\)".*/\1/'
 }
 
 if [[ $LIST -eq 1 || ${#PROFILES[@]} -eq 0 ]]; then
-  echo "Profili disponibili:"; for p in $(all_profiles); do echo "  - $p: $(names_of "$p" | tr '\n' ' ')"; done
-  [[ ${#PROFILES[@]} -eq 0 ]] && { echo; echo "Uso: $0 <profilo> [profilo...] [--global] [--dry-run]"; exit 0; }
+  echo "Available profiles:"; for p in $(all_profiles); do echo "  - $p: $(names_of "$p" | tr '\n' ' ')"; done
+  [[ ${#PROFILES[@]} -eq 0 ]] && { echo; echo "Usage: $0 <profile> [profile...] [--global] [--dry-run]"; exit 0; }
   exit 0
 fi
 
@@ -62,15 +65,15 @@ FAILED=0
 for profile in "${PROFILES[@]}"; do
   mapfile -t skills < <(names_of "$profile")
   if [[ ${#skills[@]} -eq 0 ]]; then
-    echo "Profilo sconosciuto o vuoto: $profile (usa --list)" >&2; FAILED=1; continue
+    echo "Unknown or empty profile: $profile (use --list)" >&2; FAILED=1; continue
   fi
-  echo "== profilo $profile ${SCOPE_FLAG:+(globale)}"
+  echo "== profile $profile ${SCOPE_FLAG:+(global)}"
   for skill in "${skills[@]}"; do
     url="https://github.com/${REPO}/tree/${BRANCH}/skills/${skill}"
     if [[ $DRY -eq 1 ]]; then echo "npx skills add $SCOPE_FLAG $url"; else
-      echo "-- $skill"; npx --yes skills add $SCOPE_FLAG "$url" || { echo "   installazione fallita: $skill" >&2; FAILED=1; }
+      echo "-- $skill"; npx --yes skills add $SCOPE_FLAG "$url" || { echo "   installation failed: $skill" >&2; FAILED=1; }
     fi
   done
 done
-[[ $FAILED -eq 0 ]] && echo "Fatto. 'npx skills list' mostra cosa e' installato e dove."
+[[ $FAILED -eq 0 ]] && echo "Done. 'npx skills list' shows what is installed and where."
 exit $FAILED

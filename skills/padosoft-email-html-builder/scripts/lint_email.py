@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-lint_email.py - Linter statico per email HTML conforme a references/rules.md.
+lint_email.py - Static linter for HTML email, following references/rules.md.
 
-Uso:
-    python3 lint_email.py email.html [--text email.txt] [--subject "Oggetto"]
+Usage:
+    python3 lint_email.py email.html [--text email.txt] [--subject "Subject"]
                           [--production] [--transactional] [--json]
 
 Exit code:
-    0 = nessun MUST violato
-    1 = almeno un MUST violato
-    2 = errore di esecuzione (file mancante, parse)
+    0 = no MUST violated
+    1 = at least one MUST violated
+    2 = execution error (missing file, parse)
 
-Solo standard library: nessuna dipendenza, eseguibile in CI.
+Standard library only: no dependencies, runnable in CI.
 """
 from __future__ import annotations
 
@@ -25,16 +25,16 @@ from pathlib import Path
 from typing import Iterable
 
 # --------------------------------------------------------------------------------------
-# Configurazione regole
+# Rule configuration
 # --------------------------------------------------------------------------------------
 
-#: Proprieta' CSS ammesse inline nel <body> (R-100)
+#: CSS properties allowed inline in the <body> (R-100)
 INLINE_WHITELIST: frozenset[str] = frozenset({
     "font-family", "font-size", "line-height", "font-weight", "font-style",
     "letter-spacing", "color", "text-decoration", "text-align",
 })
 
-#: Proprieta' vietate nel blocco <style> fuori dalla media query (R-301)
+#: Properties forbidden in the <style> block outside the media query (R-301)
 STYLE_FORBIDDEN_SELECTORS: tuple[str, ...] = (
     r"(^|[}\s,])body\s*[{,]", r"(^|[}\s,])table\s*[{,]", r"(^|[}\s,])img\s*[{,]",
     r"(^|[}\s,])a\s*[{,]", r":root", r"prefers-color-scheme", r"\[data-ogs",
@@ -51,15 +51,18 @@ FORBIDDEN_TAGS: frozenset[str] = frozenset({
 })
 
 INVISIBLE_FILLER = re.compile(r"(&#847;|&zwnj;|&#8203;|&#x200b;|&#x34f;)", re.I)
-PLACEHOLDERS = re.compile(r"(example\.com|placehold\.co|\[Ragione sociale\]|\[Indirizzo\]|\bTODO\b|\blorem ipsum\b|\bx{6,}\b)", re.I)
+#: Placeholder text. The repo is in English, but the emails it lints are often Italian,
+#: so both spellings stay in the pattern on purpose.
+PLACEHOLDERS = re.compile(r"(example\.com|placehold\.co|\[Legal entity\]|\[Address\]|\[Ragione sociale\]|\[Indirizzo\]|\bTODO\b|\blorem ipsum\b|\bx{6,}\b)", re.I)
 SHORTENERS = re.compile(r"https?://(bit\.ly|tinyurl\.com|t\.co|goo\.gl|ow\.ly|is\.gd|buff\.ly)/", re.I)
-SPAM_WORDS = re.compile(r"\b(gratis|urgente|100%|clicca qui|click here|free!!|guadagna|\$\$\$)\b", re.I)
+#: Subject trigger words, English and Italian: same reason as PLACEHOLDERS above.
+SPAM_WORDS = re.compile(r"\b(gratis|urgente|100%|clicca qui|click here|free!!|guadagna|act now|earn money|\$\$\$)\b", re.I)
 MAX_HTML_BYTES_MUST = 100_000
 TARGET_HTML_BYTES = 40_000
 
 
 # --------------------------------------------------------------------------------------
-# Modello risultati
+# Result model
 # --------------------------------------------------------------------------------------
 
 @dataclass
@@ -85,11 +88,11 @@ class Report:
 
 
 # --------------------------------------------------------------------------------------
-# Utility
+# Utilities
 # --------------------------------------------------------------------------------------
 
 def parse_style(style: str) -> list[tuple[str, str]]:
-    """Scompone una stringa style inline in coppie (proprieta', valore) normalizzate."""
+    """Splits an inline style string into normalised (property, value) pairs."""
     pairs: list[tuple[str, str]] = []
     for decl in style.split(";"):
         if ":" not in decl:
@@ -103,7 +106,7 @@ def parse_style(style: str) -> list[tuple[str, str]]:
 
 
 def hex_to_luminance(hex_color: str) -> float | None:
-    """Luminanza relativa WCAG di un colore #rgb/#rrggbb; None se non parsabile."""
+    """WCAG relative luminance of an #rgb/#rrggbb color; None when it cannot be parsed."""
     h = hex_color.strip().lstrip("#")
     if len(h) == 3:
         h = "".join(c * 2 for c in h)
@@ -117,7 +120,7 @@ def hex_to_luminance(hex_color: str) -> float | None:
 
 
 def contrast_ratio(fg: str, bg: str) -> float | None:
-    """Rapporto di contrasto WCAG fra due colori esadecimali."""
+    """WCAG contrast ratio between two hexadecimal colors."""
     l1, l2 = hex_to_luminance(fg), hex_to_luminance(bg)
     if l1 is None or l2 is None:
         return None
@@ -126,7 +129,7 @@ def contrast_ratio(fg: str, bg: str) -> float | None:
 
 
 # --------------------------------------------------------------------------------------
-# Parser strutturale
+# Structural parser
 # --------------------------------------------------------------------------------------
 
 class EmailParser(HTMLParser):
@@ -137,7 +140,7 @@ class EmailParser(HTMLParser):
     def __init__(self, report: Report) -> None:
         super().__init__(convert_charrefs=False)
         self.r = report
-        self.stack: list[tuple[str, str | None]] = []  # (tag, bgcolor effettivo)
+        self.stack: list[tuple[str, str | None]] = []  # (tag, effective bgcolor)
         self.in_body: bool = False
         self.in_style: bool = False
         self.style_blocks: list[str] = []
@@ -147,7 +150,7 @@ class EmailParser(HTMLParser):
         self.in_title: bool = False
         self.title_text: str = ""
         self.meta: dict[str, str] = {}
-        self.text_chunks: list[tuple[str, str | None, str | None, int]] = []  # (testo, colore, bg, linea)
+        self.text_chunks: list[tuple[str, str | None, str | None, int]] = []  # (text, color, bg, line)
         self.color_stack: list[str | None] = []
         self.imgs: int = 0
         self.links: list[tuple[str, int]] = []
@@ -191,31 +194,31 @@ class EmailParser(HTMLParser):
             self.in_body = True
             self.body_attrs = attrs
 
-        # R-011 / R-007: tag vietati
+        # R-011 / R-007: forbidden tags
         if tag in FORBIDDEN_TAGS:
             rule = "R-007" if tag == "h1" else "R-011"
-            self.r.add(rule, "MUST", f"Tag <{tag}> vietato", line)
+            self.r.add(rule, "MUST", f"Tag <{tag}> is forbidden", line)
 
-        # R-010: id duplicati
+        # R-010: duplicate ids
         if "id" in attrs:
             if attrs["id"] in self.ids:
                 self.r.add("R-010", "MUST", f"id duplicato '{attrs['id']}'", line)
             self.ids.add(attrs["id"])
 
-        # R-011: handler JS
+        # R-011: JS handlers
         for k in attrs:
             if k.startswith("on"):
-                self.r.add("R-011", "MUST", f"Attributo JS '{k}' vietato", line)
+                self.r.add("R-011", "MUST", f"JS attribute '{k}' is forbidden", line)
 
-        # R-004: tabelle
+        # R-004: tables
         if tag == "table":
             for req, val in (("role", "presentation"), ("cellpadding", None), ("cellspacing", "0"), ("border", "0")):
                 if req not in attrs:
-                    self.r.add("R-004", "MUST", f"<table> senza attributo {req}", line)
+                    self.r.add("R-004", "MUST", f"<table> without the {req} attribute", line)
                 elif val is not None and attrs[req] != val:
-                    self.r.add("R-004", "MUST", f"<table> {req}='{attrs[req]}' (atteso '{val}')", line)
+                    self.r.add("R-004", "MUST", f"<table> {req}='{attrs[req]}' (expected '{val}')", line)
 
-        # R-100/R-101: CSS inline nel body
+        # R-100/R-101: inline CSS in the body
         style = attrs.get("style", "")
         color_here: str | None = None
         bg_here: str | None = attrs.get("bgcolor")
@@ -228,40 +231,40 @@ class EmailParser(HTMLParser):
                     continue
                 if prop == "color":
                     color_here = value.lower()
-                # lo sfondo dichiarato via CSS e' gia' una violazione (R-101), ma serve
-                # comunque come sfondo effettivo per il calcolo del contrasto (R-501)
+                # a background declared through CSS is already a violation (R-101), but it is
+                # still needed as the effective background for the contrast calculation (R-501)
                 if prop in ("background-color", "background") and value.strip().startswith("#"):
                     bg_here = value.split()[0].strip().rstrip(";")
                 if prop in INLINE_WHITELIST:
                     continue
                 if is_preheader:
                     continue
-                self.r.add("R-101", "MUST", f"CSS inline vietato '{prop}' su <{tag}> (usa attributi HTML, vedi §4)", line)
+                self.r.add("R-101", "MUST", f"inline CSS '{prop}' forbidden on <{tag}> (use HTML attributes, see §4)", line)
             if is_preheader:
                 if attrs.get("aria-hidden") != "true":
-                    self.r.add("R-400", "MUST", "Preheader senza aria-hidden=\"true\"", line)
+                    self.r.add("R-400", "MUST", "Preheader without aria-hidden=\"true\"", line)
 
-        # R-600/R-601: immagini
+        # R-600/R-601: images
         if tag == "img":
             self.imgs += 1
             src = attrs.get("src", "")
             for req in ("width", "height", "alt"):
                 if req not in attrs:
-                    self.r.add("R-600", "MUST", f"<img> senza attributo {req}", line)
+                    self.r.add("R-600", "MUST", f"<img> without the {req} attribute", line)
             if attrs.get("border") != "0":
-                self.r.add("R-600", "MUST", "<img> senza border=\"0\"", line)
+                self.r.add("R-600", "MUST", "<img> without border=\"0\"", line)
             if not src.startswith("https://"):
-                self.r.add("R-600", "MUST", f"<img> src non assoluto HTTPS: {src[:60]}", line)
+                self.r.add("R-600", "MUST", f"<img> src is not an absolute HTTPS URL: {src[:60]}", line)
             if " " in src:
-                self.r.add("R-458", "MUST", "Path immagine con spazi", line)
+                self.r.add("R-458", "MUST", "Image path contains spaces", line)
             if len(attrs.get("alt", "")) > 60:
-                self.r.add("R-600", "SHOULD", "alt > 60 caratteri", line)
+                self.r.add("R-600", "SHOULD", "alt longer than 60 characters", line)
             parent = next((t for t in reversed(self.stack) if t[0] == "td"), None)
             if parent is None:
-                self.r.add("R-601", "MUST", "<img> non contenuta in una <td>", line)
+                self.r.add("R-601", "MUST", "<img> not contained in a <td>", line)
 
         if tag == "td" and "height" not in attrs:
-            pass  # la verifica R-601 sulla cella avviene in modo testuale (vedi lint_text)
+            pass  # the R-601 check on the cell is done textually (see lint_text)
 
         # link
         if tag == "a":
@@ -284,10 +287,10 @@ class EmailParser(HTMLParser):
             self.in_title = False
         if tag in self.VOID:
             return
-        # R-010: bilanciamento (tolleranza sui tag inline non strutturali)
+        # R-010: balancing (tolerant with non-structural inline tags)
         idx = next((i for i in range(len(self.stack) - 1, -1, -1) if self.stack[i][0] == tag), None)
         if idx is None:
-            self.r.add("R-010", "MUST", f"</{tag}> senza apertura", line)
+            self.r.add("R-010", "MUST", f"</{tag}> without an opening tag", line)
             return
         if tag in ("table", "tr", "td") and idx != len(self.stack) - 1:
             opened = self.stack[-1][0]
@@ -313,50 +316,50 @@ class EmailParser(HTMLParser):
 
 
 # --------------------------------------------------------------------------------------
-# Controlli
+# Checks
 # --------------------------------------------------------------------------------------
 
 def lint_text_level(html: str, r: Report, production: bool) -> None:
     """Controlli sul sorgente grezzo."""
     lines = html.splitlines()
 
-    # R-050 peso
+    # R-050 weight
     if r.bytes >= MAX_HTML_BYTES_MUST:
-        r.add("R-050", "MUST", f"HTML {r.bytes} byte >= {MAX_HTML_BYTES_MUST}")
+        r.add("R-050", "MUST", f"HTML {r.bytes} bytes >= {MAX_HTML_BYTES_MUST}")
     elif r.bytes > TARGET_HTML_BYTES:
-        r.add("R-050", "SHOULD", f"HTML {r.bytes} byte > target {TARGET_HTML_BYTES}")
+        r.add("R-050", "SHOULD", f"HTML {r.bytes} bytes > target {TARGET_HTML_BYTES}")
 
     # R-001 doctype / namespace
     if not html.lstrip().lower().startswith("<!doctype html>"):
-        r.add("R-001", "MUST", "Manca <!DOCTYPE html> in testa")
+        r.add("R-001", "MUST", "Missing <!DOCTYPE html> at the top")
     if 'xmlns:v="urn:schemas-microsoft-com:vml"' not in html or 'xmlns:o="urn:schemas-microsoft-com:office:office"' not in html:
-        r.add("R-001", "MUST", "Mancano namespace xmlns:v / xmlns:o")
+        r.add("R-001", "MUST", "Missing xmlns:v / xmlns:o namespaces")
 
     # R-003
     if "OfficeDocumentSettings" not in html:
-        r.add("R-003", "MUST", "Manca OfficeDocumentSettings in <!--[if mso]>")
+        r.add("R-003", "MUST", "Missing OfficeDocumentSettings in <!--[if mso]>")
 
     # R-402 ASCII
     for n, ln in enumerate(lines, 1):
         bad = [c for c in ln if ord(c) > 127]
         if bad:
-            r.add("R-402", "MUST", f"Carattere non ASCII {bad[0]!r} (usa entita' numerica)", n)
+            r.add("R-402", "MUST", f"Non-ASCII character {bad[0]!r} (use a numeric entity)", n)
             break
 
     # R-401 filler
     for n, ln in enumerate(lines, 1):
         if INVISIBLE_FILLER.search(ln):
-            r.add("R-401", "MUST", "Filler invisibile nel sorgente (DOS_BODY_HIGH_NO_MID)", n)
+            r.add("R-401", "MUST", "Invisible filler in the source (DOS_BODY_HIGH_NO_MID)", n)
             break
 
     # R-304
     for m in re.finditer(r"<!--(.*?)-->", html, re.S):
         if "<style" in m.group(1).lower():
-            r.add("R-304", "MUST", "Commento HTML contiene '<style'", html[:m.start()].count("\n") + 1)
+            r.add("R-304", "MUST", "HTML comment contains '<style'", html[:m.start()].count("\n") + 1)
 
     # R-400 preheader
     if not re.search(r'<!--\[if !mso\]><!-->\s*<div[^>]*style="display:none; ?mso-hide:all;?"', html):
-        r.add("R-400", "MUST", "Preheader assente o non nel formato <!--[if !mso]><!--><div style=\"display:none; mso-hide:all;\">")
+        r.add("R-400", "MUST", "Preheader missing or not in the format <!--[if !mso]><!--><div style=\"display:none; mso-hide:all;\">")
 
     # R-700/R-701 CTA
     if "v:roundrect" in html:
@@ -364,33 +367,33 @@ def lint_text_level(html: str, r: Report, production: bool) -> None:
         if vml:
             h, w = vml.group(1), vml.group(2)
             if not re.search(rf'<table[^>]*width="{w}"[^>]*>\s*<tr>\s*<td[^>]*height="{h}"', html):
-                r.add("R-701", "MUST", f"VML {w}x{h} senza tabella non-mso con width=\"{w}\" e td height=\"{h}\"")
+                r.add("R-701", "MUST", f"VML {w}x{h} without a non-mso table with width=\"{w}\" and td height=\"{h}\"")
         if "<!--[if !mso]><!-->" not in html:
-            r.add("R-700", "MUST", "CTA VML senza ramo <!--[if !mso]><!-->")
+            r.add("R-700", "MUST", "VML CTA without the <!--[if !mso]><!--> branch")
     if re.search(r"\bstroke=\"t|strokecolor=", html):
-        r.add("R-700", "SHOULD", "VML con bordo: preferire stroke=\"f\"")
+        r.add("R-700", "SHOULD", "VML with a stroke: prefer stroke=\"f\"")
 
-    # R-601 celle immagine con height
+    # R-601 image cells with height
     for m in re.finditer(r"<td([^>]*)>\s*(?:<a[^>]*>\s*)?<img", html):
         if 'height="' not in m.group(1):
-            r.add("R-601", "MUST", "Cella che contiene <img> senza attributo height", html[:m.start()].count("\n") + 1)
+            r.add("R-601", "MUST", "Cell containing <img> without a height attribute", html[:m.start()].count("\n") + 1)
         if 'bgcolor="' not in m.group(1):
-            r.add("R-601", "SHOULD", "Cella che contiene <img> senza bgcolor", html[:m.start()].count("\n") + 1)
+            r.add("R-601", "SHOULD", "Cell containing <img> without bgcolor", html[:m.start()].count("\n") + 1)
         if "font-size:0" not in m.group(1).replace(" ", ""):
-            r.add("R-208", "MUST", "Cella immagine senza font-size:0; line-height:0", html[:m.start()].count("\n") + 1)
+            r.add("R-208", "MUST", "Image cell without font-size:0; line-height:0", html[:m.start()].count("\n") + 1)
 
-    # R-801 percentuali frazionarie
+    # R-801 fractional percentages
     for m in re.finditer(r'width="(\d+\.\d+)%"', html):
-        r.add("R-801", "MUST", f"Larghezza frazionaria {m.group(1)}%", html[:m.start()].count("\n") + 1)
+        r.add("R-801", "MUST", f"Fractional width {m.group(1)}%", html[:m.start()].count("\n") + 1)
 
     # R-409 shortener
     if SHORTENERS.search(html):
-        r.add("R-409", "MUST", "URL shortener nei link")
+        r.add("R-409", "MUST", "URL shortener in the links")
 
     # R-901 placeholder
     ph = sorted({m.group(0) for m in PLACEHOLDERS.finditer(html)})
     if ph:
-        r.add("R-901", "MUST" if production else "SHOULD", f"Placeholder presenti: {', '.join(ph)}")
+        r.add("R-901", "MUST" if production else "SHOULD", f"Placeholders present: {', '.join(ph)}")
 
 
 def lint_style_block(css: str, r: Report) -> None:
@@ -400,53 +403,53 @@ def lint_style_block(css: str, r: Report) -> None:
     flat = css.strip()
     for pat in STYLE_FORBIDDEN_SELECTORS:
         if re.search(pat, flat):
-            r.add("R-301", "MUST", f"Selettore/regola vietata nel <style>: /{pat}/")
+            r.add("R-301", "MUST", f"Forbidden selector/rule in <style>: /{pat}/")
     outside_media = re.sub(r"@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", "", flat)
     for prop in STYLE_FORBIDDEN_PROPS:
         if re.search(rf"(^|[;{{\s]){re.escape(prop)}\s*:", flat):
-            r.add("R-301", "MUST", f"Proprieta' vietata nel <style>: {prop}")
+            r.add("R-301", "MUST", f"Forbidden property in <style>: {prop}")
     medias = re.findall(r"@media[^{]*", flat)
     if len(medias) > 1:
-        r.add("R-300", "MUST", f"{len(medias)} media query (ammessa 1)")
+        r.add("R-300", "MUST", f"{len(medias)} media queries (1 allowed)")
     for mq in medias:
         if re.search(r"only|screen|\band\b", mq):
-            r.add("R-302", "MUST", f"Media query con only/screen/and: '{mq.strip()}' (usa @media (max-width:620px))")
+            r.add("R-302", "MUST", f"Media query with only/screen/and: '{mq.strip()}' (use @media (max-width:620px))")
     media_lines = [ln for ln in flat.splitlines() if "@media" in ln]
     for ln in media_lines:
         if ln.count("{") != ln.count("}"):
-            r.add("R-303", "MUST", "Media query non su una sola riga")
+            r.add("R-303", "MUST", "Media query not on a single line")
     radius_lines = [ln for ln in outside_media.splitlines() if "border-radius" in ln]
     if len(radius_lines) > 1:
-        r.add("R-303", "MUST", f"border-radius su {len(radius_lines)} righe (ammessa 1)")
+        r.add("R-303", "MUST", f"border-radius on {len(radius_lines)} lines (1 allowed)")
     other = [ln for ln in outside_media.splitlines() if ln.strip() and "border-radius" not in ln and "x-apple-data-detectors" not in ln]
     if other:
-        r.add("R-300", "MUST", f"Regole extra nel <style>: {other[0][:80]}")
+        r.add("R-300", "MUST", f"Extra rules in <style>: {other[0][:80]}")
 
 
 def lint_dom(p: EmailParser, r: Report, transactional: bool = False) -> None:
     """Controlli sul modello DOM raccolto."""
     if not p.html_attrs.get("lang"):
-        r.add("R-504", "MUST", "<html> senza lang")
+        r.add("R-504", "MUST", "<html> without lang")
     if not p.title_text.strip():
-        r.add("R-504", "MUST", "<title> vuoto")
+        r.add("R-504", "MUST", "<title> empty")
     for req in ("viewport", "x-ua-compatible", "x-apple-disable-message-reformatting", "format-detection", "color-scheme", "supported-color-schemes"):
         if req not in p.meta:
-            r.add("R-002" if "color" not in req else "R-500", "MUST", f"Meta '{req}' mancante")
+            r.add("R-002" if "color" not in req else "R-500", "MUST", f"Meta '{req}' missing")
     cs = p.meta.get("color-scheme", "").replace(" ", "")
     if cs in ("lightdark", "darklight"):
-        r.add("R-500", "MUST", "color-scheme 'light dark' vietato senza tema dark completo")
+        r.add("R-500", "MUST", "color-scheme 'light dark' forbidden without a complete dark theme")
     for req in ("bgcolor", "text", "link"):
         if req not in p.body_attrs:
-            r.add("R-207" if req != "bgcolor" else "R-200", "MUST", f"<body> senza attributo {req}")
+            r.add("R-207" if req != "bgcolor" else "R-200", "MUST", f"<body> without the {req} attribute")
     for req in ("marginwidth", "marginheight"):
         if req not in p.body_attrs:
-            r.add("R-206", "MUST", f"<body> senza {req}")
+            r.add("R-206", "MUST", f"<body> without {req}")
     if len(p.style_blocks) > 0 and html_style_count(p) > 1:
-        r.add("R-300", "MUST", "Piu' di un blocco <style>")
+        r.add("R-300", "MUST", "More than one <style> block")
     if not p.heading_found:
-        r.add("R-007", "SHOULD", "Nessun <td role=\"heading\" aria-level=\"1\">")
+        r.add("R-007", "SHOULD", "No <td role=\"heading\" aria-level=\"1\">")
 
-    # contrasto testo (R-403/R-501)
+    # text contrast (R-403/R-501)
     seen: set[tuple[str, str]] = set()
     for text, color, bg, line in p.text_chunks:
         if not color or not bg:
@@ -467,20 +470,20 @@ def lint_dom(p: EmailParser, r: Report, transactional: bool = False) -> None:
             unsubscribe = True
         if low.startswith(("tel:", "mailto:", "[", "#")):
             if low.startswith("tel:") and " " in href:
-                r.add("R-457", "MUST", f"tel: con spazi: {href}", line)
+                r.add("R-457", "MUST", f"tel: with spaces: {href}", line)
             continue
         if not low.startswith("https://"):
-            r.add("R-450", "MUST", f"Link non HTTPS assoluto: {href[:70]}", line)
+            r.add("R-450", "MUST", f"Link is not an absolute HTTPS URL: {href[:70]}", line)
         if re.search(r"https?://\d+\.\d+\.\d+\.\d+", low):
-            r.add("R-409", "MUST", f"Link con IP nudo: {href[:70]}", line)
+            r.add("R-409", "MUST", f"Link with a bare IP: {href[:70]}", line)
         if "utm_" in low and re.search(r"utm_[a-z]+=[^&]*(\s|%20)", href):
-            r.add("R-452", "MUST", f"UTM con spazi: {href[:70]}", line)
+            r.add("R-452", "MUST", f"UTM with spaces: {href[:70]}", line)
     if not unsubscribe:
-        # Le transazionali pure (conferma ordine, reset password) non richiedono la disiscrizione:
-        # la segnaliamo come SHOULD quando l'utente dichiara il tipo con --transactional.
+        # Purely transactional emails (order confirmation, password reset) do not require unsubscribe:
+        # it is reported as SHOULD when the user declares the type with --transactional.
         level = "SHOULD" if transactional else "MUST"
-        r.add("R-454", level, "Nessun link di disiscrizione rilevato"
-              + (" (transazionale: verifica che sia davvero esente)" if transactional else ""))
+        r.add("R-454", level, "No unsubscribe link detected"
+              + (" (transactional: check that it really is exempt)" if transactional else ""))
 
 
 def html_style_count(p: EmailParser) -> int:
@@ -490,26 +493,26 @@ def html_style_count(p: EmailParser) -> int:
 def lint_subject(subject: str, r: Report) -> None:
     n = len(subject)
     if n > 60:
-        r.add("R-406", "MUST", f"Oggetto {n} caratteri > 60")
+        r.add("R-406", "MUST", f"Subject {n} characters > 60")
     elif not 35 <= n <= 50:
-        r.add("R-406", "SHOULD", f"Oggetto {n} caratteri (ottimale 35-50)")
+        r.add("R-406", "SHOULD", f"Subject {n} characters (35-50 is optimal)")
     letters = [c for c in subject if c.isalpha()]
     if letters and sum(c.isupper() for c in letters) / len(letters) > 0.5:
-        r.add("R-406", "MUST", "Oggetto prevalentemente in MAIUSCOLO")
+        r.add("R-406", "MUST", "Subject mostly in UPPERCASE")
     if re.search(r"[!?$]{2,}", subject):
-        r.add("R-406", "MUST", "Punteggiatura ripetuta nell'oggetto")
+        r.add("R-406", "MUST", "Repeated punctuation in the subject")
     if SPAM_WORDS.search(subject):
-        r.add("R-406", "MUST", f"Parola trigger nell'oggetto: {SPAM_WORDS.search(subject).group(0)}")
+        r.add("R-406", "MUST", f"Trigger word in the subject: {SPAM_WORDS.search(subject).group(0)}")
 
 
 def lint_plaintext(text: str, p: EmailParser, r: Report) -> None:
     if not text.strip():
-        r.add("R-404", "MUST", "Parte text/plain vuota")
+        r.add("R-404", "MUST", "text/plain part is empty")
         return
     html_links = {h.split("?")[0] for h, _ in p.links if h.startswith("https://")}
     missing = [h for h in html_links if h not in text]
     if missing:
-        r.add("R-404", "SHOULD", f"{len(missing)} link HTML assenti nel text/plain (es. {missing[0]})")
+        r.add("R-404", "SHOULD", f"{len(missing)} HTML links missing from the text/plain (e.g. {missing[0]})")
 
 
 # --------------------------------------------------------------------------------------
@@ -528,8 +531,8 @@ def run(path: Path, text_path: Path | None, subject: str | None, production: boo
     try:
         parser.feed(html)
         parser.close()
-    except Exception as exc:  # parser HTML permissivo: un'eccezione indica input gravemente malformato
-        report.add("R-010", "MUST", f"Parse fallito: {exc}")
+    except Exception as exc:  # the HTML parser is permissive: an exception means severely malformed input
+        report.add("R-010", "MUST", f"Parse failed: {exc}")
         return report
 
     lint_style_block("\n".join(parser.style_blocks), report)
@@ -545,25 +548,25 @@ def run(path: Path, text_path: Path | None, subject: str | None, production: boo
 def main(argv: Iterable[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("html", type=Path)
-    ap.add_argument("--text", type=Path, default=None, help="file text/plain")
+    ap.add_argument("--text", type=Path, default=None, help="text/plain file")
     ap.add_argument("--subject", default=None)
     ap.add_argument("--production", action="store_true", help="placeholder = MUST")
     ap.add_argument("--transactional", action="store_true",
-                    help="mail transazionale pura: la disiscrizione (R-454) scende a SHOULD")
+                    help="purely transactional email: unsubscribe (R-454) drops to SHOULD")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(list(argv) if argv is not None else None)
 
     if not args.html.is_file():
-        print(f"File non trovato: {args.html}", file=sys.stderr)
+        print(f"File not found: {args.html}", file=sys.stderr)
         return 2
 
     try:
         report = run(args.html, args.text, args.subject, args.production, args.transactional)
     except Exception as exc:
-        print(f"Errore di esecuzione: {exc}", file=sys.stderr)
+        print(f"Execution error: {exc}", file=sys.stderr)
         return 2
 
-    # dedup (stessa regola+messaggio)
+    # dedup (same rule+message)
     uniq: dict[tuple[str, str, str], Finding] = {}
     for f in report.findings:
         uniq.setdefault((f.rule, f.level, f.message), f)
@@ -573,12 +576,12 @@ def main(argv: Iterable[str] | None = None) -> int:
         print(json.dumps({"file": report.file, "bytes": report.bytes, "must": report.must_count,
                           "findings": [asdict(f) for f in report.findings]}, ensure_ascii=False, indent=2))
     else:
-        print(f"{report.file} - {report.bytes} byte")
+        print(f"{report.file} - {report.bytes} bytes")
         for f in report.findings:
             loc = f":{f.line}" if f.line else ""
             print(f"  [{f.level:6}] {f.rule}{loc}  {f.message}")
         should = len(report.findings) - report.must_count
-        print(f"\nMUST violati: {report.must_count} | SHOULD: {should} | esito: {'FAIL' if report.must_count else 'PASS'}")
+        print(f"\nMUST violated: {report.must_count} | SHOULD: {should} | result: {'FAIL' if report.must_count else 'PASS'}")
     return 1 if report.must_count else 0
 
 

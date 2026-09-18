@@ -1,4 +1,4 @@
-# Output di lavoro
+# Work output
 shots/
 out/
 dist/
@@ -19,11 +19,11 @@ venv/
 .coverage
 htmlcov/
 
-# Node (solo per tool di screenshot opzionali)
+# Node (only for the optional screenshot tooling)
 node_modules/
 package-lock.json
 
-# Segreti: mai committare token Mailtrap/MailUp
+# Secrets: never commit Mailtrap/MailUp tokens
 .env
 .env.*
 !.env.example

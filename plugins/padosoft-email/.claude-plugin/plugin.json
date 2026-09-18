@@ -2,7 +2,7 @@
   "name": "padosoft-email",
   "displayName": "Padosoft Email",
   "version": "1.1.0",
-  "description": "Email HTML che passano Mailtrap HTML Check, SpamAssassin e MailUp Check-up al primo invio: layout ad attributi, linter incluso, test in sandbox.",
+  "description": "HTML emails that pass Mailtrap HTML Check, SpamAssassin and MailUp Check-up on the first send: attribute-based layout, linter included, sandbox testing.",
   "author": { "name": "Padosoft", "url": "https://www.padosoft.com" },
   "repository": "https://github.com/padosoft/skills",
   "license": "MIT",

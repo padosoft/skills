@@ -1,14 +1,14 @@
-## Cosa cambia
+## What changes
 
-<!-- Una riga. Se tocchi una regola, cita l'ID R-xxx. -->
+<!-- One line. If you touch a rule, quote the R-xxx ID. -->
 
-## Evidenza
+## Evidence
 
-<!-- Report Mailtrap (HTML Check / spam), Check-up MailUp o screenshot del client interessato. -->
+<!-- Mailtrap report (HTML Check / spam), MailUp Check-up or a screenshot of the client involved. -->
 
 ## Checklist
 
-- [ ] `make all` passa in locale (validate + test + lint del template)
-- [ ] Se ho aggiunto una regola: aggiornati `references/rules.md`, il linter e un test in `tests/`
-- [ ] Se ho cambiato il flusso: aggiornato `SKILL.md` (e resta sotto 500 righe)
-- [ ] Nessun token o dato reale nei file committati
+- [ ] `make all` passes locally (validate + test + lint of the template)
+- [ ] If I added a rule: `references/rules.md`, the linter and a test in `tests/` are updated
+- [ ] If I changed the flow: `SKILL.md` is updated (and stays under 500 lines)
+- [ ] No tokens or real data in the committed files

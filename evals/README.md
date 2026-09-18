@@ -1,11 +1,11 @@
-# Eval di attivazione
+# Activation evals
 
-Verificano che il campo `description` di `SKILL.md` attivi la skill sulle richieste giuste e non su quelle
-adiacenti. Metodo: [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions).
+They verify that the `description` field of `SKILL.md` triggers the skill on the right requests and not on
+adjacent ones. Method: [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions).
 
-- `eval_queries.json` — 20 query (10 positive, 10 negative), in italiano come l'uso reale, con near-miss
-  volutamente insidiosi (landing page, SPF/DKIM, export MailUp, CSS di una pagina web).
-- Criterio: una query positiva passa con tasso di attivazione > 0.5 su 3 run; una negativa passa sotto 0.5.
-- Se modifichi `description`, rilancia le eval e riporta il tasso nella PR. Per evitare overfitting, tieni
-  ~60% delle query come train e ~40% come validation, e scegli la versione con il miglior risultato sul
+- `eval_queries.json` — 20 queries (10 positive, 10 negative), phrased the way people really ask, with
+  deliberately tricky near misses (landing page, SPF/DKIM, MailUp export, CSS of a web page).
+- Criterion: a positive query passes with an activation rate > 0.5 over 3 runs; a negative one passes below 0.5.
+- If you change the `description`, re-run the evals and report the rate in the PR. To avoid overfitting, keep
+  ~60% of the queries as train and ~40% as validation, and pick the version with the best result on the
   validation set.

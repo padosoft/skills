@@ -1,28 +1,28 @@
 name: Bug report
-description: Una regola non viene rilevata, un falso positivo del linter, uno script che rompe
+description: A rule is not detected, a linter false positive, a script that breaks
 labels: [bug]
 body:
   - type: input
     id: rule
     attributes:
-      label: Regola coinvolta (R-xxx)
+      label: Rule involved (R-xxx)
       placeholder: R-101
   - type: textarea
     id: repro
     attributes:
-      label: Come riprodurlo
-      description: Comando eseguito e frammento HTML minimo
+      label: How to reproduce it
+      description: The command you ran and a minimal HTML snippet
       render: shell
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Comportamento atteso vs osservato
+      label: Expected vs observed behaviour
     validations:
       required: true
   - type: input
     id: env
     attributes:
-      label: Ambiente
+      label: Environment
       placeholder: "Python 3.12, macOS 15, client: Claude Code"
