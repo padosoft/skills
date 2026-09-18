@@ -173,6 +173,15 @@ check that never looked. The screen above recognises the write through the query
 and will still be flagged: it narrows all repositories down to a handful worth opening, and then you count
 the writes *inside the function*. Confirm before reporting anything.
 
+Two shapes come back as candidates and are **not** violations — recognise them and move on:
+
+- **Upsert branches.** `SELECT` to check existence, then `INSERT` *or* `UPDATE`. Two writes in the text, one
+  per execution path. (Worth a separate look for the check-then-act race, which a unique index closes — but
+  it is not the transaction rule.)
+- **A read function with many executes.** Four `SELECT`s in a loader are four executes and zero writes.
+
+What survives is the real shape: **two writes on different rows or tables, in sequence, on the same path.**
+
 A function whose name or docstring promises all-or-nothing semantics ("atomic", "bulk replace", "publish",
 "transition") and has no transaction is a **critical** finding, not a warning. If the function only delegates
 to another repository that already opens the transaction, it is fine.
