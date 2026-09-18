@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+- **Four skills extracted from two production projects** (a Bun/Hono API and its spec-first OpenAPI
+  repository), generalised and translated to English. The know-how comes from a 2026-07 security audit, the
+  findings of a hardening PR and one real incident, not from generic checklists.
+  - `padosoft-api-security-review` (`api`, `node`) — ten checks with grep pre-screens: auth on every mutating
+    route, ownership from the authenticated id, no secrets or PII in responses, redacted logs and telemetry,
+    fail-safe environment gates, bound SQL, resource caps, downstream injection, no trust from caller input,
+    supply chain. The full rules with their origin are in `references/rules.md`.
+  - `padosoft-hono-api-conventions` (`node`, `api`) — the three-layer Controller → Repository → Query
+    architecture, typed context and middleware factory, transactions on multi-write, and the seven recurring
+    mistakes.
+  - `padosoft-openapi-spec-workflow` (`api`, `node`) — what must stay in sync when a shared contract changes
+    (schema, mocks and per-tenant overrides, endpoint, client, tests), changesets, and the verification loop.
+  - `padosoft-pr-review-triage` (`devops`) — triage of automated review comments (Copilot, Codex,
+    CodeRabbit): categorise, get approval before touching code, fix, reply, and propose a rule when the bot
+    found what the project checks missed.
+- Two marketplace packages: `padosoft-api` and `padosoft-devops`.
+
+### Fixed
+- `scripts/build_catalog.py` wrote the generated files with the platform default newline, so every
+  `make catalog` on Windows rewrote CATALOG.md, profiles.json, README.md and the router SKILL.md with CRLF,
+  against `.gitattributes`. All four writes now pass an explicit LF newline.
+
+## [2.1.0] - 2026-09-18
+
 ### Changed
 - **The whole repository is now in English** — README, CATALOG, CONTRIBUTING, SECURITY, skills, scripts,
   tests, evals and CI. The skills are meant to be usable outside Padosoft, so the language people read them

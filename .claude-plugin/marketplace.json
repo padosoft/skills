@@ -15,9 +15,15 @@
       "displayName": "Padosoft Core",
       "description": "Cross-project skills to keep always on: catalog and router of the company skills.",
       "version": "0.1.0",
-      "author": { "name": "Padosoft" },
+      "author": {
+        "name": "Padosoft"
+      },
       "license": "MIT",
-      "keywords": ["padosoft", "core", "router"],
+      "keywords": [
+        "padosoft",
+        "core",
+        "router"
+      ],
       "category": "productivity"
     },
     {
@@ -26,9 +32,53 @@
       "displayName": "Padosoft Email",
       "description": "HTML emails that pass Mailtrap HTML Check, SpamAssassin and MailUp Check-up on the first send.",
       "version": "1.1.0",
-      "author": { "name": "Padosoft" },
+      "author": {
+        "name": "Padosoft"
+      },
       "license": "MIT",
-      "keywords": ["email", "html-email", "mailtrap", "mailup", "deliverability"],
+      "keywords": [
+        "email",
+        "html-email",
+        "mailtrap",
+        "mailup",
+        "deliverability"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "padosoft-api",
+      "source": "./plugins/padosoft-api",
+      "displayName": "Padosoft API",
+      "description": "Building and reviewing HTTP APIs: security review, Hono/Bun conventions, OpenAPI spec workflow.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Padosoft"
+      },
+      "license": "MIT",
+      "keywords": [
+        "api",
+        "security",
+        "hono",
+        "bun",
+        "openapi"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "padosoft-devops",
+      "source": "./plugins/padosoft-devops",
+      "displayName": "Padosoft DevOps",
+      "description": "Repository and delivery workflows: triage of automated PR review comments.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Padosoft"
+      },
+      "license": "MIT",
+      "keywords": [
+        "devops",
+        "github",
+        "code review"
+      ],
       "category": "productivity"
     }
   ]

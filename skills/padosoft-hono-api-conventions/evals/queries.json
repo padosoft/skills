@@ -1,0 +1,22 @@
+[
+  { "query": "aggiungi l'endpoint GET /v1/negozi con paginazione e lingua", "should_trigger": true },
+  { "query": "write a new repository function that replaces all the rows of a group", "should_trigger": true },
+  { "query": "c.get(\"auth\") is typed any, do I need a cast?", "should_trigger": true },
+  { "query": "the list endpoint returns null when there are no rows and the caller crashes", "should_trigger": true },
+  { "query": "page 1 is skipping the first 20 records", "should_trigger": true },
+  { "query": "sometimes the description comes back untranslated, sometimes not, same request", "should_trigger": true },
+  { "query": "how should I write this middleware so the context stays typed?", "should_trigger": true },
+  { "query": "getting 'Unknown parameter :id_0' on a query with an IN clause", "should_trigger": true },
+  { "query": "review this controller before I open the PR", "should_trigger": true },
+  { "query": "where do I put the caching, in the query or in the repository?", "should_trigger": true },
+  { "query": "is this endpoint missing an auth middleware?", "should_trigger": false },
+  { "query": "add the new field to the OpenAPI schema and the mocks", "should_trigger": false },
+  { "query": "the settings endpoint is returning an api key", "should_trigger": false },
+  { "query": "set up the GitHub Actions workflow for the deploy", "should_trigger": false },
+  { "query": "write a React Native screen that lists the stores", "should_trigger": false },
+  { "query": "optimize this MySQL index, the query takes 4 seconds", "should_trigger": false },
+  { "query": "explain the difference between Bun and Node", "should_trigger": false },
+  { "query": "process the Copilot comments on PR 212", "should_trigger": false },
+  { "query": "write the HTML email for the order confirmation", "should_trigger": false },
+  { "query": "our Redis is down in production, what do I check first?", "should_trigger": false }
+]

@@ -254,7 +254,7 @@ def inject_readme(body: str) -> None:
         return
     pre = text.split(README_START)[0]
     post = text.split(README_END, 1)[1]
-    README.write_text(pre + body.rstrip("\n") + post, encoding="utf-8")
+    README.write_text(pre + body.rstrip("\n") + post, encoding="utf-8", newline="\n")
 
 
 def check_readme(body: str) -> bool:
@@ -289,7 +289,7 @@ def inject_router(body: str) -> None:
         return
     pre = text.split(GENERATED_START)[0]
     post = text.split(GENERATED_END, 1)[1]
-    ROUTER.write_text(pre + body.rstrip("\n") + post, encoding="utf-8")
+    ROUTER.write_text(pre + body.rstrip("\n") + post, encoding="utf-8", newline="\n")
 
 
 def check_router(body: str) -> bool:
@@ -342,8 +342,9 @@ def main() -> int:
         print(f"Catalog up to date: {len(skills)} skills, {len(profiles['profiles'])} profiles")
         return 0
 
-    CATALOG.write_text(catalog, encoding="utf-8")
-    PROFILES.write_text(profiles_json, encoding="utf-8")
+    # newline="\n" on every write: on Windows the default translates to CRLF, against .gitattributes
+    CATALOG.write_text(catalog, encoding="utf-8", newline="\n")
+    PROFILES.write_text(profiles_json, encoding="utf-8", newline="\n")
     inject_router(build_catalog(skills, profiles))
     inject_readme(build_readme_section(skills, profiles))
     print(f"Wrote {CATALOG.name} and {PROFILES.name}: {len(skills)} skills, {len(profiles['profiles'])} profiles")
