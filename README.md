@@ -10,7 +10,7 @@
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-spec%20compliant-5A67D8)](https://agentskills.io/specification)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![skills.sh](https://skills.sh/b/padosoft/skills?style=flat)](https://skills.sh/padosoft/skills)
+[![skills.sh](https://img.shields.io/badge/skills.sh-padosoft%2Fskills-0A7D5A)](https://skills.sh/padosoft/skills)
 
 Skills compatible with Claude Code, Codex, Cursor, Copilot, Gemini CLI, OpenCode and every other client that
 supports the [Agent Skills](https://agentskills.io) format.
