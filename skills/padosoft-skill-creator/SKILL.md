@@ -1,205 +1,210 @@
 ---
 name: padosoft-skill-creator
 description: >-
-  Usa questa skill quando si crea, si modifica o si rivede una Agent Skill del repository padosoft/skills,
-  quando l'utente vuole trasformare un workflow ricorrente, una checklist o delle linee guida in una skill
-  riutilizzabile, oppure quando chiede dove va una skill (profilo, scope, pacchetto) o perche' la CI del repo
-  fallisce su catalogo, profili o manifest: guida la creazione end-to-end con lo scaffolding, le convenzioni
-  Padosoft e i controlli automatici. Non usarla per scrivere il contenuto tecnico del dominio (quello lo fa
-  la skill che stai creando) ne' per installare skill esistenti (se ne occupa padosoft-skills-router).
+  Use this skill when creating, editing or reviewing an Agent Skill of the padosoft/skills repository,
+  when the user wants to turn a recurring workflow, a checklist or a set of guidelines into a reusable
+  skill, or when they ask where a skill belongs (profile, scope, package) or why the repo CI is failing on
+  catalog, profiles or manifests: it guides the whole creation with scaffolding, the Padosoft conventions
+  and the automated checks. Do not use it to write the technical domain content (that is the job of the
+  skill you are creating) nor to install existing skills (padosoft-skills-router handles that).
 license: MIT
 compatibility: >-
-  Richiede Python 3.10+ (solo standard library) e il repository padosoft/skills clonato in locale per
-  rigenerare catalogo e profili. Node.js 18+ solo per provare l'installazione con npx skills.
+  Requires Python 3.10+ (standard library only) and the padosoft/skills repository cloned locally to
+  regenerate catalog and profiles. Node.js 18+ only to try the installation with npx skills.
 metadata:
   version: 0.1.0
   author: Padosoft
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills
-  keywords: skill, agent skills, scaffolding, SKILL.md, frontmatter, profili, catalogo, CI
+  keywords: skill, agent skills, scaffolding, SKILL.md, frontmatter, profiles, catalog, CI
 ---
 
 # Padosoft Skill Creator
 
-Crea skill che rispettano **la specifica Agent Skills** e **le convenzioni di `padosoft/skills`**, senza
-doverle ricordare a memoria. Il risultato atteso: `make all` verde al primo colpo e la skill che si attiva
-quando serve, non quando capita.
+Creates skills that follow **the Agent Skills specification** and **the `padosoft/skills` conventions**,
+without having to remember them. The expected outcome: `make all` green on the first try, and a skill that
+triggers when it is needed, not at random.
 
 ---
 
-## 0. Cosa c'e' in questa skill
+## 0. What is in this skill
 
-| File | Uso |
+| File | Use |
 |---|---|
-| `scripts/new_skill.py` | Scaffolding: crea `skills/<nome>/` con SKILL.md compilato, cartelle e file di eval. `--help` per le opzioni. |
-| `templates/SKILL.template.md` | Lo scheletro usato dallo scaffolding, se serve partire a mano. |
-| `references/checklist.md` | Checklist di revisione prima della PR e gli errori ricorrenti da evitare. |
+| `scripts/new_skill.py` | Scaffolding: creates `skills/<name>/` with a filled-in SKILL.md, folders and eval files. `--help` for the options. |
+| `templates/SKILL.template.md` | The skeleton used by the scaffolding, if you need to start by hand. |
+| `references/checklist.md` | Review checklist before the PR, and the recurring mistakes to avoid. |
 
-Gli script di validazione **stanno nel repo**, non qui: **scripts/build_catalog.py**, **scripts/validate_plugins.py** e
-**skills/padosoft-email-html-builder/scripts/validate_skill.py** (path del repo, non di questa skill).
+The validation scripts **live in the repo**, not here: **scripts/build_catalog.py**, **scripts/validate_plugins.py** and
+**skills/padosoft-email-html-builder/scripts/validate_skill.py** (repo paths, not paths of this skill).
 
 ---
 
-## 1. Prima di scrivere: la skill serve davvero?
+## 1. Before writing: is the skill really needed?
 
-Rispondi a queste tre, in ordine. Se una risposta e' no, fermati e dillo all'utente.
+Answer these three, in order. If any answer is no, stop and say so to the user.
 
-1. **L'agente sbaglia senza queste istruzioni?** Se il modello se la cava gia' bene da solo, la skill aggiunge
-   contesto e non qualita'. Provalo: stesso prompt senza skill, guarda l'output.
-2. **Il know-how e' reale e verificabile?** Regole nate da errori concreti, report di tool, review, incidenti.
-   Una skill sintetizzata da articoli generici produce consigli generici.
-3. **E' un'unita' coerente?** Ne' troppo stretta (due skill che devono caricarsi insieme per un compito solo),
-   ne' troppo larga (una skill che copre backend, deploy e monitoraggio).
+1. **Does the agent get it wrong without these instructions?** If the model already does fine on its own, the
+   skill adds context and not quality. Test it: same prompt without the skill, look at the output.
+2. **Is the know-how real and verifiable?** Rules born from concrete mistakes, tool reports, reviews, incidents.
+   A skill synthesised from generic articles produces generic advice.
+3. **Is it one coherent unit?** Neither too narrow (two skills that must load together for a single task),
+   nor too broad (one skill covering backend, deploy and monitoring).
 
-Il materiale migliore: una sessione reale in cui il lavoro e' riuscito, con le correzioni che l'utente ha
-dovuto fare. Quelle correzioni diventano i "gotcha", la parte piu' preziosa della skill.
+The best material: a real session where the work succeeded, together with the corrections the user had to
+make. Those corrections become the "gotchas", the most valuable part of the skill.
 
 ---
 
 ## 2. Workflow
 
-1. **Raccogli il know-how** dalla fonte reale: trascrizione della sessione, PR e review, runbook, report di
-   tool, incidenti. Chiedi all'utente i file, non ricostruire a memoria.
-2. **Decidi collocazione e nome** (§3). Il nome ha sempre il prefisso `padosoft-`.
+1. **Collect the know-how** from the real source: session transcript, PRs and reviews, runbooks, tool
+   reports, incidents. Ask the user for the files, do not reconstruct them from memory.
+2. **Decide placement and name** (§3). The name always carries the `padosoft-` prefix.
 3. **Scaffolding**:
    ```bash
    python3 skills/padosoft-skill-creator/scripts/new_skill.py laravel-conventions \
-     --profiles laravel --scope project --title "Convenzioni Laravel Padosoft"
+     --profiles laravel --scope project --title "Padosoft Laravel conventions"
    ```
-   Crea `skills/padosoft-laravel-conventions/` con SKILL.md precompilato, `references/`, `scripts/`,
-   `evals/queries.json` e il frontmatter gia' corretto.
-4. **Scrivi la `description`** (§4): e' il campo che decide se la skill si attiva. Dedicaci piu' tempo del resto.
-5. **Scrivi il corpo** (§5): workflow numerato, pattern copiabili, gotcha, checklist. Sotto le 500 righe.
-6. **Sposta i dettagli in `references/`** e di' **quando** leggerli (esempio: "apri il file degli errori API in references/ se il tool risponde 4xx").
-7. **Aggiungi uno script** solo se l'agente rifarebbe la stessa logica ogni volta (§6).
-8. **Rigenera e valida**:
+   Creates `skills/padosoft-laravel-conventions/` with a pre-filled SKILL.md, `references/`, `scripts/`,
+   `evals/queries.json` and the frontmatter already correct.
+4. **Write the `description`** (§4): it is the field that decides whether the skill triggers. Spend more time
+   on it than on anything else.
+5. **Write the body** (§5): numbered workflow, copyable patterns, gotchas, checklist. Under 500 lines.
+6. **Move the details into `references/`** and say **when** to read them (for example: "open the API errors
+   file in references/ if the tool answers 4xx").
+7. **Add a script** only if the agent would redo the same logic every time (§6).
+8. **Regenerate and validate**:
    ```bash
-   make catalog   # CATALOG.md, profiles.json, catalogo del router
+   make catalog   # CATALOG.md, profiles.json, the router catalog
    make all       # validate + test + lint
    ```
-9. **Aggiungi la skill a un pacchetto** in `plugins/` (`padosoft-core`, `padosoft-email`, …): se resta scoperta,
-   validate_plugins.py del repo fallisce.
-10. **Prova sul campo**: sessione nuova, un compito reale, nessun suggerimento. Poi correggi cio' che e' andato
-    storto e aggiungi la correzione ai gotcha. Una sola iterazione di questo tipo migliora molto la skill.
-11. **CHANGELOG** e PR.
+9. **Add the skill to a package** in `plugins/` (`padosoft-core`, `padosoft-email`, …): if it stays uncovered,
+   the repo's validate_plugins.py fails.
+10. **Try it in the field**: fresh session, a real task, no hints. Then fix what went wrong and add the fix to
+    the gotchas. A single iteration of this kind improves the skill a lot.
+11. **CHANGELOG** and PR.
 
 ---
 
-## 3. Collocazione: profilo, scope, nome
+## 3. Placement: profile, scope, name
 
 ```yaml
 metadata:
-  profiles: laravel, api    # uno o piu' profili di KNOWN_PROFILES (scripts/build_catalog.py)
+  profiles: laravel, api    # one or more profiles from KNOWN_PROFILES (scripts/build_catalog.py)
   scope: project            # project | global
 ```
 
-- **`scope: global`** solo se passa il filtro a tre domande: serve su qualunque stack, e' corretta ovunque,
-  e la sua assenza sarebbe un problema. Le globali stanno nel profilo `core` e un test le ferma a cinque.
-- **`profiles`**: per stack (`laravel`, `node`, `react-native`) o per dominio (`email`, `api`, `payments`,
-  `data`, `devops`). Piu' profili solo se la skill serve davvero in entrambi. Mai creare un profilo per una
-  skill sola: aggiungerne uno significa modificare KNOWN_PROFILES in PR.
-- **Nome**: `padosoft-<dominio>-<cosa-fa>`, minuscolo, trattini, uguale alla cartella. Descrittivo del compito,
-  non del contenuto: `padosoft-laravel-conventions`, non `padosoft-laravel-docs`.
+- **`scope: global`** only if it passes the three-question filter: it is useful on any stack, it is correct
+  everywhere, and its absence would be a problem. Global skills live in the `core` profile and a test caps
+  them at five.
+- **`profiles`**: by stack (`laravel`, `node`, `react-native`) or by domain (`email`, `api`, `payments`,
+  `data`, `devops`). Multiple profiles only if the skill is genuinely needed in both. Never create a profile
+  for a single skill: adding one means changing KNOWN_PROFILES in a PR.
+- **Name**: `padosoft-<domain>-<what-it-does>`, lowercase, hyphens, identical to the folder. Descriptive of
+  the task, not of the content: `padosoft-laravel-conventions`, not `padosoft-laravel-docs`.
 
 ---
 
-## 4. La `description`: il campo che conta
+## 4. The `description`: the field that matters
 
-E' l'unica cosa che l'agente legge finche' non attiva la skill. Struttura che funziona:
+It is the only thing the agent reads until the skill triggers. A structure that works:
 
 ```
-Usa questa skill quando <situazioni concrete, anche senza le parole chiave del dominio>:
-<cosa fa, in una riga>. Non usarla per <confini>.
+Use this skill when <concrete situations, even without the domain keywords>:
+<what it does, in one line>. Do not use it for <boundaries>.
 ```
 
-Regole:
+Rules:
 
-- **Imperativa**, rivolta all'agente: "Usa questa skill quando…", non "Questa skill fornisce…".
-- **Elenca le situazioni**, comprese quelle in cui l'utente non nomina il dominio ("la mail si rompe su Outlook"
-  invece di "email HTML").
-- **Dichiara i confini**: cosa NON copre. Con molte skill installate e' cio' che evita le attivazioni sbagliate.
-- Massimo **1024 caratteri**, di solito ne bastano 400-600.
+- **Imperative**, addressed to the agent: "Use this skill when…", not "This skill provides…".
+- **List the situations**, including those where the user does not name the domain ("the email breaks on
+  Outlook" instead of "HTML email").
+- **State the boundaries**: what it does NOT cover. With many skills installed, this is what prevents wrong
+  activations.
+- At most **1024 characters**; 400-600 are usually enough.
 
-Poi scrivi le eval in `evals/`: 8-10 query che devono attivarla e 8-10 che **non** devono, scegliendo come
-negative i casi vicini (stesso dominio, compito diverso). Sono quelle che misurano davvero la qualita'.
-
----
-
-## 5. Il corpo: cosa mettere e cosa no
-
-**Metti:**
-
-- Workflow numerato, con i gate ("non consegnare finche' X non e' verde").
-- Pattern **copiabili**, non descritti a parole: snippet, comandi, template di output.
-- **Gotcha**: i fatti che contraddicono le assunzioni ragionevoli. Vanno in SKILL.md, non nei reference: l'agente
-  deve leggerli prima di sbatterci contro.
-- Un default esplicito quando esistono piu' strade ("usa X; per il caso Y, Z").
-- Il formato del report finale, come template.
-
-**Non mettere:**
-
-- Cio' che l'agente gia' sa (cos'e' un JWT, come funziona HTTP).
-- Elenchi di alternative equivalenti senza un default.
-- Ogni caso limite immaginabile: la sovra-specificazione fa piu' danni della sotto-specificazione.
-- Prosa di contesto aziendale non operativa.
-
-Taratura: **prescrittivo** dove l'operazione e' fragile o la sequenza conta ("esegui esattamente questo comando");
-**permissivo** dove le strade valide sono molte, spiegando il perche' invece del come.
+Then write the evals in `evals/`: 8-10 queries that must trigger it and 8-10 that must **not**, picking near
+misses as the negatives (same domain, different task). Those are what actually measures quality.
 
 ---
 
-## 6. Script inclusi nella skill
+## 5. The body: what to put in and what to leave out
 
-Aggiungili solo se l'agente rifarebbe la stessa logica a ogni esecuzione, o se serve un validatore per il
-ciclo correggi-verifica. Requisiti Padosoft:
+**Put in:**
 
-- Solo **standard library** (Python 3.10+), così girano ovunque e in CI.
-- **Nessun prompt interattivo**: tutto da flag o variabili d'ambiente.
-- `--help` con esempi, **exit code distinti** (0 ok, 1 problemi, 2 errore di esecuzione), `--json` se l'output
-  serve alla CI.
-- Messaggi d'errore che dicono cosa fare, non solo cosa e' andato storto.
-- Guard clause in testa, type hint completi, commenti sul perche'.
+- A numbered workflow, with its gates ("do not deliver until X is green").
+- **Copyable** patterns, not described in prose: snippets, commands, output templates.
+- **Gotchas**: the facts that contradict reasonable assumptions. They belong in SKILL.md, not in the
+  references: the agent has to read them before hitting them.
+- An explicit default when several roads exist ("use X; for case Y, Z").
+- The format of the final report, as a template.
 
-Documentali in una tabella all'inizio di SKILL.md, con il comando pronto.
+**Leave out:**
+
+- What the agent already knows (what a JWT is, how HTTP works).
+- Lists of equivalent alternatives with no default.
+- Every imaginable edge case: over-specification does more damage than under-specification.
+- Non-operational company context prose.
+
+Calibration: **prescriptive** where the operation is fragile or the sequence matters ("run exactly this
+command"); **permissive** where many valid roads exist, explaining the why instead of the how.
 
 ---
 
-## 7. Controlli automatici del repo
+## 6. Scripts shipped with the skill
 
-| Comando | Cosa verifica |
+Add them only if the agent would redo the same logic on every run, or if a validator is needed for the
+fix-and-check loop. Padosoft requirements:
+
+- **Standard library** only (Python 3.10+), so they run everywhere and in CI.
+- **No interactive prompts**: everything through flags or environment variables.
+- `--help` with examples, **distinct exit codes** (0 ok, 1 problems, 2 execution error), `--json` if the
+  output is meant for CI.
+- Error messages that say what to do, not just what went wrong.
+- Guard clauses at the top, complete type hints, comments about the why.
+
+Document them in a table at the top of SKILL.md, with the command ready to run.
+
+---
+
+## 7. The repo's automated checks
+
+| Command | What it verifies |
 |---|---|
-| `make catalog` | Rigenera `CATALOG.md`, `profiles.json` e il catalogo dentro il router |
-| `make validate` | Frontmatter conforme alla specifica, catalogo allineato, manifest dei plugin coerenti |
-| `make test` | Profilo e scope dichiarati, prefisso di brand, tetto delle skill globali, installer in dry-run |
-| `make all` | Tutto, come in CI |
+| `make catalog` | Regenerates `CATALOG.md`, `profiles.json` and the catalog inside the router |
+| `make validate` | Frontmatter compliant with the spec, catalog aligned, plugin manifests consistent |
+| `make test` | Profile and scope declared, brand prefix, cap on global skills, installer in dry-run |
+| `make all` | Everything, as in CI |
 
-Se build_catalog.py --check fallisce, quasi sempre manca un `make catalog` dopo aver toccato il frontmatter.
-
----
-
-## 8. Gotcha del formato (errori gia' fatti)
-
-- **`name` diverso dalla cartella**: la skill non viene caricata. Devono coincidere, prefisso compreso.
-- **Frontmatter con chiavi fuori specifica**: ammesse solo `name`, `description`, `license`, `compatibility`,
-  `metadata`, `allowed-tools`. Tutto il resto va dentro `metadata`.
-- **Riferimenti a file inesistenti**: validate_skill.py segnala ogni path della cartella scripts citato fra backtick
-  che non esiste. Se citi uno script del repo, non della skill, non usare i backtick con path relativo.
-- **SKILL.md oltre le 500 righe o i 5000 token**: sposta in `references/` e di' quando leggerli.
-- **Skill non inclusa in nessun pacchetto** `plugins/`: invisibile a chi installa da Claude Code.
-- **`scope: global` senza profilo `core`**: la CI lo blocca, ed e' giusto: le globali si contano.
-- **Description che parla della skill invece che dell'utente**: si attiva a caso o non si attiva affatto.
+If build_catalog.py --check fails, almost always a `make catalog` is missing after touching the frontmatter.
 
 ---
 
-## 9. Report finale
+## 8. Format gotchas (mistakes already made)
+
+- **`name` different from the folder**: the skill is not loaded. They must match, prefix included.
+- **Frontmatter with out-of-spec keys**: only `name`, `description`, `license`, `compatibility`, `metadata`
+  and `allowed-tools` are allowed. Everything else goes inside `metadata`.
+- **References to files that do not exist**: validate_skill.py reports every path of the scripts folder
+  quoted in backticks that is missing. If you quote a script of the repo rather than of the skill, do not use
+  backticks with a relative path.
+- **SKILL.md over 500 lines or 5000 tokens**: move content into `references/` and say when to read it.
+- **Skill not included in any `plugins/` package**: invisible to whoever installs from Claude Code.
+- **`scope: global` without the `core` profile**: CI blocks it, and rightly so: global skills are counted.
+- **A description that talks about the skill instead of the user**: it triggers at random, or never.
+
+---
+
+## 9. Final report
 
 ```
-Skill: padosoft-<nome>  ·  profili: <…>  ·  scope: <…>  ·  versione: 0.1.0
-Fonte del know-how: <sessione/PR/runbook/report>
-make all: PASS (validate, N test, lint)
-Pacchetto: plugins/<pacchetto>
-Eval: <n> query (<p> positive, <n> negative) — attivazioni corrette <x>/<y>
-Prova sul campo: <compito reale eseguito, iterazioni, correzioni aggiunte ai gotcha>
-Da decidere/verificare: <…>
+Skill: padosoft-<name>  ·  profiles: <…>  ·  scope: <…>  ·  version: 0.1.0
+Know-how source: <session/PR/runbook/report>
+make all: PASS (validate, N tests, lint)
+Package: plugins/<package>
+Evals: <n> queries (<p> positive, <n> negative) — correct activations <x>/<y>
+Field test: <real task performed, iterations, fixes added to the gotchas>
+To decide/verify: <…>
 ```

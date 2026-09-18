@@ -1,24 +1,24 @@
-# Report di consegna email
+# Email delivery report
 
-Versione: **vN** · Peso HTML: **xx KB** · Oggetto: "…" (nn car.) · Preheader: nn car.
+Version: **vN** · HTML weight: **xx KB** · Subject: "…" (nn chars) · Preheader: nn chars
 
-| Gate | Strumento | Esito |
+| Gate | Tool | Result |
 |---|---|---|
 | G1 Lint | `scripts/lint_email.py` | PASS — 0 MUST, n SHOULD |
-| G2 Render | screenshot 600/375, con e senza `<style>`, immagini bloccate | PASS |
-| G3 HTML Check | Mailtrap | xx% Market Support — warning: solo baseline |
+| G2 Render | screenshots 600/375, with and without `<style>`, images blocked | PASS |
+| G3 HTML Check | Mailtrap | xx% Market Support — warnings: baseline only |
 | G4 Spam | SpamAssassin | 0.1 (`MISSING_MID`) |
-| G5 Blacklist | Mailtrap | 0 listing |
-| G6 HTML/Text | Template Inspector | allineate |
-| G7 Check-up | MailUp | 0 problemi |
-| G8 Link | crawl | n/n HTTP 200, UTM validi |
+| G5 Blacklist | Mailtrap | 0 listings |
+| G6 HTML/Text | Template Inspector | aligned |
+| G7 Check-up | MailUp | 0 problems |
+| G8 Links | crawl | n/n HTTP 200, valid UTM |
 
-**Warning fuori baseline:** nessuno *(oppure: regola, client, motivo, fix applicata)*
+**Warnings outside the baseline:** none *(or: rule, client, reason, fix applied)*
 
-**Deroghe SHOULD motivate:** …
+**SHOULD exceptions with rationale:** …
 
-**Placeholder da sostituire prima della produzione:** …
+**Placeholders to replace before production:** …
 
-**Incertezze da verificare:** …
+**Uncertainties to verify:** …
 
-**Prossimo passo:** …
+**Next step:** …

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test del linter: il template di riferimento passa, la fixture con gli anti-pattern storici fallisce."""
+"""Linter tests: the reference template passes, the fixture with the historical anti-patterns fails."""
 from __future__ import annotations
 
 import subprocess
@@ -23,32 +23,32 @@ class TestReferenceTemplate(unittest.TestCase):
     def test_template_passes(self) -> None:
         res = lint(GOOD)
         self.assertEqual(res.returncode, 0, res.stdout)
-        self.assertIn("MUST violati: 0", res.stdout)
+        self.assertIn("MUST violated: 0", res.stdout)
 
     def test_template_production_flags_placeholders(self) -> None:
-        # In produzione i segnaposto diventano bloccanti (R-901)
+        # In production the placeholders become blocking (R-901)
         res = lint(GOOD, "--production")
         self.assertEqual(res.returncode, 1)
         self.assertIn("R-901", res.stdout)
 
 
 class TestAntiPatterns(unittest.TestCase):
-    """Ogni regola qui corrisponde a un errore realmente emerso nelle versioni v1-v5."""
+    """Every rule here matches a mistake that actually came up in versions v1-v5."""
 
     EXPECTED = [
-        "R-101",  # CSS inline di layout
-        "R-301",  # reset e prefers-color-scheme nel <style>
+        "R-101",  # inline layout CSS
+        "R-301",  # reset and prefers-color-scheme in <style>
         "R-302",  # @media only screen and
-        "R-400",  # preheader non conforme
-        "R-401",  # filler invisibile
-        "R-402",  # carattere non ASCII
+        "R-400",  # non-compliant preheader
+        "R-401",  # invisible filler
+        "R-402",  # non-ASCII character
         "R-500",  # color-scheme light dark
-        "R-501",  # contrasto insufficiente
-        "R-600",  # img senza alt/height/border, src non https
-        "R-801",  # larghezza 33.33%
+        "R-501",  # insufficient contrast
+        "R-600",  # img without alt/height/border, non-https src
+        "R-801",  # width 33.33%
         "R-409",  # url shortener
         "R-007",  # <h1>
-        "R-206",  # body senza marginwidth
+        "R-206",  # body without marginwidth
     ]
 
     @classmethod
@@ -66,7 +66,7 @@ class TestAntiPatterns(unittest.TestCase):
 
 class TestSubject(unittest.TestCase):
     def test_all_caps_subject_blocks(self) -> None:
-        res = lint(GOOD, "--subject", "OFFERTA GRATIS!!! CLICCA QUI SUBITO ORA")
+        res = lint(GOOD, "--subject", "FREE OFFER!!! CLICK HERE RIGHT NOW ACT NOW")
         self.assertIn("R-406", res.stdout)
         self.assertEqual(res.returncode, 1)
 

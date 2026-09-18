@@ -1,11 +1,11 @@
 ---
 name: padosoft-email-html-builder
 description: >-
-  Usa questa skill ogni volta che l'utente crea, corregge, converte o revisiona una email HTML (welcome, transazionale, newsletter, DEM, template ESP) o chiede di testarla su Mailtrap o MailUp, anche se non nomina esplicitamente "HTML", "template" o "deliverability": produce email a tabelle con CSS inline minimo, testo/plain allineato, List-Unsubscribe one-click, e le valida con un linter incluso fino a 0 errori, puntando a spam SpamAssassin <= 0.1 e HTML Check senza warning fuori baseline. Non usarla per copywriting senza codice, per configurare DNS/SPF/DKIM o per gestire liste e invii massivi.
+  Use this skill whenever the user creates, fixes, converts or reviews an HTML email (welcome, transactional, newsletter, DEM, ESP template) or asks to test it on Mailtrap or MailUp, even when they do not explicitly say "HTML", "template" or "deliverability": it produces table-based emails with minimal inline CSS, an aligned text/plain part, one-click List-Unsubscribe, and validates them with the included linter down to 0 errors, targeting SpamAssassin spam <= 0.1 and HTML Check with no warnings outside the baseline. Do not use it for copywriting without code, for configuring DNS/SPF/DKIM or for managing lists and bulk sends.
 license: MIT
 compatibility: >-
-  Richiede Python 3.10+ per gli script inclusi (solo standard library). Facoltativi: un browser headless
-  (Playwright/Chromium) per gli screenshot di verifica e un account Mailtrap per HTML Check e spam report.
+  Requires Python 3.10+ for the included scripts (standard library only). Optional: a headless browser
+  (Playwright/Chromium) for the verification screenshots and a Mailtrap account for HTML Check and spam reports.
 metadata:
   version: 1.1.0
   author: Padosoft
@@ -17,73 +17,73 @@ metadata:
 
 # Email HTML Builder
 
-Produce email HTML **pronte per la produzione al primo colpo**: layout a tabelle con attributi HTML, CSS inline ridotto alla sola tipografia, un `<style>` minimo, parte text/plain allineata, header di disiscrizione one-click. Il risultato atteso su Mailtrap è **spam ≤ 0.1** e un **HTML Check con solo i warning ammessi** (§5). Su MailUp Check-up: **zero problemi**.
+Produces HTML emails that are **production ready on the first try**: table layout with HTML attributes, inline CSS reduced to typography alone, a minimal `<style>`, an aligned text/plain part, one-click unsubscribe headers. The expected result on Mailtrap is **spam ≤ 0.1** and an **HTML Check with only the allowed warnings** (§5). On MailUp Check-up: **zero problems**.
 
-Le regole normative complete con ID `R-xxx` sono in `references/rules.md`. Il linter è `scripts/lint_email.py` e il template di riferimento `templates/reference-welcome-dark.html`. **Se questi file non sono disponibili, le regole essenziali qui sotto bastano e sono vincolanti.**
+The complete normative rules with `R-xxx` IDs are in `references/rules.md`. The linter is `scripts/lint_email.py` and the reference template is `templates/reference-welcome-dark.html`. **If those files are not available, the essential rules below are enough and are binding.**
 
 ---
 
-## 0. Script inclusi
+## 0. Included scripts
 
-| Script | Uso |
+| Script | Use |
 |---|---|
-| `scripts/lint_email.py` | Validatore delle regole. `python3 scripts/lint_email.py email.html --text email.txt --subject "Oggetto" [--production] [--transactional] [--json]`. Exit 1 se ci sono MUST violati, 0 se pulito. |
-| `scripts/build_payload.py` | Genera il payload JSON Mailtrap con `List-Unsubscribe` e One-Click. `--help` per le opzioni. |
-| `scripts/send_mailtrap_sandbox.sh` / `.ps1` | Invio in sandbox. Variabili: `MAILTRAP_TOKEN`, `MAILTRAP_INBOX_ID`. |
-| `scripts/screenshot_email.py` | Screenshot 600px e 375px, con e senza `<style>` (richiede Playwright; se manca, salta il gate G2 e dillo nel report). |
-| `templates/reference-welcome-dark.html` | Template conforme da cui partire (0 MUST violati). |
-| `references/rules.md` | Regole complete `R-xxx`. Leggilo quando un warning non e' nella baseline del §5 o quando serve la motivazione di una regola. |
+| `scripts/lint_email.py` | Rule validator. `python3 scripts/lint_email.py email.html --text email.txt --subject "Subject" [--production] [--transactional] [--json]`. Exit 1 if any MUST is violated, 0 when clean. |
+| `scripts/build_payload.py` | Generates the Mailtrap JSON payload with `List-Unsubscribe` and One-Click. `--help` for the options. |
+| `scripts/send_mailtrap_sandbox.sh` / `.ps1` | Sandbox send. Variables: `MAILTRAP_TOKEN`, `MAILTRAP_INBOX_ID`. |
+| `scripts/screenshot_email.py` | Screenshots at 600px and 375px, with and without `<style>` (requires Playwright; if it is missing, skip gate G2 and say so in the report). |
+| `templates/reference-welcome-dark.html` | Compliant template to start from (0 MUST violated). |
+| `references/rules.md` | Complete `R-xxx` rules. Read it when a warning is not in the §5 baseline, or when you need the rationale behind a rule. |
 
 
 ---
 
-## 1. Workflow obbligatorio
+## 1. Mandatory workflow
 
-Esegui le fasi **in ordine**. Non consegnare prima che G1–G2 siano verdi. Se hai accesso a Mailtrap, fai girare anche G3–G6.
+Run the phases **in order**. Do not deliver before G1–G2 are green. If you have access to Mailtrap, run G3–G6 as well.
 
-1. **Brief.** Ricava o chiedi (una sola volta, in blocco) cosa manca:
-   - tipo di mail, brand, lingua e tema chiaro/scuro;
-   - palette di 2–3 colori, contenuti, CTA e URL;
-   - piattaforma di invio (MailUp, Mailtrap Sending, SES…) e sintassi dei campi dinamici;
-   - dati legali per il footer.
+1. **Brief.** Work out or ask (once, in a single batch) what is missing:
+   - type of email, brand, language and light/dark theme;
+   - a palette of 2–3 colors, content, CTA and URLs;
+   - sending platform (MailUp, Mailtrap Sending, SES…) and the syntax of the dynamic fields;
+   - legal details for the footer.
 
-   Se il brief è incompleto non bloccarti: usa segnaposto espliciti e elencali nel report.
-2. **Design dei contenuti.** Prima di scrivere codice definisci:
-   - oggetto: 35–50 caratteri;
-   - preheader: 40–100 caratteri, complementare all'oggetto;
-   - una sola CTA primaria;
-   - rapporto testo/immagini ≥ 80/20;
-   - quali blocchi usare (header, hero, card, vantaggi, social, footer).
-3. **Codice.** Parti dallo scheletro del §3 (o da `templates/`). Applica **tutte** le regole MUST del §4.
-4. **Text/plain.** Scrivi la versione solo testo con gli stessi contenuti e gli stessi link in chiaro.
-5. **G1 Lint.** Lancia `python3 scripts/lint_email.py email.html --text email.txt --subject "…"` e porta i MUST violati a **0**. Se lo script non c'è, fai a mano la checklist del §6.
-6. **G2 Render.** Fai screenshot con Playwright/Chromium a **600px** e **375px**, poi ripetili senza `<style>` e con le immagini bloccate. Nessuna rottura ammessa.
-7. **Payload e invio test.**
-   - `scripts/build_payload.py` genera il payload JSON (List-Unsubscribe incluso);
-   - l'invio parte con `scripts/send_mailtrap_sandbox.{ps1,sh}` oppure con il connettore Mailtrap (`send-sandbox-email`);
-   - su Windows usa **PowerShell**: `$env:VAR="…"` e non la sintassi `VAR=… cmd`.
-8. **Senza Mailtrap** (nessun account o connettore): dichiara G3–G6 come *non eseguiti* nel report, non stimarli, ed esegui in compenso la checklist manuale del §6 oltre al linter. Consegna comunque.
-9. **G3–G6 Verifica Mailtrap.** Usa `get-sandbox-message-html-analysis`, `get-sandbox-message-spam-score` e i report blacklist e text. Confronta con la baseline del §5: ogni voce fuori baseline è un difetto da correggere e rinviare. **Non dichiarare "falso positivo" un warning rimovibile.**
-10. **G7 MailUp** (se è la piattaforma di invio): Check-up senza errori su link in blacklist, tracciamento attivo, disiscrizione presente, peso, campi dinamici con default, sommario, analytics, dominio di tracciamento personalizzato, spam e codice.
-11. **Consegna.**
-    - file `.html`, `.txt` e `payload.json`;
-    - **report** con esito dei gate, warning residui motivati, segnaposto ancora da sostituire e deroghe SHOULD motivate;
-    - numero di versione (`v1`, `v2`…) nell'oggetto di test.
-
----
-
-## 2. Principio chiave (causa degli errori storici)
-
-Il checker Mailtrap usa i dati di caniemail.com e **segnala ogni proprietà CSS presente, anche se c'è il fallback**. `bgcolor` accanto a `background-color` **non** toglie il warning: la proprietà CSS va **eliminata**.
-→ **Layout con attributi HTML. CSS inline solo per la tipografia. `<style>` solo per angoli arrotondati e media query.**
+   If the brief is incomplete do not stall: use explicit placeholders and list them in the report.
+2. **Content design.** Before writing code, settle:
+   - subject: 35–50 characters;
+   - preheader: 40–100 characters, complementary to the subject;
+   - a single primary CTA;
+   - text/image ratio ≥ 80/20;
+   - which blocks to use (header, hero, card, benefits, social, footer).
+3. **Code.** Start from the skeleton in §3 (or from `templates/`). Apply **every** MUST rule in §4.
+4. **Text/plain.** Write the text-only version with the same content and the same links in clear text.
+5. **G1 Lint.** Run `python3 scripts/lint_email.py email.html --text email.txt --subject "…"` and bring the violated MUSTs to **0**. If the script is not there, work through the §6 checklist by hand.
+6. **G2 Render.** Take screenshots with Playwright/Chromium at **600px** and **375px**, then repeat them without `<style>` and with images blocked. No breakage allowed.
+7. **Payload and test send.**
+   - `scripts/build_payload.py` generates the JSON payload (List-Unsubscribe included);
+   - the send starts with `scripts/send_mailtrap_sandbox.{ps1,sh}` or with the Mailtrap connector (`send-sandbox-email`);
+   - on Windows use **PowerShell**: `$env:VAR="…"` and not the `VAR=… cmd` syntax.
+8. **Without Mailtrap** (no account or connector): declare G3–G6 as *not run* in the report, do not estimate them, and in exchange work through the manual checklist in §6 on top of the linter. Deliver anyway.
+9. **G3–G6 Mailtrap verification.** Use `get-sandbox-message-html-analysis`, `get-sandbox-message-spam-score` and the blacklist and text reports. Compare against the §5 baseline: every entry outside the baseline is a defect to fix and resend. **Do not declare a removable warning a "false positive".**
+10. **G7 MailUp** (if that is the sending platform): Check-up with no errors on blacklisted links, tracking enabled, unsubscribe present, weight, dynamic fields with defaults, summary, analytics, custom tracking domain, spam and code.
+11. **Delivery.**
+    - `.html`, `.txt` and `payload.json` files;
+    - a **report** with the outcome of the gates, remaining warnings with their rationale, placeholders still to be replaced and SHOULD exceptions with their rationale;
+    - a version number (`v1`, `v2`…) in the test subject.
 
 ---
 
-## 3. Scheletro di riferimento
+## 2. Key principle (the cause of the historical mistakes)
+
+The Mailtrap checker uses caniemail.com data and **reports every CSS property present, even when there is a fallback**. `bgcolor` next to `background-color` does **not** remove the warning: the CSS property has to be **deleted**.
+→ **Layout with HTML attributes. Inline CSS for typography only. `<style>` only for rounded corners and media queries.**
+
+---
+
+## 3. Reference skeleton
 
 ```html
 <!DOCTYPE html>
-<html lang="it" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -92,7 +92,7 @@ Il checker Mailtrap usa i dati di caniemail.com e **segnala ogni proprietà CSS 
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
 <meta name="color-scheme" content="dark">
 <meta name="supported-color-schemes" content="dark">
-<title>Titolo</title>
+<title>Title</title>
 <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
 <style>
 .r10{border-radius:10px}.r9{border-radius:9px}.r9t{border-radius:9px 9px 0 0}
@@ -100,7 +100,7 @@ Il checker Mailtrap usa i dati di caniemail.com e **segnala ogni proprietà CSS 
 </style>
 </head>
 <body bgcolor="#04050a" text="#aab3c5" link="#2ff5d6" vlink="#2ff5d6" alink="#2ff5d6" marginwidth="0" marginheight="0" topmargin="0" leftmargin="0">
-<!--[if !mso]><!--><div aria-hidden="true" style="display:none; mso-hide:all;">Preheader 40-100 caratteri, niente filler invisibile.</div><!--<![endif]-->
+<!--[if !mso]><!--><div aria-hidden="true" style="display:none; mso-hide:all;">Preheader of 40-100 characters, no invisible filler.</div><!--<![endif]-->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#04050a">
  <tr><td height="32" style="font-size:1px; line-height:32px;">&nbsp;</td></tr>
  <tr><td align="center" valign="top">
@@ -108,7 +108,7 @@ Il checker Mailtrap usa i dati di caniemail.com e **segnala ogni proprietà CSS 
    <td width="16" style="font-size:1px; line-height:1px;">&nbsp;</td>
    <td align="center" valign="top">
     <table role="presentation" class="wrap" width="600" align="center" cellpadding="0" cellspacing="0" border="0">
-     <!-- blocchi -->
+     <!-- blocks -->
     </table>
    </td>
    <td width="16" style="font-size:1px; line-height:1px;">&nbsp;</td>
@@ -120,159 +120,159 @@ Il checker Mailtrap usa i dati di caniemail.com e **segnala ogni proprietà CSS 
 </html>
 ```
 
-### Pattern dei blocchi (copiali, non reinventarli)
+### Block patterns (copy them, do not reinvent them)
 
-**Spaziatura verticale e orizzontale** (al posto del padding):
+**Vertical and horizontal spacing** (instead of padding):
 ```html
 <tr><td height="24" style="font-size:1px; line-height:24px;">&nbsp;</td></tr>
 <td class="gut" width="24" style="font-size:1px; line-height:1px;">&nbsp;</td>
 ```
 
-**Card con bordo e angoli** (al posto di border e background-color):
+**Card with border and corners** (instead of border and background-color):
 ```html
 <table role="presentation" class="r10" width="100%" cellpadding="1" cellspacing="0" border="0" bgcolor="#1c2333"><tr><td>
   <table role="presentation" class="r9" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0d1018">
     <tr><td colspan="3" height="24" style="font-size:1px; line-height:24px;">&nbsp;</td></tr>
-    <tr><td width="20" style="font-size:1px; line-height:1px;">&nbsp;</td><td><!-- contenuto --></td><td width="20" style="font-size:1px; line-height:1px;">&nbsp;</td></tr>
+    <tr><td width="20" style="font-size:1px; line-height:1px;">&nbsp;</td><td><!-- content --></td><td width="20" style="font-size:1px; line-height:1px;">&nbsp;</td></tr>
     <tr><td colspan="3" height="24" style="font-size:1px; line-height:24px;">&nbsp;</td></tr>
   </table>
 </td></tr></table>
 ```
 
-**Titolo H1 accessibile** (niente `<h1>`):
+**Accessible H1 heading** (no `<h1>`):
 ```html
-<td align="center" class="h1m" role="heading" aria-level="1" style="font-family:Arial, Helvetica, sans-serif; font-size:30px; line-height:38px; font-weight:700; color:#f2f4f8;">Titolo</td>
+<td align="center" class="h1m" role="heading" aria-level="1" style="font-family:Arial, Helvetica, sans-serif; font-size:30px; line-height:38px; font-weight:700; color:#f2f4f8;">Title</td>
 ```
 
-**CTA bulletproof** (VML e HTML con dimensioni **identiche**):
+**Bulletproof CTA** (VML and HTML with **identical** dimensions):
 ```html
 <!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://…" style="height:48px; v-text-anchor:middle; width:220px;" arcsize="21%" fillcolor="#2ff5d6" stroke="f"><w:anchorlock/><center style="color:#04050a; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:bold;">Scopri i prodotti</center></v:roundrect>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://…" style="height:48px; v-text-anchor:middle; width:220px;" arcsize="21%" fillcolor="#2ff5d6" stroke="f"><w:anchorlock/><center style="color:#04050a; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:bold;">Browse the products</center></v:roundrect>
 <![endif]-->
 <!--[if !mso]><!-->
 <table role="presentation" class="r10" width="220" cellpadding="0" cellspacing="0" border="0" bgcolor="#2ff5d6"><tr>
-<td align="center" height="48" style="font-family:Arial, Helvetica, sans-serif; font-size:15px; line-height:48px; font-weight:700;"><a href="https://…" target="_blank" style="color:#04050a; text-decoration:none;">Scopri i prodotti</a></td>
+<td align="center" height="48" style="font-family:Arial, Helvetica, sans-serif; font-size:15px; line-height:48px; font-weight:700;"><a href="https://…" target="_blank" style="color:#04050a; text-decoration:none;">Browse the products</a></td>
 </tr></table>
 <!--<![endif]-->
 ```
 
-**Immagine in card** (la cella ha height e bgcolor, così resta intera con le immagini bloccate):
+**Image in a card** (the cell carries height and bgcolor, so it stays intact when images are blocked):
 ```html
-<td align="center" valign="middle" height="120" class="r9t" bgcolor="#161b27" style="font-size:0; line-height:0;"><a href="https://…" target="_blank"><img src="https://cdn.brand.it/img/x@2x.jpg" width="174" height="120" border="0" alt="Descrizione breve" class="imgm"></a></td>
+<td align="center" valign="middle" height="120" class="r9t" bgcolor="#161b27" style="font-size:0; line-height:0;"><a href="https://…" target="_blank"><img src="https://cdn.brand.com/img/x@2x.jpg" width="174" height="120" border="0" alt="Short description" class="imgm"></a></td>
 ```
 
-**Colonne che si impilano su mobile** (px interi, somma = contenitore):
+**Columns that stack on mobile** (whole px, sum = container):
 ```html
 <tr><td class="col" width="176" valign="top">…</td><td class="vgap" width="12" style="font-size:1px; line-height:1px;">&nbsp;</td><td class="col" width="176" valign="top">…</td><td class="vgap" width="12" style="font-size:1px; line-height:1px;">&nbsp;</td><td class="col" width="176" valign="top">…</td></tr>
 ```
 
-**Divisore:**
+**Divider:**
 ```html
 <tr><td height="1" bgcolor="#1c2333" style="font-size:1px; line-height:1px;">&nbsp;</td></tr>
 ```
 
 ---
 
-## 4. Regole MUST essenziali (ID in `references/rules.md`)
+## 4. Essential MUST rules (IDs in `references/rules.md`)
 
-**Struttura e peso**
-- Solo tabelle `role="presentation" cellpadding="0" cellspacing="0" border="0"`, contenitore da 600px, gutter esterno di 16px fatto con celle (R-004/005/006).
-- Vietati `<h1>`, `<script>`, `<form>`, `<iframe>`, `<video>`, `<svg>`, `<link>`, `@import`, gli handler `on*`, i tag vuoti e i commenti superflui (R-007/008/009/011).
-- HTML sotto i 100 KB (target 40 KB). Immagini ≤ 50 KB, GIF ≤ 100 KB con primo frame completo (R-050/052/604).
+**Structure and weight**
+- Tables only, `role="presentation" cellpadding="0" cellspacing="0" border="0"`, a 600px container, a 16px outer gutter built with cells (R-004/005/006).
+- Forbidden: `<h1>`, `<script>`, `<form>`, `<iframe>`, `<video>`, `<svg>`, `<link>`, `@import`, the `on*` handlers, empty tags and superfluous comments (R-007/008/009/011).
+- HTML under 100 KB (target 40 KB). Images ≤ 50 KB, GIFs ≤ 100 KB with a complete first frame (R-050/052/604).
 
 **CSS**
-- Inline sono ammessi **solo** `font-family`, `font-size`, `line-height`, `font-weight`, `font-style`, `letter-spacing`, `color`, `text-decoration`, `text-align` e `mso-*` (R-100).
-- **Vietati inline:** padding, margin, background, border, border-radius, width, height, max/min-*, display, opacity, overflow, visibility, outline, box-shadow, position, float, text-transform, table-layout (R-101). Unica eccezione il preheader (`display:none; mso-hide:all`).
-- Sostituzioni obbligatorie (R-200…210):
+- Inline, **only** `font-family`, `font-size`, `line-height`, `font-weight`, `font-style`, `letter-spacing`, `color`, `text-decoration`, `text-align` and `mso-*` are allowed (R-100).
+- **Forbidden inline:** padding, margin, background, border, border-radius, width, height, max/min-*, display, opacity, overflow, visibility, outline, box-shadow, position, float, text-transform, table-layout (R-101). The only exception is the preheader (`display:none; mso-hide:all`).
+- Mandatory substitutions (R-200…210):
 
-  | Invece di | Usa |
+  | Instead of | Use |
   |---|---|
   | `background` | `bgcolor` |
-  | padding | celle vuote con `height`/`width` |
-  | border | tabella esterna `bgcolor` + `cellpadding="1"` |
-  | width/height CSS | attributi `width`/`height` |
-  | margini del body | `marginwidth`/`marginheight` |
-  | colore di default | `text`/`link` sul `<body>` |
-  | gap sotto le immagini | `font-size:0; line-height:0` sulla cella |
-  | immagini di sfondo | colore pieno |
+  | padding | empty cells with `height`/`width` |
+  | border | outer table with `bgcolor` + `cellpadding="1"` |
+  | CSS width/height | `width`/`height` attributes |
+  | body margins | `marginwidth`/`marginheight` |
+  | default color | `text`/`link` on `<body>` |
+  | gap under images | `font-size:0; line-height:0` on the cell |
+  | background images | a solid color |
 
-- `<style>` unico, con **una riga** di `border-radius` e **una riga** `@media (max-width:620px){…}`, senza `only screen and`. Niente reset, niente classi preheader, niente `prefers-color-scheme` o `:root` (R-300…303).
-- Nessun commento che contenga la stringa `<style`. La mail deve restare leggibile anche senza il blocco style (R-304/305).
+- A single `<style>`, with **one line** of `border-radius` and **one line** of `@media (max-width:620px){…}`, without `only screen and`. No reset, no preheader classes, no `prefers-color-scheme` or `:root` (R-300…303).
+- No comment containing the string `<style`. The email must stay readable even without the style block (R-304/305).
 
-**Antispam e deliverability**
-- **Marketing vs transazionale.** Le regole di disiscrizione (`R-405` header `List-Unsubscribe`, `R-454` link nel footer) valgono per mail **commerciali e bulk**. Per una transazionale pura (conferma ordine, reset password, spedizione) non sono richieste: usa `--transactional` nel linter, tieni comunque un link "Preferenze email" e dichiaralo nel report. Tutto il resto delle regole vale per entrambe.
-- HTML **100% ASCII**: accenti come entità numeriche (`&#232;`) (R-402).
-- **Mai filler invisibile** nel preheader (`&#847;`, `&zwnj;`, `&nbsp;` ripetuti): costa +2.4 punti SpamAssassin (R-401).
-- Preheader senza `color`. Nessun testo con colore uguale o simile allo sfondo, separatori compresi (R-400/403).
-- Text/plain allineato all'HTML. Header `List-Unsubscribe` e `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (R-404/405).
-- Oggetto 35–50 caratteri (max 60): niente MAIUSCOLO, niente `!!!`, parole trigger o più di un'emoji (R-406).
-- Spam target ≤ 0.1, blacklist 0, niente shortener o IP nudi. Testo/immagini ≥ 80/20. Dominio del mittente con SPF+DKIM+DMARC, `Reply-To` presidiato (R-407…412).
+**Antispam and deliverability**
+- **Marketing vs transactional.** The unsubscribe rules (`R-405` `List-Unsubscribe` header, `R-454` footer link) apply to **commercial and bulk** email. For a purely transactional one (order confirmation, password reset, shipping) they are not required: use `--transactional` in the linter, still keep an "Email preferences" link, and state it in the report. All the other rules apply to both.
+- HTML **100% ASCII**: accented characters as numeric entities (`&#232;`) (R-402).
+- **Never use invisible filler** in the preheader (`&#847;`, `&zwnj;`, repeated `&nbsp;`): it costs +2.4 SpamAssassin points (R-401).
+- Preheader without `color`. No text in a color equal or close to the background, separators included (R-400/403).
+- Text/plain aligned with the HTML. `List-Unsubscribe` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers (R-404/405).
+- Subject 35–50 characters (60 max): no ALL CAPS, no `!!!`, no trigger words or more than one emoji (R-406).
+- Spam target ≤ 0.1, blacklist 0, no shorteners or bare IPs. Text/images ≥ 80/20. Sender domain with SPF+DKIM+DMARC, a monitored `Reply-To` (R-407…412).
 
-**Link (MailUp Check-up)**
-- Link HTTPS assoluti e funzionanti. Tracciamento attivo con **dominio di tracking personalizzato** (R-450/451).
-- UTM `utm_source`, `utm_medium=email`, `utm_campaign`, senza spazi (R-452).
-- Campi dinamici nella sintassi della piattaforma (MailUp `[campo]`) con valore di default. Nei link il protocollo va esplicito (`https://[campo]`) (R-453).
-- Disiscrizione nel footer, al massimo 2 click (R-454). `tel:` senza spazi, path degli asset senza spazi (R-457/458).
+**Links (MailUp Check-up)**
+- Absolute, working HTTPS links. Tracking enabled with a **custom tracking domain** (R-450/451).
+- UTM `utm_source`, `utm_medium=email`, `utm_campaign`, without spaces (R-452).
+- Dynamic fields in the platform syntax (MailUp `[field]`) with a default value. In links the protocol must be explicit (`https://[field]`) (R-453).
+- Unsubscribe in the footer, two clicks at most (R-454). `tel:` without spaces, asset paths without spaces (R-457/458).
 
-**Design e accessibilità**
-- `color-scheme` = `dark` **oppure** `light`, mai `light dark` senza un tema dark completo (R-500).
-- Contrasto **calcolato** ≥ 4.5:1 per ogni testo normale, footer compreso (R-501).
-- Font: titoli ≥ 22px, corpo ≥ 16px su mobile (classe `.txtm`), legale ≥ 12px, CTA ≥ 15px. Palette di 2–3 colori (R-502/503).
-- `aria-hidden` su glifi e separatori. `lang` e `<title>` valorizzati. Ordine DOM = ordine visivo (R-504/505).
-- `<img>` con `width`, `height`, `border="0"`, `alt` breve, src HTTPS dalla CDN del brand (niente placeholder). La cella ha `height` e `bgcolor`. Mai testo essenziale solo dentro un'immagine (R-600…603).
-- CTA VML + HTML con dimensioni identiche, area ≥ 46×46px, una sola CTA primaria (R-700…703).
-- Colonne in px interi (niente `33.33%`), nessuna asimmetria di spaziatura quando si impilano (R-800…802).
+**Design and accessibility**
+- `color-scheme` = `dark` **or** `light`, never `light dark` without a complete dark theme (R-500).
+- **Calculated** contrast ≥ 4.5:1 for every normal text, footer included (R-501).
+- Fonts: headings ≥ 22px, body ≥ 16px on mobile (`.txtm` class), legal ≥ 12px, CTA ≥ 15px. A palette of 2–3 colors (R-502/503).
+- `aria-hidden` on glyphs and separators. `lang` and `<title>` filled in. DOM order = visual order (R-504/505).
+- `<img>` with `width`, `height`, `border="0"`, a short `alt`, HTTPS src from the brand CDN (no placeholders). The cell carries `height` and `bgcolor`. Never put essential text inside an image only (R-600…603).
+- CTA VML + HTML with identical dimensions, area ≥ 46×46px, a single primary CTA (R-700…703).
+- Columns in whole px (no `33.33%`), no spacing asymmetry when they stack (R-800…802).
 
-**Footer:** motivo di ricezione, ragione sociale, indirizzo, P.IVA, contatti, Annulla iscrizione, Preferenze, Privacy, copyright e social. In produzione **zero segnaposto** (R-900/901).
+**Footer:** reason for receiving, legal entity, address, VAT number, contacts, Unsubscribe, Preferences, Privacy, copyright and social. In production, **zero placeholders** (R-900/901).
 
 ---
 
-## 5. Baseline Mailtrap (unici warning ammessi)
+## 5. Mailtrap baseline (the only allowed warnings)
 
-| Rule | Motivo |
+| Rule | Reason |
 |---|---|
-| `style` | Il blocco style serve per responsive e angoli |
-| `@media`, `@media max-width` | Media query mobile |
-| `width`/`display`/`height`/`font-size`/`line-height` dentro la media query | Colonne impilate e tipografia mobile |
-| `border-radius` (1 riga) | Su Outlook gli angoli restano squadrati |
-| `display` sul preheader | È l'unico modo per nasconderlo |
+| `style` | The style block is needed for responsive and corners |
+| `@media`, `@media max-width` | Mobile media queries |
+| `width`/`display`/`height`/`font-size`/`line-height` inside the media query | Stacked columns and mobile typography |
+| `border-radius` (1 line) | On Outlook the corners stay square |
+| `display` on the preheader | It is the only way to hide it |
 
-SpamAssassin in test: `MISSING_MID` 0.1 (il Message-ID lo aggiunge l'MTA di produzione) e `HTML_MESSAGE` 0.0. **Qualsiasi altra voce va corretta.**
+SpamAssassin in testing: `MISSING_MID` 0.1 (the production MTA adds the Message-ID) and `HTML_MESSAGE` 0.0. **Any other entry has to be fixed.**
 
-Market Support di Mailtrap ≥ 95% (per Mailtrap ≥ 90% è accettabile, sotto l'85% va rifatta).
-
----
-
-## 6. Checklist manuale (se il linter non c'è)
-
-- [ ] Nessun `style=""` nel body con proprietà fuori whitelist, preheader a parte
-- [ ] Ogni colore di sfondo è `bgcolor`, ogni spaziatura è una cella, ogni bordo è una tabella con `cellpadding="1"`
-- [ ] `<style>` = 1 riga di radius + 1 riga `@media (max-width:620px)`
-- [ ] `grep -P '[^\x00-\x7F]'` sull'HTML non trova nulla
-- [ ] Nessun `&#847;`/`&zwnj;` nel sorgente
-- [ ] `<body>` con `bgcolor`, `text`, `link`, `marginwidth`, `marginheight`
-- [ ] Contrasti ≥ 4.5:1 calcolati (script o tool), footer e separatori compresi
-- [ ] Ogni `<img>` ha width, height, border="0", alt, src HTTPS; la cella ha height e bgcolor
-- [ ] CTA VML e HTML con la stessa larghezza e altezza
-- [ ] Colonne in px interi con somma corretta
-- [ ] Oggetto 35–50 caratteri, preheader 40–100
-- [ ] Text/plain allineato, List-Unsubscribe e One-Click nel payload
-- [ ] Link HTTPS con UTM e disiscrizione presenti
-- [ ] Nessun segnaposto se è per la produzione
+Mailtrap Market Support ≥ 95% (for Mailtrap ≥ 90% is acceptable, below 85% it has to be redone).
 
 ---
 
-## 7. Formato del report di consegna
+## 6. Manual checklist (when the linter is not there)
+
+- [ ] No `style=""` in the body with properties outside the whitelist, preheader aside
+- [ ] Every background color is `bgcolor`, every spacing is a cell, every border is a table with `cellpadding="1"`
+- [ ] `<style>` = 1 radius line + 1 `@media (max-width:620px)` line
+- [ ] `grep -P '[^\x00-\x7F]'` over the HTML finds nothing
+- [ ] No `&#847;`/`&zwnj;` in the source
+- [ ] `<body>` with `bgcolor`, `text`, `link`, `marginwidth`, `marginheight`
+- [ ] Contrasts ≥ 4.5:1 calculated (script or tool), footer and separators included
+- [ ] Every `<img>` has width, height, border="0", alt, HTTPS src; the cell has height and bgcolor
+- [ ] CTA VML and HTML with the same width and height
+- [ ] Columns in whole px with the correct sum
+- [ ] Subject 35–50 characters, preheader 40–100
+- [ ] Text/plain aligned, List-Unsubscribe and One-Click in the payload
+- [ ] HTTPS links with UTM and unsubscribe present
+- [ ] No placeholders if it is going to production
+
+---
+
+## 7. Delivery report format
 
 ```
-Versione: vN  |  Peso HTML: xx KB  |  Oggetto: "…" (nn car.)  |  Preheader: nn car.
+Version: vN  |  HTML weight: xx KB  |  Subject: "…" (nn chars)  |  Preheader: nn chars
 G1 Lint: PASS (0 MUST, n SHOULD)      G2 Render: PASS (600/375/no-style/img-off)
-G3 HTML Check: xx% — warning: [solo baseline | elenco extra + fix]
-G4 Spam: 0.1 (MISSING_MID)            G5 Blacklist: 0      G6 HTML/Text: allineate
-G7 MailUp Check-up: [esito | non eseguito]
-Deroghe SHOULD motivate: …
-Placeholder da sostituire: …
-Prossimo passo: …
+G3 HTML Check: xx% — warnings: [baseline only | list of extras + fix]
+G4 Spam: 0.1 (MISSING_MID)            G5 Blacklist: 0      G6 HTML/Text: aligned
+G7 MailUp Check-up: [outcome | not run]
+SHOULD exceptions with rationale: …
+Placeholders to replace: …
+Next step: …
 ```
 
-Segnala sempre in modo esplicito le incertezze, per esempio la sintassi del placeholder di disiscrizione della piattaforma da verificare sull'account.
+Always flag the uncertainties explicitly, for example the syntax of the platform's unsubscribe placeholder that still has to be verified on the account.

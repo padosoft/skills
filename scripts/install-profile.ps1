@@ -1,17 +1,17 @@
 <#
 .SYNOPSIS
-  Installa le skill Padosoft di uno o piu' profili (Windows / PowerShell).
+  Installs the Padosoft skills of one or more profiles (Windows / PowerShell).
 
 .EXAMPLE
-  Install-PadosoftSkills core -Global          # trasversali, per tutti i progetti
-  Install-PadosoftSkills laravel, email        # stack del progetto corrente
-  Install-PadosoftSkills -List                 # profili disponibili
-  Install-PadosoftSkills core -DryRun          # mostra i comandi senza eseguirli
+  Install-PadosoftSkills core -Global          # cross-project skills, for every project
+  Install-PadosoftSkills laravel, email        # the stack of the current project
+  Install-PadosoftSkills -List                 # available profiles
+  Install-PadosoftSkills core -DryRun          # print the commands without running them
 
 .NOTES
-  Prerequisito: Node.js 18+ (per npx).
-  Uso rapido senza clonare il repo:
-    iwr -useb https://raw.githubusercontent.com/padosoft/skills/main/scripts/install-profile.ps1 | iex; Install-PadosoftSkills core -Global
+  Requirement: Node.js 18+ (for npx).
+  Quick use without cloning the repo:
+    irm https://raw.githubusercontent.com/padosoft/skills/main/scripts/install-profile.ps1 | iex; Install-PadosoftSkills core -Global
 #>
 function Install-PadosoftSkills {
     [CmdletBinding()]
@@ -25,48 +25,52 @@ function Install-PadosoftSkills {
     )
     $ErrorActionPreference = "Stop"
 
-    # Guard: npx obbligatorio
+    # Guard: npx is required
     if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-        Write-Error "npx non trovato: installa Node.js 18+ (https://nodejs.org)"; return
+        Write-Error "npx not found: install Node.js 18+ (https://nodejs.org)"; return
     }
 
-    # profiles.json: locale se siamo nel repo, altrimenti scaricato
-    $local = Join-Path (Split-Path $PSScriptRoot -Parent) "profiles.json"
-    $json = if ($PSScriptRoot -and (Test-Path $local)) {
-        Get-Content $local -Raw | ConvertFrom-Json
-    } else {
-        Invoke-RestMethod "https://raw.githubusercontent.com/$Repo/$Branch/profiles.json"
+    # profiles.json: the local copy when running from a clone, otherwise fetched from GitHub.
+    # $PSScriptRoot is empty when this file is piped into iex, so it is checked before use:
+    # Split-Path would throw on an empty -Path and abort the whole run.
+    $json = $null
+    if ($PSScriptRoot) {
+        $localProfiles = Join-Path (Split-Path $PSScriptRoot -Parent) "profiles.json"
+        if (Test-Path $localProfiles) { $json = Get-Content $localProfiles -Raw | ConvertFrom-Json }
+    }
+    if (-not $json) {
+        $json = Invoke-RestMethod "https://raw.githubusercontent.com/$Repo/$Branch/profiles.json"
     }
 
     if ($List -or -not $Profiles) {
-        Write-Host "Profili disponibili:"
+        Write-Host "Available profiles:"
         foreach ($p in $json.profiles.PSObject.Properties) {
             Write-Host ("  - {0}: {1}" -f $p.Name, ($p.Value -join ", "))
         }
-        if (-not $Profiles) { Write-Host "`nUso: Install-PadosoftSkills <profilo> [-Global] [-DryRun]" }
+        if (-not $Profiles) { Write-Host "`nUsage: Install-PadosoftSkills <profile> [-Global] [-DryRun]" }
         return
     }
 
     $failed = $false
-    foreach ($profile in $Profiles) {
-        $names = $json.profiles.$profile
-        if (-not $names) { Write-Warning "Profilo sconosciuto o vuoto: $profile"; $failed = $true; continue }
-        Write-Host ("== profilo {0}{1}" -f $profile, $(if ($Global) { " (globale)" } else { "" }))
+    foreach ($profileName in $Profiles) {
+        $names = $json.profiles.$profileName
+        if (-not $names) { Write-Warning "Unknown or empty profile: $profileName"; $failed = $true; continue }
+        Write-Host ("== profile {0}{1}" -f $profileName, $(if ($Global) { " (global)" } else { "" }))
         foreach ($skill in $names) {
             $url = "https://github.com/$Repo/tree/$Branch/skills/$skill"
-            $args = @("--yes", "skills", "add")
-            if ($Global) { $args += "-g" }
-            $args += $url
-            if ($DryRun) { Write-Host ("npx " + ($args -join " ")) ; continue }
+            $npxArgs = @("--yes", "skills", "add")
+            if ($Global) { $npxArgs += "-g" }
+            $npxArgs += $url
+            if ($DryRun) { Write-Host ("npx " + ($npxArgs -join " ")) ; continue }
             Write-Host "-- $skill"
-            & npx @args
-            if ($LASTEXITCODE -ne 0) { Write-Warning "installazione fallita: $skill"; $failed = $true }
+            & npx @npxArgs
+            if ($LASTEXITCODE -ne 0) { Write-Warning "installation failed: $skill"; $failed = $true }
         }
     }
-    if (-not $failed) { Write-Host "Fatto. 'npx skills list' mostra cosa e' installato e dove." }
+    if (-not $failed) { Write-Host "Done. 'npx skills list' shows what is installed and where." }
 }
 
-# Esecuzione diretta: .\install-profile.ps1 core -Global
+# Direct execution: .\install-profile.ps1 core -Global
 if ($MyInvocation.InvocationName -ne '.' -and $args.Count -gt 0) {
     $positional = @($args | Where-Object { $_ -notlike '-*' })
     Install-PadosoftSkills -Profiles $positional `

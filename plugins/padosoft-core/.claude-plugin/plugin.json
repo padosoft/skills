@@ -2,7 +2,7 @@
   "name": "padosoft-core",
   "displayName": "Padosoft Core",
   "version": "0.1.0",
-  "description": "Skill trasversali Padosoft: router del catalogo e creazione di nuove skill secondo le convenzioni del repo.",
+  "description": "Padosoft cross-project skills: the catalog router and the creation of new skills following the repo conventions.",
   "author": {
     "name": "Padosoft",
     "url": "https://www.padosoft.com"

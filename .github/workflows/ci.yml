@@ -14,7 +14,7 @@ env:
 
 jobs:
   skills:
-    name: Valida skill, catalogo e linter
+    name: Validate skills, catalog and linter
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,29 +27,29 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Ogni SKILL.md rispetta la specifica Agent Skills
+      - name: Every SKILL.md follows the Agent Skills specification
         run: |
           for d in skills/*/; do
             python3 "$EMAIL_SKILL/scripts/validate_skill.py" "$d"
           done
 
-      - name: Catalogo, profili e router allineati al frontmatter
+      - name: Catalog, profiles and router aligned with the frontmatter
         run: python3 scripts/build_catalog.py --check
 
-      - name: Manifest dei plugin coerenti
+      - name: Plugin manifests consistent
         run: python3 scripts/validate_plugins.py
 
-      - name: Test
+      - name: Tests
         run: python3 -m unittest discover -s tests -v
 
-      - name: Il template di riferimento deve passare il linter
+      - name: The reference template must pass the linter
         run: python3 "$EMAIL_SKILL/scripts/lint_email.py" "$EMAIL_SKILL/templates/reference-welcome-dark.html"
 
-      - name: La fixture con gli anti-pattern deve fallire
+      - name: The anti-pattern fixture must fail
         run: |
           if python3 "$EMAIL_SKILL/scripts/lint_email.py" tests/fixtures/bad-email.html > /dev/null; then
-            echo "::error::La fixture bad-email.html dovrebbe fallire il lint"; exit 1
+            echo "::error::The bad-email.html fixture should fail the lint"; exit 1
           fi
 
-      - name: L'installer funziona in dry-run
+      - name: The installer works in dry-run
         run: bash scripts/install-profile.sh core --dry-run

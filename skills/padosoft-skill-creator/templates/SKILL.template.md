@@ -1,56 +1,56 @@
 ---
 name: {{name}}
 description: >-
-  Usa questa skill quando {{situazioni concrete in cui serve, anche senza le parole chiave del dominio}}:
-  {{cosa fa in una riga}}. Non usarla per {{confini: cosa NON copre}}.
+  Use this skill when {{concrete situations where it is needed, even without the domain keywords}}:
+  {{what it does, in one line}}. Do not use it for {{boundaries: what it does NOT cover}}.
 license: MIT
 compatibility: >-
-  {{prerequisiti: runtime, tool, accessi. Togli questa chiave se non ce ne sono.}}
+  {{prerequisites: runtime, tools, access. Remove this key if there are none.}}
 metadata:
   version: 0.1.0
   author: Padosoft
-  profiles: {{profili}}
+  profiles: {{profiles}}
   scope: {{scope}}
   repository: https://github.com/padosoft/skills
-  keywords: {{parole chiave separate da virgola}}
+  keywords: {{comma-separated keywords}}
 ---
 
-# {{Titolo}}
+# {{Title}}
 
-{{Una o due righe: cosa produce la skill e qual e' il risultato atteso, misurabile se possibile.}}
+{{One or two lines: what the skill produces and what the expected result is, measurable if possible.}}
 
 ---
 
-## 0. Script inclusi
+## 0. Included scripts
 
-| Script | Uso |
+| Script | Use |
 |---|---|
-| `scripts/{{script}}.py` | {{cosa fa e comando pronto}} |
+| `scripts/{{script}}.py` | {{what it does and the ready-to-run command}} |
 
 ## 1. Workflow
 
-1. {{Passo con il comando o il criterio}}
+1. {{Step with the command or the criterion}}
 2. {{…}}
-3. **Verifica**: {{comando che valida il risultato}} — non consegnare finche' non passa.
+3. **Verify**: {{command that validates the result}} — do not deliver until it passes.
 
-## 2. Pattern
+## 2. Patterns
 
-```{{linguaggio}}
-{{snippet copiabile}}
+```{{language}}
+{{copyable snippet}}
 ```
 
-## 3. Gotcha
+## 3. Gotchas
 
-- {{fatto che contraddice l'assunzione ragionevole}}
-- {{errore gia' commesso e come evitarlo}}
+- {{fact that contradicts the reasonable assumption}}
+- {{mistake already made and how to avoid it}}
 
 ## 4. Checklist
 
-- [ ] {{controllo}}
-- [ ] {{controllo}}
+- [ ] {{check}}
+- [ ] {{check}}
 
-## 5. Report finale
+## 5. Final report
 
 ```
-{{template del report che l'agente deve produrre}}
+{{template of the report the agent must produce}}
 ```

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-build_payload.py - Crea il JSON per la Mailtrap Sending/Sandbox API da HTML + text + metadati.
+build_payload.py - Builds the JSON for the Mailtrap Sending/Sandbox API from HTML + text + metadata.
 
-Uso:
-  python3 build_payload.py --html email.html --text email.txt --subject "Oggetto" \
+Usage:
+  python3 build_payload.py --html email.html --text email.txt --subject "Subject" \
       --from-email noreply@brand.it --from-name "Brand" --to test@brand.it \
       --unsubscribe-url https://brand.it/unsubscribe [--unsubscribe-mailto unsubscribe@brand.it] \
       [--category welcome] [--out payload.json]
@@ -30,18 +30,18 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path("payload.json"))
     a = ap.parse_args()
 
-    # Guard: file presenti
+    # Guard: files present
     for p in (a.html, a.text):
         if not p.is_file():
-            print(f"File non trovato: {p}", file=sys.stderr)
+            print(f"File not found: {p}", file=sys.stderr)
             return 2
 
     html: str = a.html.read_text(encoding="utf-8")
     text: str = a.text.read_text(encoding="utf-8")
 
-    # Guard: R-404 text/plain non vuoto
+    # Guard: R-404 text/plain not empty
     if not text.strip():
-        print("text/plain vuoto (R-404)", file=sys.stderr)
+        print("text/plain empty (R-404)", file=sys.stderr)
         return 1
 
     # R-405: List-Unsubscribe one-click (RFC 8058)
@@ -58,9 +58,9 @@ def main() -> int:
         "html": html,
         "headers": {"List-Unsubscribe": lu, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"},
     }
-    # ensure_ascii=True: il JSON resta ASCII, gli accenti del text/plain viaggiano come \uXXXX
+    # ensure_ascii=True: the JSON stays ASCII, accented characters in text/plain travel as \uXXXX
     a.out.write_text(json.dumps(payload, ensure_ascii=True, indent=1), encoding="utf-8")
-    print(f"Payload scritto: {a.out} ({a.out.stat().st_size} byte)")
+    print(f"Payload written: {a.out} ({a.out.stat().st_size} bytes)")
     return 0
 
 
