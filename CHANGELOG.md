@@ -24,6 +24,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
     found what the project checks missed.
 - Two marketplace packages: `padosoft-api` and `padosoft-devops`.
 
+### Fixed (field test against the source project)
+
+The four skills were run against the codebase they were extracted from. What the pre-screens actually do on
+real code, rather than on the example in the rule:
+
+- `api-security-review` check 4 **missed the class of bug it was written for**. The two real leaking lines
+  were matched only because their message happened to contain the word "token"; the identical call with the
+  message "db lookup failed" was invisible. A driver error object carries the already-formatted query with
+  the bound values substituted, so the leak is in the *object*, not in the sentence. Added a second
+  pre-screen for objects handed to a logger, narrowed to catch blocks around database calls, plus the
+  redaction helper that keeps `code`/`errno` instead of redacting everything.
+- `api-security-review` check 5 **flagged the reference implementation of its own fix**: the pattern matched
+  `process.env.NODE_ENV`, which is the correct raw read the rule prescribes. 1 false positive → 0.
+- `api-security-review` check 6 returned **89 hits on a clean codebase**, roughly half of them the generated
+  placeholders and offsets the rule itself authorises. Excluded them (89 → 42) and documented what a
+  compliant hit looks like, so it is dismissed in one pass instead of re-investigated on every commit.
+- `hono-api-conventions` transaction screen grepped for `execute("INSERT`, which **never matches** a
+  three-layer architecture: the SQL arrives from the query layer as a variable. It reported zero on a
+  codebase with writes in 13 repository files — a green check that never looked. Rewritten to recognise the
+  write through the query it imports; it now surfaces 10 candidate files and correctly skips the ones that
+  already use transactions.
+- Documented that a pre-screen is a screen and not a verdict, with the compliant patterns to recognise:
+  allow-listed sort columns, `SELECT *` in a derived table, a wildcard *optional* auth on its own prefix, and
+  `LIMIT`/`OFFSET` interpolated deliberately because the driver does not bind them.
+
 ### Fixed
 - `scripts/build_catalog.py` wrote the generated files with the platform default newline, so every
   `make catalog` on Windows rewrote CATALOG.md, profiles.json, README.md and the router SKILL.md with CRLF,

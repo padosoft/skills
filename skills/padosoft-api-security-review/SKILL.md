@@ -44,6 +44,11 @@ git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|js|mjs)$'
 Apply the relevant checks to those files. **For every violation: block the commit**, name the rule, propose
 the fix. Skip a check that does not apply to the diff — do not report it as passed.
 
+**A pre-screen is a screen, not a verdict.** Each one is tuned to surface candidates, and a healthy codebase
+still produces hits: they are the compliant implementations of the very rule being checked. Where that
+happens, the check below shows what a compliant hit looks like — recognise it, say so in one line, move on.
+A check that reports 40 lines every time gets ignored, and then it protects nothing.
+
 Severity: a violation of checks 1, 2, 3 or 5 is **critical** (it is how a real incident started). The others
 block the commit but can be discussed.
 
@@ -69,6 +74,9 @@ grep -rnE '\.use\("\*",\s*\w*[Aa]uth' src/routes
   who are staff *and* customers.
 - **Hono flattening gotcha:** when several sub-apps mount on the same prefix, `route.use("*", authMw)`
   **inside** a sub-app leaks to its siblings. Apply auth on the **exact path** where the app is composed.
+  The grep flags every `use("*", …auth…)`, so before calling it a violation check the two things that make it
+  one: **is the prefix shared** with other sub-apps, and **is it a gate**? A wildcard `optionalAuthMiddleware`
+  on a sub-app with its own prefix is neither — it populates the context, it does not block.
 
 ## 2. Ownership from the authenticated id — `API-SEC-IDOR-001`
 
@@ -100,7 +108,9 @@ grep -rnE 'SELECT \*' src/query
 
 - Secrets do not live in a settings table. Until they move to a key store, the runtime filter is the only
   barrier — and no endpoint may bypass it.
-- **Allow-list the response fields.** Never return whole rows; mask credential columns to `null`.
+- **Allow-list the response fields.** Never return whole rows; mask credential columns to `null`. The
+  `SELECT *` grep also hits derived tables (`SELECT * FROM ( … ) x`), which never reach the client: what the
+  rule is about is the **projection returned to the caller**, not every star in the file.
 - A **permissive allow-list is a trap**: combine an exact deny-list *with* name and value detectors. Do not
   "allow everything not explicitly secret".
 - Strip identity fields from public projections and honour "hidden" flags **fail-closed**.
@@ -119,12 +129,45 @@ Filtering is **never silent**: log every removal once per key with the deciding 
 ## 4. Logs and telemetry without secrets or PII — `API-SEC-LOG-001`
 
 ```bash
+# 1. a secret named in the log call
 grep -rniE 'logger\.(info|debug|warn|error)\(.*(token|cookie|authorization|password|session|email|JSON\.stringify\((headers|req|request|body|row))' src
+# 2. an OBJECT handed to the logger — the case the first grep cannot see
+grep -rnE 'logger\.(error|warn|info|debug)\([^)]*,\s*(err|error|e)\)' src \
+  | grep -viE 'sanitize|redact|safeError|\.message'
 grep -rnE 'console\.(log|error|warn|info|debug)\(' src --include=*.ts | grep -v '\.test\.ts'
 ```
 
 Never log `Authorization`/Bearer, cookies, API secrets, tokens, passwords, auth bodies, or national id /
 VAT / email. Log non-sensitive markers instead (`has_session_cookie=true`). No `console.*` in runtime paths.
+
+⚠️ **The second grep is the one that matters, and it is noisy on purpose.** Grep 1 reads the *message*; the
+leak is usually in the *object*. Narrow it to the dangerous context — a `catch` around a database call:
+
+```bash
+for f in $(grep -rlE 'logger\.(error|warn)\([^)]*,\s*(err|error|e)\)' src); do
+  grep -qE 'client\.execute|getConnection' "$f" && echo "$f"
+done
+```
+
+**A driver error object carries the query already formatted, with the bound values substituted.** In mysql2
+that is `err.sql`. So `logger.error("db lookup failed:", err)` on a query bound with `:tokenHash` writes the
+token hash into the log — an equivalent of the token for anyone reading, enough to find the row in the token
+table. And the branch that logs is the **failure** branch: exactly the one people open when something breaks,
+copy into a ticket and paste into a chat.
+
+Do not redact the whole thing — that makes the logs useless precisely when they are needed. Keep what
+diagnoses (`code`, `errno`, `message` truncated) and drop `sql`, `sqlMessage` and the stack:
+
+```ts
+export function safeDbErrorDetails(err: unknown) {
+    if (typeof err !== "object" || err === null) return { code: "UNKNOWN" };
+    const e = err as { code?: string; errno?: number; message?: string };
+    return { code: e.code, errno: e.errno, message: e.message?.slice(0, 200) };
+}
+```
+
+*This is a real finding: the line existed, the previous commit had left it untouched, and its comment
+declared it already safe.*
 
 Telemetry: never export a **raw** query string, a client IP read straight from a header, or a raw exception.
 Sanitize the query (redact credential-like keys, email-shaped values, blobs), truncate the user agent, and
@@ -134,7 +177,8 @@ payload survive.
 ## 5. Environment gates must be fail-SAFE — `API-SEC-ENV-001`
 
 ```bash
-grep -rnE 'env\.NODE_ENV\s*(===|!==)\s*"(production|development)"' src
+# the PARSED value only: a raw process.env read is the correct form, do not flag it
+grep -rnE '(^|[^.[:alnum:]_])env\.NODE_ENV\s*(===|!==)' src | grep -v 'process\.env'
 ```
 
 If the env schema defaults `NODE_ENV` to `"development"`, a production deploy that simply **omits** it makes
@@ -153,7 +197,10 @@ Mock auth must **abort startup** unless the raw `NODE_ENV` is exactly `developme
 ## 6. Bound SQL — `API-SEC-SQL-001`
 
 ```bash
-grep -rnE "(WHERE|SELECT|LIKE|VALUES|SET|ORDER BY)[^\n]*\$\{" src/query
+# exclude the sanctioned forms, or the signal drowns: on a clean codebase the raw
+# grep returned 89 hits, of which ~45 were generated placeholders and offsets
+grep -rnE "(WHERE|SELECT|LIKE|VALUES|SET|ORDER BY)[^\n]*\$\{" src/query \
+  | grep -viE '\$\{([a-zA-Z_]*[Pp]laceholders|ph|offset|safeOffset|limit)\}'
 grep -rnE "'\\\$\{" src/query          # a literal '${x}' is injection too
 grep -rn 'client.query(' src           # use the parameterized execute
 ```
@@ -163,6 +210,22 @@ Always named bound params. **A SELECT literal is injection as well**: `'${lang}'
 Narrow exceptions: `LIMIT`/`OFFSET` only if they are schema-coerced numbers; column name and sort direction
 only through an allow-list plus a ternary; `IN (…)` through a placeholder builder — and **merge** the params
 it returns.
+
+**What a compliant hit looks like** — recognise it and move on, instead of re-investigating it on every
+commit:
+
+```ts
+const sortCol  = SORT_COLUMN_WHITELIST[f.sort] ?? "bc.updated_at";   // ✅ allow-list + fallback
+const orderDir = f.order === "asc" ? "ASC" : "DESC";                 // ✅ ternary, two outcomes
+const op       = getDbOperatorByQueryStringOp(input.operator);       // ✅ mapper, not the raw string
+sql += ` ORDER BY ${sortCol} ${orderDir} LIMIT ${f.perPage} OFFSET ${offset}`;
+```
+
+The three questions for a remaining hit: does the value come from the request? If yes, does it pass through
+an allow-list or a ternary? If it is a number, is it coerced by the schema? Three yeses, it is fine.
+
+⚠️ `LIMIT`/`OFFSET` are often interpolated **deliberately**: mysql2 does not bind them as named placeholders.
+Do not "fix" one back into `:limit` — the query breaks. Check the coercion instead.
 
 Adjacent correctness trap, same file: in a translation join, put the language filter **inside that join's own
 `ON`**. On a second `LEFT JOIN` it cannot reduce rows — it only nulls the non-matching ones, so the query
@@ -239,6 +302,10 @@ grep -rniE 'etag|if-none-match|304' src/middlewares
 
 ## Gotchas
 
+- **Grepping for the secret's name finds the wrong half of the problem.** The two real leaking lines were
+  caught because their message happened to contain the word "token"; the same call with the message "db
+  lookup failed" is invisible to that grep and just as dangerous. Check **what is handed to the logger**, not
+  what the sentence says.
 - **"It's behind the gateway" is not auth.** Every audit finding above was in a service someone believed was
   private.
 - **A green test suite proves nothing here** if the tests are not mounted in CI. Check that the security
