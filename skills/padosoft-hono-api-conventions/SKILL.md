@@ -156,11 +156,22 @@ Pre-screen on the staged diff:
 
 ```bash
 git diff --cached --name-only --diff-filter=ACMR | grep -E '^src/repositories/.*\.ts$' | while read f; do
-  writes=$(grep -cE 'execute(<[^>]+>)?\(\s*["`]?\s*(INSERT|UPDATE|DELETE)' "$f")
+  execs=$(grep -cE '\b(client|connection|conn)\.execute' "$f")
+  writes=$(grep -ciE 'INSERT INTO|UPDATE |DELETE FROM|(insert|update|delete|upsert|remove|save)[A-Za-z]*(Sql|Query|Params)\b' "$f")
   tx=$(grep -cE 'beginTransaction|getConnection' "$f")
-  [ "${writes:-0}" -ge 2 ] && [ "${tx:-0}" -eq 0 ] && echo "⚠️  $f — $writes writes, no transaction"
+  [ "${execs:-0}" -ge 2 ] && [ "${writes:-0}" -ge 1 ] && [ "${tx:-0}" -eq 0 ] \
+    && echo "⚠️  $f — $execs execute, $writes write signals, no transaction"
 done
 ```
+
+⚠️ **Do not grep for `execute("INSERT`** — in this architecture the SQL arrives from the query layer as a
+*variable* (`connection.execute(deleteSql, deleteParams)`), so the keyword is never next to the call. A check
+written that way reports zero on a codebase full of writes, which is the worst possible outcome: a green
+check that never looked. The screen above recognises the write through the query it imports instead.
+
+**The screen is file-level, the rule is per function.** A file with fifteen single-write functions is fine
+and will still be flagged: it narrows all repositories down to a handful worth opening, and then you count
+the writes *inside the function*. Confirm before reporting anything.
 
 A function whose name or docstring promises all-or-nothing semantics ("atomic", "bulk replace", "publish",
 "transition") and has no transaction is a **critical** finding, not a warning. If the function only delegates
@@ -211,6 +222,10 @@ to numbers first.
 
 **7. `rows[0]` on a query that can return more than one row with no `ORDER BY`.** Which row arrives first is
 the engine's choice, so the behaviour changes without the code changing.
+
+**8. `LIMIT`/`OFFSET` are interpolated on purpose.** The driver does not bind them as named placeholders, so
+the layering gives way here and the values are inlined. Do not "fix" one back into `:limit`: the query
+breaks. Make sure the value is a schema-coerced number and leave it alone.
 
 ---
 
