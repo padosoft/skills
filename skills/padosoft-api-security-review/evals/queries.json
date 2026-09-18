@@ -1,0 +1,22 @@
+[
+  { "query": "puoi dare un'occhiata a questa rotta prima che committo? ho aggiunto una DELETE", "should_trigger": true },
+  { "query": "before I push, check the endpoint that returns the settings to the mobile app", "should_trigger": true },
+  { "query": "this endpoint seems public, was it supposed to be?", "should_trigger": true },
+  { "query": "review my changes to the auth middleware", "should_trigger": true },
+  { "query": "i added a query that filters by the customer id coming from the querystring", "should_trigger": true },
+  { "query": "security audit of the PR I just opened", "should_trigger": true },
+  { "query": "the error response in production is showing the stack trace, is that a problem?", "should_trigger": true },
+  { "query": "i'm logging the authorization header to debug a 401, ok to commit?", "should_trigger": true },
+  { "query": "we export the orders to CSV now, anything to watch out for?", "should_trigger": true },
+  { "query": "added a fetch to an external pricing service in the checkout flow", "should_trigger": true },
+  { "query": "how do I configure the WAF rules on Cloudflare?", "should_trigger": false },
+  { "query": "bun audit reports 3 vulnerable transitive dependencies, which do I bump?", "should_trigger": false },
+  { "query": "write the SQL query that joins orders and customers", "should_trigger": false },
+  { "query": "the endpoint is slow, can you profile it?", "should_trigger": false },
+  { "query": "set up SPF and DKIM for the sending domain", "should_trigger": false },
+  { "query": "rename this controller and update the imports", "should_trigger": false },
+  { "query": "explain what a JWT is", "should_trigger": false },
+  { "query": "our AWS bill went up, which service is it?", "should_trigger": false },
+  { "query": "write the unit test for the pagination helper", "should_trigger": false },
+  { "query": "review the copy of this error message, it sounds rude", "should_trigger": false }
+]

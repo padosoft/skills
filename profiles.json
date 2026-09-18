@@ -5,12 +5,29 @@
       "padosoft-skill-creator",
       "padosoft-skills-router"
     ],
+    "node": [
+      "padosoft-api-security-review",
+      "padosoft-hono-api-conventions",
+      "padosoft-openapi-spec-workflow"
+    ],
     "email": [
       "padosoft-email-html-builder"
+    ],
+    "api": [
+      "padosoft-api-security-review",
+      "padosoft-hono-api-conventions",
+      "padosoft-openapi-spec-workflow"
+    ],
+    "devops": [
+      "padosoft-pr-review-triage"
     ]
   },
   "scope": {
+    "padosoft-api-security-review": "project",
     "padosoft-email-html-builder": "project",
+    "padosoft-hono-api-conventions": "project",
+    "padosoft-openapi-spec-workflow": "project",
+    "padosoft-pr-review-triage": "project",
     "padosoft-skill-creator": "global",
     "padosoft-skills-router": "global"
   }

@@ -1,0 +1,22 @@
+[
+  { "query": "aggiungi il campo sconto_percentuale allo schema del prodotto", "should_trigger": true },
+  { "query": "add a new optional query parameter to the catalog endpoint in the spec", "should_trigger": true },
+  { "query": "the mock returns a different shape than the real API for this endpoint", "should_trigger": true },
+  { "query": "the client method is missing the new parameter I added to the spec", "should_trigger": true },
+  { "query": "the build fails with UnknownZodTypeError when generating the document", "should_trigger": true },
+  { "query": "we released the spec and the mobile app broke, what did we change?", "should_trigger": true },
+  { "query": "devo aggiungere un endpoint nuovo alla spec, cosa devo toccare?", "should_trigger": true },
+  { "query": "do I need a changeset for this schema change?", "should_trigger": true },
+  { "query": "removing a field from the response schema, is that safe?", "should_trigger": true },
+  { "query": "the field is in the default mock but not for the other tenant", "should_trigger": true },
+  { "query": "implement the controller that serves this endpoint in the API", "should_trigger": false },
+  { "query": "is this endpoint missing auth?", "should_trigger": false },
+  { "query": "write the SQL query for the product listing", "should_trigger": false },
+  { "query": "the OpenAPI docs page looks ugly, restyle it", "should_trigger": false },
+  { "query": "publish the package to npm", "should_trigger": false },
+  { "query": "process the copilot comments on the spec PR", "should_trigger": false },
+  { "query": "explain what OpenAPI is", "should_trigger": false },
+  { "query": "our mock server won't start, port already in use", "should_trigger": false },
+  { "query": "write a Laravel migration for the new column", "should_trigger": false },
+  { "query": "the response is slow, add caching", "should_trigger": false }
+]

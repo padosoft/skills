@@ -1,0 +1,11 @@
+{
+  "name": "padosoft-devops",
+  "displayName": "Padosoft DevOps",
+  "version": "0.1.0",
+  "description": "Repository and delivery workflows: triage of automated PR review comments (Copilot, Codex, CodeRabbit) with approval before any fix.",
+  "author": { "name": "Padosoft", "url": "https://www.padosoft.com" },
+  "repository": "https://github.com/padosoft/skills",
+  "license": "MIT",
+  "keywords": ["devops", "github", "pull request", "code review", "copilot"],
+  "skills": ["../../skills/padosoft-pr-review-triage"]
+}

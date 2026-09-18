@@ -1,0 +1,22 @@
+[
+  { "query": "ci sono i commenti di copilot sulla PR 212, me li sistemi?", "should_trigger": true },
+  { "query": "address the review comments on PR #45", "should_trigger": true },
+  { "query": "codex ha lasciato 8 rilievi sulla pull request, guardali", "should_trigger": true },
+  { "query": "the bot left a pile of comments on my PR, which ones actually matter?", "should_trigger": true },
+  { "query": "fix copilot review", "should_trigger": true },
+  { "query": "coderabbit flagged 14 things on the PR, triage them please", "should_trigger": true },
+  { "query": "process the automated review on the branch I just pushed", "should_trigger": true },
+  { "query": "github advanced security commented on the PR, are those real?", "should_trigger": true },
+  { "query": "rispondi ai commenti del bot sulla PR e applica quelli sensati", "should_trigger": true },
+  { "query": "review the PR comments and tell me what to fix before merging", "should_trigger": true },
+  { "query": "review this code and tell me what's wrong with it", "should_trigger": false },
+  { "query": "my colleague left a comment asking why I used a map here, what do I answer?", "should_trigger": false },
+  { "query": "open a pull request for this branch", "should_trigger": false },
+  { "query": "the CI is failing on the PR, what broke?", "should_trigger": false },
+  { "query": "write a description for this pull request", "should_trigger": false },
+  { "query": "do a security review of this endpoint", "should_trigger": false },
+  { "query": "merge the PR and delete the branch", "should_trigger": false },
+  { "query": "set up a GitHub Action that runs the tests on every PR", "should_trigger": false },
+  { "query": "resolve the merge conflict in package.json", "should_trigger": false },
+  { "query": "how do I configure Copilot in my editor?", "should_trigger": false }
+]
