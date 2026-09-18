@@ -10,12 +10,17 @@
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-spec%20compliant-5A67D8)](https://agentskills.io/specification)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![skills.sh](https://skills.sh/b/padosoft/skills?style=flat)](https://skills.sh/padosoft/skills)
 
 Skills compatible with Claude Code, Codex, Cursor, Copilot, Gemini CLI, OpenCode and every other client that
 supports the [Agent Skills](https://agentskills.io) format.
 
 The full list of skills — what they do, when they trigger and where they get installed — is further down:
 [**Available skills**](#available-skills). The per-profile table lives in [CATALOG.md](CATALOG.md).
+
+**Install from the directory** — the repo is listed in the Agent Skills directory at
+[skills.sh/padosoft/skills](https://skills.sh/padosoft/skills): `npx skills add padosoft/skills --list` shows
+what is inside, `--skill <name>` installs just one. Profiles (below) stay the recommended route.
 
 ---
 
@@ -115,6 +120,10 @@ bash scripts/install-profile.sh core --dry-run          # print the commands wit
 
 # a single skill
 npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-email-html-builder
+
+# from the directory listing (skills.sh/padosoft/skills)
+npx skills add padosoft/skills --list                   # what the repo contains, without installing
+npx skills add padosoft/skills --skill padosoft-skills-router   # just one of them
 
 # the whole catalog (not recommended: it installs what you do not need as well)
 npx skills add padosoft/skills
