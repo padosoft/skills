@@ -157,8 +157,11 @@ def main() -> int:
 
     files: dict[Path, str] = {
         target / "SKILL.md": skill_md,
-        target / "references" / f"{slug.replace('padosoft-', '')}.md":
-            REFERENCE_STUB.format(title=title, slug=slug.replace("padosoft-", "")),
+        # rules.md and not <slug>.md: every skill in the catalog that has a reference file calls it
+        # rules.md, and a stub named after the skill was twice written next to the real rules.md and
+        # committed empty. One conventional name means the scaffold gets filled instead of duplicated.
+        target / "references" / "rules.md":
+            REFERENCE_STUB.format(title=title, slug="rules"),
         target / "evals" / "queries.json": EVALS,
     }
     if args.with_scripts:
