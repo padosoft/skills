@@ -1,0 +1,22 @@
+[
+  { "query": "creami lo screen per il dettaglio ordine", "should_trigger": true },
+  { "query": "add a component that shows the loyalty points", "should_trigger": true },
+  { "query": "mi serve l'hook per l'endpoint /v1/negozi", "should_trigger": true },
+  { "query": "new screen for the wishlist, with params", "should_trigger": true },
+  { "query": "the screen title shows account.orders.title instead of the text", "should_trigger": true },
+  { "query": "the route exists in one app but not in the other", "should_trigger": true },
+  { "query": "scaffold a query hook with infinite scroll for the catalog", "should_trigger": true },
+  { "query": "ho creato il componente ma l'import non lo trova", "should_trigger": true },
+  { "query": "what files do I need to touch for a new screen?", "should_trigger": true },
+  { "query": "add a new data hook that paginates", "should_trigger": true },
+  { "query": "review the component I wrote yesterday", "should_trigger": false },
+  { "query": "why does this list stutter?", "should_trigger": false },
+  { "query": "is this WebView configured safely?", "should_trigger": false },
+  { "query": "the query key is missing a parameter", "should_trigger": false },
+  { "query": "set up a GitHub Action for the build", "should_trigger": false },
+  { "query": "translate the whole app into Portuguese", "should_trigger": false },
+  { "query": "our bundle size grew by 2MB", "should_trigger": false },
+  { "query": "delete the old checkout screen", "should_trigger": false },
+  { "query": "write the backend endpoint for this screen", "should_trigger": false },
+  { "query": "how do I debug a release build?", "should_trigger": false }
+]

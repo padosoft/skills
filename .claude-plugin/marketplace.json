@@ -13,8 +13,8 @@
       "name": "padosoft-core",
       "source": "./plugins/padosoft-core",
       "displayName": "Padosoft Core",
-      "description": "Cross-project skills to keep always on: catalog and router, skill creation, and commit integrity.",
-      "version": "0.2.0",
+      "description": "Cross-project skills to keep always on: catalog and router, skill creation, commit integrity, logging discipline.",
+      "version": "0.3.0",
       "author": {
         "name": "Padosoft"
       },
@@ -23,7 +23,8 @@
         "padosoft",
         "core",
         "router",
-        "git"
+        "git",
+        "logging"
       ],
       "category": "productivity"
     },
@@ -79,6 +80,24 @@
         "devops",
         "github",
         "code review"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "padosoft-react-native",
+      "source": "./plugins/padosoft-react-native",
+      "displayName": "Padosoft React Native",
+      "description": "React Native / Expo: conventions from two production apps, mobile security review, screen and hook scaffolding.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Padosoft"
+      },
+      "license": "MIT",
+      "keywords": [
+        "react-native",
+        "expo",
+        "mobile",
+        "security"
       ],
       "category": "productivity"
     }

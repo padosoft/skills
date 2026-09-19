@@ -1,0 +1,22 @@
+[
+  { "query": "sto loggando l'errore nel catch, va bene così?", "should_trigger": true },
+  { "query": "the error message shows the SQL query to the user", "should_trigger": true },
+  { "query": "is it safe to log the request body here?", "should_trigger": true },
+  { "query": "un cliente ha mandato uno screenshot con dentro SQLSTATE e il nome del database", "should_trigger": true },
+  { "query": "review the catch blocks in this file before I commit", "should_trigger": true },
+  { "query": "i logs sono pieni di roba inutile, non si trova niente", "should_trigger": true },
+  { "query": "ho aggiunto un console.log per debuggare, lo tolgo prima di committare?", "should_trigger": true },
+  { "query": "what should go in the log when a query fails?", "should_trigger": true },
+  { "query": "the support ticket has the customer's phone number in the pasted error", "should_trigger": true },
+  { "query": "should this be logger.info or logger.debug?", "should_trigger": true },
+  { "query": "set up log shipping to Datadog", "should_trigger": false },
+  { "query": "which logging library should we use in this project?", "should_trigger": false },
+  { "query": "configure log rotation and retention on the server", "should_trigger": false },
+  { "query": "build a dashboard of error rates per endpoint", "should_trigger": false },
+  { "query": "the app crashes on startup, find out why", "should_trigger": false },
+  { "query": "write a test for this error handler", "should_trigger": false },
+  { "query": "add auth to this endpoint", "should_trigger": false },
+  { "query": "our disk is full because of the log files", "should_trigger": false },
+  { "query": "translate this error message into Spanish", "should_trigger": false },
+  { "query": "how do I read the stack trace of this crash?", "should_trigger": false }
+]

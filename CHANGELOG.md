@@ -4,6 +4,55 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.3.0] - 2026-09-19
+
+### Added
+
+Four skills extracted from two production React Native apps and, for the logging one, from a Laravel monolith
+as well. The catalog goes from 8 to 12 skills on 6 profiles.
+
+- `padosoft-react-native-conventions` (`react-native`) — the conventions and recurring mistakes distilled from
+  the code-review history of two apps. The filter was mechanical: of 139 and 101 numbered rules, **90 were
+  textually identical in both repositories**, and those are the ones promoted. They now carry stable
+  `RN-AREA-NNN` ids, because the source numbering had drifted — `#96` and `#100` named completely different
+  rules in the two apps, so a citation across repos was ambiguous.
+- `padosoft-mobile-security-review` (`react-native`) — the eight `MOBILE-SEC-*` rules, sibling of the API one:
+  the bundle is decompilable and `EXPO_PUBLIC_*` is inlined at build time, tokens in the system enclave and
+  never in plain application storage, WebView hardening, deep-link validation, TLS and pinning, dev gates on
+  the build-time flag, and the AI/LLM surface written before there is one. Includes the discipline of stating
+  a severity **conditionally** when the enforcement lives outside the repository.
+- `padosoft-rn-screen-scaffolding` (`react-native`) — every file a new screen, component or query hook has to
+  touch. What breaks is never the code, it is the registration: i18n keys, namespace, barrels and the route
+  file in *every* app of the monorepo, each of which fails silently.
+- `padosoft-logging-discipline` (`core`, **global**, fourth of five) — see below.
+- Marketplace package `padosoft-react-native`.
+
+### Changed
+- `padosoft-api-security-review` now defers to `padosoft-logging-discipline` for the logging invariants
+  instead of restating them, keeping only what is specific to an HTTP API.
+
+### The logging skill, and why it is global
+
+Three codebases that share no code — a Bun/Hono API, a React Native app and a Laravel monolith — arrived
+independently at the same rules. The core finding is one bug, three times:
+
+| Stack | The object | What it carried | Where it went |
+|---|---|---|---|
+| Node + mysql2 | `err.sql` | the query already formatted, bound values substituted | into the logs: the hash of an auth token |
+| Laravel + PDO | `QueryException::getMessage()` | SQLSTATE, production DB host, database name, the full INSERT | onto the **user's screen**, with their personal data |
+| React Native | a raw `Error` | message and stack | into the logs, every crash collapsed into one issue |
+
+The skill states the invariants — a driver exception is not a loggable object; keep the diagnosis and drop the
+data; nothing ad hoc on stdout; detail at `debug`; a safety net must report when it fires; in local you are
+not seeing production — and then gives the mechanism **per stack**, because it is not the same place: at the
+call site in Node and React Native, centrally in a Monolog processor plus `#[\SensitiveParameter]` in
+Laravel. Porting one onto the other either edits a hundred call sites a processor already covers, or waits for
+a pipeline that does not exist.
+
+The Laravel material also improved the API skill's formulation: log the **parameterised** SQL and describe the
+bindings as type and length — the length is what tells you which validation limit is missing, the value never
+is.
+
 ## [1.2.0] - 2026-09-19
 
 ### Added

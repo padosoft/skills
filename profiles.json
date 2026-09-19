@@ -3,6 +3,7 @@
   "profiles": {
     "core": [
       "padosoft-git-commit-integrity",
+      "padosoft-logging-discipline",
       "padosoft-skill-creator",
       "padosoft-skills-router"
     ],
@@ -10,6 +11,11 @@
       "padosoft-api-security-review",
       "padosoft-hono-api-conventions",
       "padosoft-openapi-spec-workflow"
+    ],
+    "react-native": [
+      "padosoft-mobile-security-review",
+      "padosoft-react-native-conventions",
+      "padosoft-rn-screen-scaffolding"
     ],
     "email": [
       "padosoft-email-html-builder"
@@ -28,8 +34,12 @@
     "padosoft-email-html-builder": "project",
     "padosoft-git-commit-integrity": "global",
     "padosoft-hono-api-conventions": "project",
+    "padosoft-logging-discipline": "global",
+    "padosoft-mobile-security-review": "project",
     "padosoft-openapi-spec-workflow": "project",
     "padosoft-pr-review-triage": "project",
+    "padosoft-react-native-conventions": "project",
+    "padosoft-rn-screen-scaffolding": "project",
     "padosoft-skill-creator": "global",
     "padosoft-skills-router": "global"
   }

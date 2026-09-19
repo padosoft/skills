@@ -1,0 +1,15 @@
+{
+  "name": "padosoft-react-native",
+  "displayName": "Padosoft React Native",
+  "version": "0.1.0",
+  "description": "Building and reviewing React Native / Expo apps: the conventions distilled from two production apps, the mobile security review, and the scaffolding of screens, components and query hooks.",
+  "author": { "name": "Padosoft", "url": "https://www.padosoft.com" },
+  "repository": "https://github.com/padosoft/skills",
+  "license": "MIT",
+  "keywords": ["react-native", "expo", "mobile", "security", "conventions"],
+  "skills": [
+    "../../skills/padosoft-react-native-conventions",
+    "../../skills/padosoft-mobile-security-review",
+    "../../skills/padosoft-rn-screen-scaffolding"
+  ]
+}

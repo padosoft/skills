@@ -140,6 +140,10 @@ grep -rnE 'console\.(log|error|warn|info|debug)\(' src --include=*.ts | grep -v 
 Never log `Authorization`/Bearer, cookies, API secrets, tokens, passwords, auth bodies, or national id /
 VAT / email. Log non-sensitive markers instead (`has_session_cookie=true`). No `console.*` in runtime paths.
 
+> The invariants behind this check — and the fact that the redaction goes in a **different place** depending
+> on the stack — are in **`padosoft-logging-discipline`**. Read it when the finding is about what ends up in
+> a log line; what follows here is the API-specific part.
+
 ⚠️ **The second grep is the one that matters, and it is noisy on purpose.** Grep 1 reads the *message*; the
 leak is usually in the *object*. Narrow it to the dangerous context — a `catch` around a database call:
 

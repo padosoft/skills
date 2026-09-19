@@ -1,0 +1,22 @@
+[
+  { "query": "ho aggiunto un componente, me lo rivedi prima che committo?", "should_trigger": true },
+  { "query": "Maximum update depth exceeded, non capisco da dove arriva", "should_trigger": true },
+  { "query": "the chips in the horizontal list overlap while scrolling", "should_trigger": true },
+  { "query": "after withTiming the state stays wrong but the animation plays fine", "should_trigger": true },
+  { "query": "il testo del bottone è illeggibile in dark mode", "should_trigger": true },
+  { "query": "should this go in useCallback?", "should_trigger": true },
+  { "query": "my query returns another screen's data sometimes", "should_trigger": true },
+  { "query": "review this screen against our conventions", "should_trigger": true },
+  { "query": "the list re-renders the whole thing on every keystroke", "should_trigger": true },
+  { "query": "la traduzione manca solo in spagnolo", "should_trigger": true },
+  { "query": "can I put this API key in the bundle?", "should_trigger": false },
+  { "query": "should this be logger.info or debug?", "should_trigger": false },
+  { "query": "create a new screen for the wishlist", "should_trigger": false },
+  { "query": "set up the EAS build profile", "should_trigger": false },
+  { "query": "write a Nitro native module for Android", "should_trigger": false },
+  { "query": "the API endpoint returns 500", "should_trigger": false },
+  { "query": "how do I publish an OTA update?", "should_trigger": false },
+  { "query": "design a new icon set for the tab bar", "should_trigger": false },
+  { "query": "our Laravel migration is failing", "should_trigger": false },
+  { "query": "what does useEffect do?", "should_trigger": false }
+]

@@ -1,0 +1,22 @@
+[
+  { "query": "posso mettere questa chiave in una EXPO_PUBLIC_?", "should_trigger": true },
+  { "query": "the mTLS certificate is hardcoded in networking.ts, how bad is it?", "should_trigger": true },
+  { "query": "dove salvo il refresh token, MMKV o secure store?", "should_trigger": true },
+  { "query": "review this WebView before I merge, it loads a remote page", "should_trigger": true },
+  { "query": "we inject the session token into the webview, is that ok?", "should_trigger": true },
+  { "query": "the app opens external links from the API, anything to check?", "should_trigger": true },
+  { "query": "audit di sicurezza dell'app prima della release", "should_trigger": true },
+  { "query": "is the encryptionKey of MMKV supposed to be a string literal?", "should_trigger": true },
+  { "query": "we want to add an AI assistant to the app, where does the API key go?", "should_trigger": true },
+  { "query": "the debug menu is gated on an EXPO_PUBLIC_ variable", "should_trigger": true },
+  { "query": "review the auth middleware of the API", "should_trigger": false },
+  { "query": "the app was rejected by Apple review, what do I do?", "should_trigger": false },
+  { "query": "set up MDM policies for company devices", "should_trigger": false },
+  { "query": "the FlashList jumps while scrolling", "should_trigger": false },
+  { "query": "add a new screen for the order detail", "should_trigger": false },
+  { "query": "how do I sign the Android release build?", "should_trigger": false },
+  { "query": "our SQL query is vulnerable to injection", "should_trigger": false },
+  { "query": "translate the onboarding into German", "should_trigger": false },
+  { "query": "the animation stutters on older devices", "should_trigger": false },
+  { "query": "configure certificate pinning rotation in Cloudflare", "should_trigger": false }
+]
