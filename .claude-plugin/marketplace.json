@@ -13,8 +13,8 @@
       "name": "padosoft-core",
       "source": "./plugins/padosoft-core",
       "displayName": "Padosoft Core",
-      "description": "Cross-project skills to keep always on: catalog and router of the company skills.",
-      "version": "0.1.0",
+      "description": "Cross-project skills to keep always on: catalog and router, skill creation, and commit integrity.",
+      "version": "0.2.0",
       "author": {
         "name": "Padosoft"
       },
@@ -22,7 +22,8 @@
       "keywords": [
         "padosoft",
         "core",
-        "router"
+        "router",
+        "git"
       ],
       "category": "productivity"
     },

@@ -2,6 +2,7 @@
   "repo": "padosoft/skills",
   "profiles": {
     "core": [
+      "padosoft-git-commit-integrity",
       "padosoft-skill-creator",
       "padosoft-skills-router"
     ],
@@ -25,6 +26,7 @@
   "scope": {
     "padosoft-api-security-review": "project",
     "padosoft-email-html-builder": "project",
+    "padosoft-git-commit-integrity": "global",
     "padosoft-hono-api-conventions": "project",
     "padosoft-openapi-spec-workflow": "project",
     "padosoft-pr-review-triage": "project",

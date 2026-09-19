@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [Unreleased]
+
+### Added
+- `padosoft-git-commit-integrity` (`core`, **global**) — what git actually recorded, as opposed to what you
+  changed. Two failures, both invisible on the machine that made the commit: files missing because `git add -A`
+  skips ignored paths in silence (the real case: a generic `logs/` pattern swallowed the source directory
+  `otel/logs/`, with build and tests green locally), and files whose stored line endings are those of whoever
+  committed them. The fixes that are not obvious: a negation in `.gitignore` rather than `git add -f`, which
+  leaves the trap armed for the next file; and `git add --renormalize .` after adding a `.gitattributes`,
+  without which the already-committed blobs stay as they were while everyone assumes they are protected.
+  Third global skill, on a cap of five.
+
 ## [1.1.0] - 2026-09-19
 
 ### Added
