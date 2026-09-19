@@ -2,10 +2,17 @@
   "repo": "padosoft/skills",
   "profiles": {
     "core": [
+      "padosoft-failure-visibility",
       "padosoft-git-commit-integrity",
       "padosoft-logging-discipline",
       "padosoft-skill-creator",
-      "padosoft-skills-router"
+      "padosoft-skills-router",
+      "padosoft-test-integrity"
+    ],
+    "laravel": [
+      "padosoft-laravel-conventions",
+      "padosoft-laravel-scaffolding",
+      "padosoft-laravel-security-review"
     ],
     "node": [
       "padosoft-api-security-review",
@@ -32,8 +39,12 @@
   "scope": {
     "padosoft-api-security-review": "project",
     "padosoft-email-html-builder": "project",
+    "padosoft-failure-visibility": "global",
     "padosoft-git-commit-integrity": "global",
     "padosoft-hono-api-conventions": "project",
+    "padosoft-laravel-conventions": "project",
+    "padosoft-laravel-scaffolding": "project",
+    "padosoft-laravel-security-review": "project",
     "padosoft-logging-discipline": "global",
     "padosoft-mobile-security-review": "project",
     "padosoft-openapi-spec-workflow": "project",
@@ -41,6 +52,7 @@
     "padosoft-react-native-conventions": "project",
     "padosoft-rn-screen-scaffolding": "project",
     "padosoft-skill-creator": "global",
-    "padosoft-skills-router": "global"
+    "padosoft-skills-router": "global",
+    "padosoft-test-integrity": "global"
   }
 }

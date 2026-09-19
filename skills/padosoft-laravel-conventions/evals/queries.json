@@ -1,0 +1,22 @@
+[
+  { "query": "rivedi questo controller, mi sembra troppo grosso", "should_trigger": true },
+  { "query": "we have an N+1 on the orders listing", "should_trigger": true },
+  { "query": "the prune command runs out of memory on production data", "should_trigger": true },
+  { "query": "should this go in the job or in the service?", "should_trigger": true },
+  { "query": "the model event does not fire when I mass update", "should_trigger": true },
+  { "query": "soft deleted rows are showing up in the count", "should_trigger": true },
+  { "query": "write the migration for the new table", "should_trigger": true },
+  { "query": "chunk skips rows while I update them", "should_trigger": true },
+  { "query": "review this service before I merge", "should_trigger": true },
+  { "query": "dove metto la logica, nel controller o nel service?", "should_trigger": true },
+  { "query": "is this controller vulnerable to mass assignment?", "should_trigger": false },
+  { "query": "create a new CRUD backend for products", "should_trigger": false },
+  { "query": "what should I log when the query fails?", "should_trigger": false },
+  { "query": "write a React component for the dashboard", "should_trigger": false },
+  { "query": "configure the queue connection in production", "should_trigger": false },
+  { "query": "our Blade template shows raw HTML", "should_trigger": false },
+  { "query": "set up queue monitoring", "should_trigger": false },
+  { "query": "the mobile app crashes on this endpoint", "should_trigger": false },
+  { "query": "how do I deploy this to the server?", "should_trigger": false },
+  { "query": "explain what Eloquent is", "should_trigger": false }
+]

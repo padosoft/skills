@@ -1,0 +1,22 @@
+[
+  { "query": "rivedi la sicurezza di questo controller prima che apra la PR", "should_trigger": true },
+  { "query": "we pass the whole request input to the update method", "should_trigger": true },
+  { "query": "the user sees SQLSTATE and the database host in the error", "should_trigger": true },
+  { "query": "findOrFail con l'id preso dalla request e' sicuro qui?", "should_trigger": true },
+  { "query": "we print user content unescaped in blade", "should_trigger": true },
+  { "query": "whereRaw with a variable in it, ok?", "should_trigger": true },
+  { "query": "a customer can see another customer order", "should_trigger": true },
+  { "query": "security audit of this Laravel module", "should_trigger": true },
+  { "query": "we need to exempt this webhook from CSRF", "should_trigger": true },
+  { "query": "two requests both used the same single-use coupon", "should_trigger": true },
+  { "query": "review the auth middleware of the Hono API", "should_trigger": false },
+  { "query": "can this key go in the mobile bundle?", "should_trigger": false },
+  { "query": "our WAF is blocking legit traffic", "should_trigger": false },
+  { "query": "optimize this slow query", "should_trigger": false },
+  { "query": "create the CRUD for the products table", "should_trigger": false },
+  { "query": "what goes in the log line for this exception?", "should_trigger": false },
+  { "query": "upgrade the project to Laravel 13", "should_trigger": false },
+  { "query": "composer audit reports a vulnerable package", "should_trigger": false },
+  { "query": "design the database schema for orders", "should_trigger": false },
+  { "query": "our queue worker keeps dying", "should_trigger": false }
+]

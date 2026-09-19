@@ -1,0 +1,22 @@
+[
+  { "query": "questo test passa anche se rompo il codice", "should_trigger": true },
+  { "query": "review the tests in this PR", "should_trigger": true },
+  { "query": "the ordering test never fails, even with the order reversed", "should_trigger": true },
+  { "query": "il test passa da solo ma fallisce quando gira tutta la suite", "should_trigger": true },
+  { "query": "this test is flaky on CI", "should_trigger": true },
+  { "query": "i wrote the test after the fix and it was green on the first run", "should_trigger": true },
+  { "query": "the test stubs a 500 but nothing clicks the button", "should_trigger": true },
+  { "query": "we override window.location in beforeEach, is that ok?", "should_trigger": true },
+  { "query": "does this test actually test what its name says?", "should_trigger": true },
+  { "query": "the bug is real but the whole suite is green", "should_trigger": true },
+  { "query": "should we use Pest or PHPUnit?", "should_trigger": false },
+  { "query": "what coverage target should we set?", "should_trigger": false },
+  { "query": "the app crashes on this input, find the bug", "should_trigger": false },
+  { "query": "set up the CI pipeline to run tests", "should_trigger": false },
+  { "query": "write a load test for this endpoint", "should_trigger": false },
+  { "query": "our test database seeding is slow", "should_trigger": false },
+  { "query": "how do I mock this HTTP client?", "should_trigger": false },
+  { "query": "add a test for the new endpoint", "should_trigger": false },
+  { "query": "explain what a test double is", "should_trigger": false },
+  { "query": "the build fails on lint, not on tests", "should_trigger": false }
+]

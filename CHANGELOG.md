@@ -4,6 +4,59 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.4.0] - 2026-09-20
+
+### Added
+
+Five skills from seven Laravel repositories. The catalog goes from 12 to 17 skills on 7 profiles, and the
+`core` profile gains two globals.
+
+**Laravel stack** (`laravel` profile, new marketplace package `padosoft-laravel`). Baseline **Laravel 13+ /
+PHP 8.5+** for new work, with the Laravel 10-12 differences called out inline, because the oldest repository
+in the group is still on 12.
+
+- `padosoft-laravel-conventions` — FormRequest -> DTO -> Service -> Resource, jobs that orchestrate while
+  services implement, Eloquent and query work, migrations, and the asymmetry that costs most: **model events
+  do not fire on query-builder mass operations**, so a rule enforced in an observer silently does not apply
+  to the bulk path.
+- `padosoft-laravel-security-review` — the third sibling of the API and mobile ones: ten checks with
+  pre-screens (mass assignment, unescaped Blade, raw SQL, uploads, CSRF, command injection, open redirect,
+  hardcoded secrets, IDOR, unsafe deserialisation), plus ownership scoping, append-only audit trails, the
+  "the invariant is recorded or it does not exist" rule for single-use checks, and `SEC-ERRLEAK-001`.
+- `padosoft-laravel-scaffolding` — the wiring a new endpoint, service, CRUD or job needs. The three steps
+  that fail silently: a route outside the right group keeps answering without the group's middleware, a
+  policy that is never `authorize()`d is not a control, and a job dispatched to a queue with no worker
+  returns 202 forever.
+
+**Two new global skills**, and the cap was raised from five to eight to take them.
+
+- `padosoft-failure-visibility` — the two halves of one bug, the caller cannot tell success from failure: an
+  ignored return value, and a success status served over a failure. *It happened:* a controller called
+  `Storage::put` without checking the return, the disk was configured not to throw, a full disk returned
+  `false`, the controller answered **202 Accepted**, and the job that came later died on a missing file —
+  ingestion silently dropped documents.
+- `padosoft-test-integrity` — the ways a test passes without testing anything: a name promising a transition
+  with a body that never performs it, an ordering assertion with `toBeGreaterThanOrEqual` that passes under
+  either order, global state mutated and never restored (which is where "flaky, it's CI" comes from), a
+  failure-path test that stubs the error and never triggers it.
+
+Both were extracted from skills that were already cross-stack in the source, with PHP and TSX examples in the
+same file, and both were born from findings on real pull requests.
+
+### Changed
+- The global cap moved from 5 to 8, in `tests/test_catalog.py` and in CONTRIBUTING, with the reason written
+  next to the number: when three stacks that share no code reach the same rule on their own, the alternative
+  to one global skill is the same content copied into every stack skill, free to diverge. It stays a forcing
+  function — raising it again is a deliberate decision in a PR, like adding a profile.
+- `padosoft-skill-creator` now names **independent convergence** as the strongest evidence for a global
+  skill, and says to write one as invariants plus a per-stack table, because the principle travels and the
+  mechanism usually does not.
+
+### Note on what was left out
+The seven repositories carry far more than this: an admin-interface family, Playwright end-to-end tooling,
+branching and release conventions, and AI-surface rules. They were left for a later pass, either because they
+are tied to one product's tooling or because they overlap with skills the catalog already has.
+
 ## [1.3.0] - 2026-09-19
 
 ### Added

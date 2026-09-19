@@ -13,8 +13,8 @@
       "name": "padosoft-core",
       "source": "./plugins/padosoft-core",
       "displayName": "Padosoft Core",
-      "description": "Cross-project skills to keep always on: catalog and router, skill creation, commit integrity, logging discipline.",
-      "version": "0.3.0",
+      "description": "Cross-project skills to keep always on: router, skill creation, commit integrity, logging, failure visibility, test integrity.",
+      "version": "0.4.0",
       "author": {
         "name": "Padosoft"
       },
@@ -24,7 +24,8 @@
         "core",
         "router",
         "git",
-        "logging"
+        "logging",
+        "testing"
       ],
       "category": "productivity"
     },
@@ -97,6 +98,23 @@
         "react-native",
         "expo",
         "mobile",
+        "security"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "padosoft-laravel",
+      "source": "./plugins/padosoft-laravel",
+      "displayName": "Padosoft Laravel",
+      "description": "Laravel 13+/PHP 8.5+: conventions, security review with ten checks, scaffolding of endpoints, services, CRUD and jobs.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Padosoft"
+      },
+      "license": "MIT",
+      "keywords": [
+        "laravel",
+        "php",
         "security"
       ],
       "category": "productivity"

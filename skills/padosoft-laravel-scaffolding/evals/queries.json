@@ -1,0 +1,22 @@
+[
+  { "query": "creami l'endpoint API per le richieste di reso", "should_trigger": true },
+  { "query": "add the CRUD backend for the products table", "should_trigger": true },
+  { "query": "mi serve un service che calcoli lo sconto", "should_trigger": true },
+  { "query": "new queued job that syncs the catalog", "should_trigger": true },
+  { "query": "the route returns 404 but I created it", "should_trigger": true },
+  { "query": "the policy exists but anyone can call the endpoint", "should_trigger": true },
+  { "query": "scaffold a controller with validation for this form", "should_trigger": true },
+  { "query": "what files do I need for a new API endpoint?", "should_trigger": true },
+  { "query": "the job is dispatched but nothing happens", "should_trigger": true },
+  { "query": "add the update and destroy actions to this resource", "should_trigger": true },
+  { "query": "review the controller I wrote yesterday", "should_trigger": false },
+  { "query": "is this query vulnerable to injection?", "should_trigger": false },
+  { "query": "optimize the N+1 in this listing", "should_trigger": false },
+  { "query": "does this test actually test anything?", "should_trigger": false },
+  { "query": "configure supervisor for the queue", "should_trigger": false },
+  { "query": "write the Blade template for this page", "should_trigger": false },
+  { "query": "upgrade to PHP 8.5", "should_trigger": false },
+  { "query": "our deploy script fails on migrations", "should_trigger": false },
+  { "query": "design the API contract with the mobile team", "should_trigger": false },
+  { "query": "what is a FormRequest?", "should_trigger": false }
+]

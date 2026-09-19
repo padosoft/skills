@@ -1,8 +1,8 @@
 {
   "name": "padosoft-core",
   "displayName": "Padosoft Core",
-  "version": "0.3.0",
-  "description": "Padosoft cross-project skills: the catalog router, the creation of new skills, commit integrity, and logging discipline.",
+  "version": "0.4.0",
+  "description": "Padosoft cross-project skills: catalog router, skill creation, commit integrity, logging discipline, failure visibility and test integrity.",
   "author": {
     "name": "Padosoft",
     "url": "https://www.padosoft.com"
@@ -14,12 +14,15 @@
     "core",
     "router",
     "git",
-    "logging"
+    "logging",
+    "testing"
   ],
   "skills": [
     "../../skills/padosoft-skills-router",
     "../../skills/padosoft-skill-creator",
     "../../skills/padosoft-git-commit-integrity",
-    "../../skills/padosoft-logging-discipline"
+    "../../skills/padosoft-logging-discipline",
+    "../../skills/padosoft-failure-visibility",
+    "../../skills/padosoft-test-integrity"
   ]
 }

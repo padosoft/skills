@@ -98,7 +98,9 @@ metadata:
 
 - **`scope: global`** only if it passes the three-question filter: it is useful on any stack, it is correct
   everywhere, and its absence would be a problem. Global skills live in the `core` profile and a test caps
-  them at five.
+  them at eight. The strongest evidence for a global skill is **independent convergence**: the same rule
+  reached on its own by stacks that share no code. Write it as invariants plus a per-stack table, because the
+  principle travels and the mechanism usually does not.
 - **`profiles`**: by stack (`laravel`, `node`, `react-native`) or by domain (`email`, `api`, `payments`,
   `data`, `devops`). Multiple profiles only if the skill is genuinely needed in both. Never create a profile
   for a single skill: adding one means changing KNOWN_PROFILES in a PR.

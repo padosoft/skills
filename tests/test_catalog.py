@@ -26,10 +26,17 @@ class TestFrontmatter(unittest.TestCase):
                 self.assertTrue(s.name.startswith("padosoft-"), "the name must carry the brand prefix")
 
     def test_global_skills_stay_few(self) -> None:
-        """Every global skill costs context in EVERY session: the core profile stays small."""
+        """Every global skill costs context in EVERY session: the core profile stays small.
+
+        The cap was raised from 5 to 8 when the third stack joined the catalog: a rule that three
+        independent stacks reached on their own is not a per-stack convention, and the alternative
+        to a global skill is the same content duplicated in every stack skill, free to diverge.
+        The number is still a forcing function, not a budget to fill: raising it again is a
+        deliberate decision in a PR, exactly like adding a profile.
+        """
         skills, _ = bc.load_skills()
         globals_ = [s.name for s in skills if s.scope == "global"]
-        self.assertLessEqual(len(globals_), 5, f"too many global skills: {globals_}")
+        self.assertLessEqual(len(globals_), 8, f"too many global skills: {globals_}")
 
 
 class TestGeneratedFiles(unittest.TestCase):

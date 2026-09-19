@@ -65,8 +65,11 @@ only worth it if the answer is yes to all three:
 2. **Is it correct everywhere?** If its rules only hold for certain projects, it would do damage elsewhere.
 3. **Would its absence be a problem?** If a dev can install it when needed, leave it at project level.
 
-Global skills always live in the `core` profile, and a test fails CI if they go above five: the cap is
-deliberately low, to force a choice.
+Global skills always live in the `core` profile, and a test fails CI if they go above **eight**. The cap
+started at five and was raised once, when a third stack joined the catalog and three rules turned out to be
+reached independently by all of them — at that point the alternative to one global skill is the same content
+copied into every stack skill, free to diverge. It is still a forcing function, not a budget to spend:
+raising it again is a deliberate decision in a PR, like adding a profile.
 
 ### `profiles:` — which stack it belongs to
 

@@ -1,0 +1,22 @@
+[
+  { "query": "il file sembra salvato ma poi il job dice che non esiste", "should_trigger": true },
+  { "query": "the endpoint returns 200 with an empty body when the record is missing", "should_trigger": true },
+  { "query": "Storage::put senza controllare il ritorno, e' un problema?", "should_trigger": true },
+  { "query": "our fetcher catches the error and returns null, the query layer says success", "should_trigger": true },
+  { "query": "the chart shows -Infinity when there is no data", "should_trigger": true },
+  { "query": "we pick the status code by reading the exception message", "should_trigger": true },
+  { "query": "documents are silently dropped during ingestion", "should_trigger": true },
+  { "query": "review the error handling in this controller", "should_trigger": true },
+  { "query": "we use a silenced mkdir with 0777 in the test bootstrap", "should_trigger": true },
+  { "query": "how do I tell the caller the upload failed?", "should_trigger": true },
+  { "query": "what should the retry policy be for this job?", "should_trigger": false },
+  { "query": "set the timeout of the http client", "should_trigger": false },
+  { "query": "what do I put in the log line for this error?", "should_trigger": false },
+  { "query": "our error rate dashboard is wrong", "should_trigger": false },
+  { "query": "write the empty state design for this screen", "should_trigger": false },
+  { "query": "the test suite is slow", "should_trigger": false },
+  { "query": "add auth to this route", "should_trigger": false },
+  { "query": "migrate this table to add an index", "should_trigger": false },
+  { "query": "translate the error copy into English", "should_trigger": false },
+  { "query": "which HTTP client should we use?", "should_trigger": false }
+]
