@@ -1,0 +1,22 @@
+[
+  { "query": "ho committato e pushato ma in CI il modulo non esiste, in locale c'è", "should_trigger": true },
+  { "query": "a colleague says my one-line change shows up as the whole file rewritten", "should_trigger": true },
+  { "query": "the file I added isn't in the repository, but git commit didn't complain", "should_trigger": true },
+  { "query": "ho appena fatto il commit, controlla che ci sia dentro tutto quello che ho toccato", "should_trigger": true },
+  { "query": "the generated file keeps showing as modified right after I regenerate it", "should_trigger": true },
+  { "query": "git says nothing to commit but I definitely created that folder", "should_trigger": true },
+  { "query": "the PR diff shows changes on lines nobody touched", "should_trigger": true },
+  { "query": "should I use git add -f to force this file in?", "should_trigger": true },
+  { "query": "we get phantom conflicts between the mac and windows people on the team", "should_trigger": true },
+  { "query": "do we need a .gitattributes in this repo?", "should_trigger": true },
+  { "query": "how do I resolve this merge conflict in package.json?", "should_trigger": false },
+  { "query": "squash the last three commits before opening the PR", "should_trigger": false },
+  { "query": "write the commit message for these changes", "should_trigger": false },
+  { "query": "should this branch be called feat/ or fix/?", "should_trigger": false },
+  { "query": "revert the last commit, it broke production", "should_trigger": false },
+  { "query": "the CI lint step fails with 297 errors, where do I start?", "should_trigger": false },
+  { "query": "rebase my branch onto main", "should_trigger": false },
+  { "query": "open a pull request and assign it to the reviewer", "should_trigger": false },
+  { "query": "what does this .gitignore pattern match?", "should_trigger": false },
+  { "query": "set up a pre-commit hook that runs the linter", "should_trigger": false }
+]
