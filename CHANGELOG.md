@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
-## [Unreleased]
+## [1.2.0] - 2026-09-19
 
 ### Added
 - `padosoft-git-commit-integrity` (`core`, **global**) — what git actually recorded, as opposed to what you
