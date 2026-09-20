@@ -1,0 +1,20 @@
+[
+  { "query": "controlla i repo e vedi se ci sono regole nuove da portare qui", "should_trigger": true },
+  { "query": "harvest the know-how from our repositories", "should_trigger": true },
+  { "query": "what changed in the lessons files since last time?", "should_trigger": true },
+  { "query": "run the periodic knowledge harvest", "should_trigger": true },
+  { "query": "was this rule already considered and rejected?", "should_trigger": true },
+  { "query": "how do I keep the skills catalogue current?", "should_trigger": true },
+  { "query": "should this become a new skill or extend an existing one?", "should_trigger": true },
+  { "query": "is there enough evidence to promote this to core?", "should_trigger": true },
+  { "query": "a rules file disappeared from one of the source repos", "should_trigger": true },
+  { "query": "set up the harvest sources for a new repository", "should_trigger": true },
+  { "query": "write a new skill about query performance", "should_trigger": false },
+  { "query": "review this skill description", "should_trigger": false },
+  { "query": "install the core profile", "should_trigger": false },
+  { "query": "the catalog check is failing in CI", "should_trigger": false },
+  { "query": "document this feature in the README", "should_trigger": false },
+  { "query": "triage the crash report", "should_trigger": false },
+  { "query": "review this pull request", "should_trigger": false },
+  { "query": "which model should we use?", "should_trigger": false }
+]

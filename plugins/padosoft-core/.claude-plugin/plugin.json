@@ -1,8 +1,8 @@
 {
   "name": "padosoft-core",
   "displayName": "Padosoft Core",
-  "version": "0.12.0",
-  "description": "Padosoft cross-project skills, always on: catalog router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs-code drift, evidence boundaries, tenant isolation, contract changes, verified writing, environment gating, the enterprise security baseline authentication hardening and multi-agent instruction sync and crash triage.",
+  "version": "0.13.0",
+  "description": "Padosoft cross-project skills, always on: catalog router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs-code drift, evidence boundaries, tenant isolation, contract changes, verified writing, environment gating, the enterprise security baseline authentication hardening and multi-agent instruction sync crash triage and the periodic know-how harvest.",
   "author": {
     "name": "Padosoft",
     "url": "https://www.padosoft.com"
@@ -41,6 +41,7 @@
     "../../skills/padosoft-security-baseline",
     "../../skills/padosoft-auth-hardening",
     "../../skills/padosoft-agent-instructions-sync",
-    "../../skills/padosoft-crash-triage"
+    "../../skills/padosoft-crash-triage",
+    "../../skills/padosoft-knowhow-harvest"
   ]
 }

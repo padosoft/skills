@@ -1,4 +1,4 @@
-.PHONY: help catalog privacy validate test lint-email all
+.PHONY: help catalog harvest harvest-status privacy validate test lint-email all
 
 EMAIL_SKILL ?= skills/padosoft-email-html-builder
 EMAIL       ?= $(EMAIL_SKILL)/templates/reference-welcome-dark.html
@@ -9,6 +9,12 @@ help:            ## Show this help
 
 catalog:         ## Regenerate CATALOG.md, profiles.json and the catalog inside the router skill
 	python3 scripts/build_catalog.py
+
+harvest:         ## What changed in the know-how of the repositories you harvest from
+	python3 scripts/harvest.py scan
+
+harvest-status:  ## What has been considered, and what is still pending
+	python3 scripts/harvest.py status
 
 privacy:         ## No skill may carry the provenance of the work it was learned from
 	python3 skills/padosoft-skill-creator/scripts/check_provenance.py skills/

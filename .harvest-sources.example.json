@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "Copy this to .harvest-sources.json and fill in your own paths. That file is gitignored",
+    "on purpose: a list of the repositories you run is metadata about your business, and this",
+    "repository is public. Environment variables are expanded, so ${REPOS}/name works.",
+    "",
+    "'globs' is optional. Omitted, the harvester looks in the usual places: LESSON.md,",
+    ".claude/rules/*.md, .claude/skills/*/SKILL.md, docs/adr/*.md, docs/security/*.md,",
+    "docs/RULES.md, AGENTS.md and CLAUDE.md. Give it explicitly when a repository keeps its",
+    "know-how somewhere else - that is the common case, and the one worth checking once."
+  ],
+  "sources": [
+    {
+      "id": "monolith",
+      "path": "${REPOS}/the-big-one",
+      "globs": [
+        "docs/LESSON.md",
+        ".claude/rules/*.md",
+        ".claude/skills/*/SKILL.md",
+        "docs/security/*.md"
+      ]
+    },
+    {
+      "id": "api",
+      "path": "${REPOS}/the-api"
+    },
+    {
+      "id": "mobile",
+      "path": "${REPOS}/the-app",
+      "globs": [
+        ".claude/rules/*.md",
+        ".claude/skills/*/SKILL.md"
+      ]
+    },
+    {
+      "id": "platform",
+      "path": "${REPOS}/the-platform",
+      "globs": [
+        "docs/adr/*.md",
+        "docs/LESSON.md",
+        ".claude/rules/*.md"
+      ]
+    }
+  ]
+}

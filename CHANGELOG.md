@@ -4,6 +4,47 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.17.0] - 2026-09-20
+
+44 skills. This one closes the loop: instead of harvesting the other repositories by hand, there is now a
+script for the deterministic half and a skill for the judgement.
+
+### Added
+
+- **`scripts/harvest.py`** - reads a list of source repositories, finds their lessons files, rule folders,
+  internal skills, decision records and security docs, and prints a work order of what is **new, changed or
+  gone** against a ledger of what was already considered. Plus the current catalogue with each skill's
+  one-line rule, so a finding can be matched to a home.
+
+  Three design decisions carry it. **The scan never writes to the ledger** - a session that dies half way
+  must not leave everything marked as processed, so `record` is a separate step. **`covered` requires
+  naming the skill and `rejected` requires a reason**, enforced with a non-zero exit, because a bare "done"
+  is exactly what makes the next harvest re-read the same four hundred lines. And **a source path that no
+  longer resolves is a finding, not a skip** - a harvest that silently misses a repository reports a clean
+  catalogue.
+
+  `make harvest` for the work order, `make harvest-status` for what is pending and how many unrelated
+  sources feed each skill - that count is the evidence behind a promotion to `core`.
+
+- **`padosoft-knowhow-harvest`** (`core`, **global**) - the judgement half. For each finding, three
+  questions in order: is it a **rule or a note** (a dated progress entry, a local path, a vendor version is
+  a note); **would the agent get it wrong without it** (if the model already does the right thing, the rule
+  adds context and not quality); and is it **a class of defect or one project's instance** - *a named table
+  must be registered in the resolver* is specific, *a resolver that returns its input unchanged makes an
+  incomplete registration indistinguishable from a no-op* is the class. Most findings fail one of the
+  three, and saying so explicitly is the point of the ledger.
+
+  Then four outcomes - extend, create, promote, reject - with extending as the default, because a new skill
+  that overlaps an existing one makes both trigger worse. Promotion stays decided by **independent
+  convergence**, now countable rather than felt. And the provenance gate runs before the commit, because
+  the sources are private and this repository is not.
+
+  **The rule: harvest the rule, leave the story, and write down what you decided - including the
+  rejections, because an undocumented rejection is re-mined every six months.**
+
+Both `.harvest-sources.json` and `.harvest-ledger.json` are gitignored: a list of the repositories you run
+is metadata about your business. `.harvest-sources.example.json` is the committed template.
+
 ## [1.16.0] - 2026-09-20
 
 43 skills. The last pass over the remaining repositories: the AI package family, the connectors, the

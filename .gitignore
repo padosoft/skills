@@ -23,6 +23,13 @@ htmlcov/
 node_modules/
 package-lock.json
 
+# The harvest configuration names the repositories you run, and the ledger names their
+# files. Both are metadata about your work, and this repository is public.
+# .harvest-sources.example.json is the committed template.
+.harvest-sources.json
+.harvest-ledger.json
+_harvest/
+
 # The provenance denylist names the customers, brands and people it protects:
 # committing it publishes the list. Keep it here, or outside the repo via
 # PROVENANCE_DENYLIST=<path>. In CI it comes from a secret.
