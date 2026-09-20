@@ -13,7 +13,7 @@ compatibility: >-
   Any Laravel version. The rules are about how an application is shaped, not about framework features;
   where a version moved a file rather than changing a rule, the text says so.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: Where the logic lives and what crosses which boundary, on any framework version.
   profiles: laravel
@@ -189,6 +189,23 @@ Deciding a branch by environment name is another: **`padosoft-environment-gating
 Guard clauses and early return; avoid `else` when a return makes the flow obvious. Small methods, one main
 responsibility. Complex branches move into private methods or dedicated services. Comment decisions,
 constraints and trade-offs — not the obvious.
+
+
+Four more, and the first one is the one people argue about:
+
+- **A variable holding a database field keeps the field's name.** Renaming it on the way in breaks the only
+  link between the row and the code, and makes the search that would have found every use return nothing.
+  Add a suffix when the variable means something narrower than the column, and keep the column's spelling
+  underneath it. Free naming is for values that are not a field.
+- **Display formatting has one home.** A presenter, a view model, a formatter — the name matters less than
+  the fact that there is exactly one, and that neither the model nor the template formats anything itself.
+  Otherwise the same value is rendered three ways in three screens and nobody can say which is right.
+- **Settings are a namespace, not a flat bag.** One root prefix, then area, then parameter; and a
+  convention in the name that says what kind of setting it is — a toggle reads as a toggle. A flat list of
+  a few hundred keys is a list nobody greps successfully.
+- **Directory and file naming is a convention, so it is one convention.** Two spellings in the same tree
+  means every path is a guess, and on a case-insensitive filesystem it also means it works locally and
+  fails on the server.
 
 Anti-patterns, in the order they appear: a 150-line method with several responsibilities; business logic
 mixed with I/O or rendering; a boolean flag that changes what a method fundamentally does; names like `data`,

@@ -4,6 +4,31 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.13.1] - 2026-09-20
+
+### Changed
+
+A coverage check found three gaps I had assumed were closed without measuring them - which is the exact
+trap `padosoft-security-baseline` names: *covered by a rule* is a claim, not an observation.
+
+- **`padosoft-laravel-conventions`** - four conventions that were genuinely absent. A variable holding a
+  database field **keeps the field's name**: renaming it on the way in breaks the only link between the row
+  and the code, and makes the search that would have found every use return nothing. Display formatting has
+  **one home**, or the same value is rendered three ways in three screens and nobody can say which is right.
+  Settings are a namespace rather than a flat bag, with the kind of setting readable in its name. And
+  directory naming is one convention, because two spellings in the same tree work locally and fail on a
+  case-sensitive server.
+- **`padosoft-agent-host-boundaries`** - the shape of a tool, on the premise that **every tool is invoked
+  with no human in the loop**. A thin wrapper that delegates to the service the application already uses,
+  because logic written inside the tool is a second implementation nobody tests; an input schema derived
+  from the validation rules rather than written twice; an allow-listed output shape; parameter descriptions
+  written **for the model**, without which it guesses an argument's semantics; discovery through an explicit
+  manifest, never a filesystem scan; and a mutating tool that logs, checks the same policy a human would,
+  and offers a dry run.
+- **`padosoft-contract-changes`** - a template that includes a partial owned by another repository is a
+  runtime dependency on that repository's current state. Rename it on one side and the page fails on the
+  other, at request time, with nothing in either repository's tests to catch it.
+
 ## [1.13.0] - 2026-09-20
 
 38 skills. A coverage pass over the large Laravel codebase: 27 of its 64 rules had not been mined, and this

@@ -392,7 +392,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-admi
 
 **The host decides what an agent may do, what gets recorded, and what any of it proves.**
 
-`padosoft-agent-host-boundaries` · profiles: `api` · scope: `project` · version: 0.1.0
+`padosoft-agent-host-boundaries` · profiles: `api` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill when building or reviewing something that calls a model or hosts an agent — an LLM adapter, a tool-calling loop, an MCP server, a prompt-driven feature, a spend budget, a trajectory or replay store, a similarity or scoring threshold, an agent-generated artifact that a human is meant to approve. Also when the user reports a runaway bill, prompts or customer data ending up in logs or traces, an agent doing more than intended, a "confidence score" being treated as a decision, or generated output being accepted as evidence. Do not use it for prompt wording and model choice, for training or fine-tuning, or for building the skills themselves (padosoft-skill-creator covers that).
 
@@ -490,7 +490,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-ci-w
 
 **Changing a signature is editing everything that agreed to it.**
 
-`padosoft-contract-changes` · profiles: `core` · scope: `global` · version: 0.1.0
+`padosoft-contract-changes` · profiles: `core` · scope: `global` · version: 0.2.0
 
 **Triggers when** — Use this skill when something other code depends on is about to change shape — a method or function signature, a parameter added, removed, reordered or retyped, a return type, an overridden method, an interface, an event payload, a schema, a response contract, a default value. Also when the user reports a signature-incompatibility error, a caller broken after a refactor, a child class that no longer matches its parent, a fixture failing after a schema was tightened, or asks how to change an API without breaking consumers. It gives the search that finds every dependent, the classification that says what is breaking, and the rule that the whole change lands together. Do not use it for designing an API from scratch, for versioning a public package, or for database migrations (padosoft-database-design covers those).
 
@@ -672,7 +672,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-hono
 
 **Where the logic lives and what crosses which boundary, on any framework version.**
 
-`padosoft-laravel-conventions` · profiles: `laravel` · scope: `project` · version: 0.2.0
+`padosoft-laravel-conventions` · profiles: `laravel` · scope: `project` · version: 0.3.0
 
 **Triggers when** — Use this skill when writing or reviewing Laravel/PHP code — a controller, a FormRequest, a service, a job, a migration, an Eloquent query, a model event, a queued or bulk operation — and whenever a symptom shows up: a controller that grew into the business logic, an N+1 found in the logs, a bulk command that runs out of memory, a job that retries something it should not, a soft-deleted row reappearing in a count, a model event that fires on a mass update and does not. It applies to any Laravel version: the rules are about the shape of the application. Do not use it for a security review (padosoft-laravel-security-review), for what goes in a log (padosoft-logging-discipline), or for infrastructure and deployment.
 

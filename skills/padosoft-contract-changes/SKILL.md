@@ -14,7 +14,7 @@ compatibility: >-
   Any language with callers and inheritance. The covariance rules are stated for languages that enforce
   substitutability; the search and staging procedure applies everywhere.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: Changing a signature is editing everything that agreed to it.
   profiles: core
@@ -111,6 +111,11 @@ A signature is the smallest contract. Everything below is the same shape at a di
   tightening must be staged.
 - **A stored contract.** Recorded requests, cached serialisations and snapshots were frozen under the old
   shape and will be read under the new one.
+- **A template that includes a partial owned by another repository.** The include is a runtime
+  dependency on that repository's current state: rename or remove the partial on one side and the page
+  fails on the other, at request time, with nothing in either repository's tests to catch it. Use the
+  conditional form of the include, or copy the partial and accept the duplication deliberately — and when
+  a shared partial starts receiving a new variable, guard its presence until every consumer passes it.
 - **A producer moving from synchronous to queued**, or the reverse: the contract that changes is the timing
   and the failure mode, and callers depend on both.
 

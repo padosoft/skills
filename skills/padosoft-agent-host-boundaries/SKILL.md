@@ -13,7 +13,7 @@ compatibility: >-
   Provider- and runtime-agnostic. The rules assume you control the host: the process that dispatches calls,
   persists their records and exposes tools.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: The host decides what an agent may do, what gets recorded, and what any of it proves.
   profiles: api
@@ -99,6 +99,25 @@ mistake trivial.
   security semantics.
 - **Bound the output, not just the time and the call count.** One successful, non-blocking command that
   prints forever exhausts memory; cap combined output in the real child process and fail explicitly.
+
+### The shape of a tool
+
+Assume **every tool is invoked with no human in the loop**, because that is the point of the system.
+
+- **A tool is a thin wrapper.** It delegates to the service the rest of the application already uses;
+  business logic written inside the tool is a second implementation that will drift from the first, and it
+  is the copy nobody tests.
+- **Its input has a schema, and the schema is derived from the validation rules**, not written twice. Input
+  arriving from a model is untrusted and frequently malformed in creative ways.
+- **Its output is an allow-listed shape**, not free-form data. A component type outside the known set
+  cannot be rendered, and raw data leaves the consumer to guess.
+- **Parameter descriptions are written for the model**, and they are part of the contract: without them the
+  model guesses the semantics of an argument, which is a correctness problem long before it is a security
+  one.
+- **Discovery is an explicit manifest.** Scanning the filesystem for tools is a surprise at deploy time and
+  a cost at boot; a list somebody has to edit is a list somebody has read.
+- **A mutating tool logs who, what and when, checks the same policy a human would go through, and offers a
+  dry run.** Those three are not optional once the caller is autonomous.
 
 ## 5. Generated output is a hypothesis
 
