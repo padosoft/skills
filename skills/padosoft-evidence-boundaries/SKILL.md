@@ -13,7 +13,7 @@ compatibility: >-
   Language- and stack-agnostic. The examples come from storage, identity, telemetry, queue and release
   pipelines because that is where the substitution is easiest to make.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   profiles: core
   scope: global
@@ -104,6 +104,26 @@ Merging two gates does not average their strength; the weaker one becomes the ve
   runs, the two will disagree exactly when it matters.
 - **Redaction must not mutate identity.** A DLP pass that rewrites a checkpoint key, a run id or an audit
   hash breaks the chain it was protecting. Identity fields are excluded by construction, not by luck.
+
+
+### When the evidence is a signed record
+
+Four invariants, each of which has been violated by a verifier that reported everything as fine:
+
+- **Sign the whole persisted object**, minus the signature field itself. Signing only the fields you
+  enumerate leaves the removal of a key, or the addition of one, invisible — and a verifier will then count
+  an emptied record among the valid ones, certifying as intact a row somebody hollowed out.
+- **Canonicalise deterministically**: sort maps recursively, leave lists in their order because there the
+  order is the data, and normalise the container types before hashing, so the producer holding a native
+  object and the verifier holding what came back from the parser compute the same bytes. A signature that
+  is not reproducible generates **false tamper alerts**, which is the fastest way to get an integrity check
+  switched off.
+- **A missing signature is an anomaly, not an exemption.** If unsigned records can be explained away, the
+  mechanism is bypassed by deleting two fields instead of forging one.
+- **Deletion at the edges leaves no gap.** Removing the first or last records of a file, or the file
+  itself, breaks no sequence. Detect it with an external anchor recorded **after** the write succeeds, and
+  by checking that the last identifier of one period and the first of the next are adjacent.
+
 
 ## 6. Small ones, same class
 

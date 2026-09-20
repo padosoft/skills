@@ -1,0 +1,20 @@
+[
+  { "query": "la pagina delle liste e' diventata lentissima da quando i dati sono cresciuti", "should_trigger": true },
+  { "query": "this job runs out of memory halfway through", "should_trigger": true },
+  { "query": "we have an N+1 here, how do I fix it?", "should_trigger": true },
+  { "query": "page 500 of the listing takes ten seconds", "should_trigger": true },
+  { "query": "how should I process 200k rows in a cron?", "should_trigger": true },
+  { "query": "review this export before it goes live", "should_trigger": true },
+  { "query": "the cache table is empty while the recalculation runs", "should_trigger": true },
+  { "query": "is count() > 0 fine here?", "should_trigger": true },
+  { "query": "the eager loaded relation comes back empty", "should_trigger": true },
+  { "query": "chunk or chunkById for this loop?", "should_trigger": true },
+  { "query": "which index should this table have?", "should_trigger": false },
+  { "query": "partition this table by year", "should_trigger": false },
+  { "query": "the test is flaky in CI", "should_trigger": false },
+  { "query": "set up Redis for sessions", "should_trigger": false },
+  { "query": "the frontend bundle is too big", "should_trigger": false },
+  { "query": "design the database schema for orders", "should_trigger": false },
+  { "query": "add a queue worker to the deployment", "should_trigger": false },
+  { "query": "write the OpenAPI spec for this endpoint", "should_trigger": false }
+]

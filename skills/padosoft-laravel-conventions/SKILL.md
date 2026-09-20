@@ -13,7 +13,7 @@ compatibility: >-
   Any Laravel version. The rules are about how an application is shaped, not about framework features;
   where a version moved a file rather than changing a rule, the text says so.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   profiles: laravel
   scope: project
@@ -101,6 +101,34 @@ responsibility, split it.
 `chunkById` and not `chunk` when the loop **modifies** the rows it iterates: `chunk` pages by offset, so
 updating rows shifts the window and silently skips records.
 
+## 4b. Put the query language in a builder layer, not in scopes
+
+Model scopes spread query logic across the model, the controller and whatever else reached for it. A
+dedicated query-builder class per aggregate keeps it in one place and makes it composable. The convention
+that makes such a layer survive a few hundred classes:
+
+| Kind of method | Returns | Named |
+|---|---|---|
+| Building block | the builder itself, chainable | `whereX()`, `ifWhereX()` (conditional), `joinX()`, `orderByX()`, `withX()` |
+| Composition | the builder | a domain phrase: `visibleInCatalogue()`, built **only** by chaining building blocks |
+| Complete query | a collection, a model, a paginator, a count | `getX()`, `paginateX()`, `countX()` |
+
+Three prohibitions, and they are what keeps the layer honest:
+
+- **No ambient state inside a builder.** Reading the current tenant, locale or a global setting from inside
+  a `where` makes the method untestable and its result dependent on something the caller cannot see. Take
+  it as a parameter.
+- **No side effects.** A builder builds queries: no state changes, no mail, no dispatch, no API calls.
+- **No scopes on the models**, once the layer exists. Two places to look is worse than either one.
+
+When a builder passes roughly a hundred methods, split it by domain into traits — a few dozen methods each,
+a handful of traits — rather than letting one class grow past reading size.
+
+**Check for an existing helper before writing query logic by hand.** A project that has accumulated
+conditional-clause and formatting helpers has them precisely so the same chain is not re-implemented with a
+subtly different edge case; and when the logic is reusable and the helper does not exist, the move is to add
+it, not to inline it for the third time.
+
 ## 5. Migrations and schema
 
 - One table, one responsibility. No column encoding two concepts.
@@ -111,6 +139,8 @@ updating rows shifts the window and silently skips records.
 - Foreign keys where the stack allows them.
 - Derived or denormalised data: **document the source of truth** next to it, or the copy becomes the truth by
   accident.
+- Index selection, partitioning, JSON columns and the guard clauses that make a migration re-runnable
+  against a schema that does not match the ledger: **`padosoft-database-design`**.
 - A migration is run once on production and lives forever in the history: make it idempotent where the
   project's convention requires it, and never edit one that has shipped.
 
@@ -139,6 +169,20 @@ the job runs against a row that is not there yet.
 - Null safety: a nullable that reaches a calculation makes a wrong number, not a crash. Decide at the
   boundary — reject it, default it, or make the type non-nullable — never three files downstream.
 
+### The null-safety specifics that keep recurring
+
+- **A find that returns null, followed by a property access.** Either use the failing variant when absence
+  is a 404, or return early — never let the next line deal with it.
+- **A chain of two calls where one is optional.** Use the null-safe operator with an explicit default, or
+  assign to a variable and check it. The return type declares whether it can be null; read it.
+- **Loose equality with null, zero or the empty string** is a coin toss: the type juggling makes several of
+  them equal to each other. Compare strictly, and cast deliberately when a legacy value really is a string.
+- **A date parser given null returns "now"** in more than one library. That is not a crash, it is a wrong
+  value that looks plausible for exactly as long as it takes to reach a customer.
+
+Changing a signature or a return type in a hierarchy is its own procedure: **`padosoft-contract-changes`**.
+Deciding a branch by environment name is another: **`padosoft-environment-gating`**.
+
 ## 8. Code shape
 
 Guard clauses and early return; avoid `else` when a return makes the flow obvious. Small methods, one main
@@ -156,6 +200,16 @@ Streams and chunks for large files, never the whole thing in memory. Validate ty
 artefacts — including on the failure path, which is where they accumulate.
 
 ---
+
+## 10. Failed jobs are a subsystem, not a table
+
+A job that exhausts its retries and lands in the failed table has failed **silently** unless something
+notices. Give every job a common base that, on final failure, notifies — with the retry count and the
+backoff as declared properties, and recipients and templates overridable per job for the ones that matter.
+
+The question to answer for each job: **who finds out, and how long after?** If the answer is "whoever
+happens to look at the dashboard", it is not a subsystem. See **`padosoft-failure-visibility`** and
+**`padosoft-durable-effects`**.
 
 ## Gotchas
 

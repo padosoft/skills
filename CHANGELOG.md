@@ -4,6 +4,82 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.9.0] - 2026-09-20
+
+33 skills. The source this time is an enterprise Laravel codebase carrying 64 written rules and about
+11 500 lines of them, accumulated over years of production work. Six new skills, four extended.
+
+### Added
+
+- **`padosoft-verify-before-writing`** (`core`, **global**) - *never invent silently.* An invented fact that
+  reaches a repository stops being a mistake and becomes a **source**: the next session reads that docblock
+  and takes it as true. The rule permits exactly two outcomes - ask, or record the doubt and report it - and
+  forbids the third: writing an unverified fact and telling nobody. Signatures are read, never inferred from
+  the name; enum cases are read at their definition; a file named in a plan is opened before it is edited.
+  Autonomous mode removes the *question*, not the disclosure: the doubt log is reported before the task is
+  declared done, and *"doubts: none"* is stated explicitly so that silence means something. The safety
+  exception overrides even that - anything irreversible, anything touching production, anything that could
+  destroy somebody's uncommitted work still stops and asks.
+- **`padosoft-contract-changes`** (`core`, **global**) - changing a signature is editing **everything that
+  agreed to it**. Four kinds of dependent, and only one is obvious: callers, overrides (which never call
+  you, so a call-site search cannot see them), test doubles that re-declare the shape, and frozen copies -
+  fixtures, snapshots, generated clients, documentation. Reordering same-typed parameters is the quietest
+  breaking change in software; changing a default value breaks nothing and changes behaviour for every
+  caller that omitted it; a return-type change can fail at load time, naming two classes and none of your
+  lines. Plus the silent case: where a framework resolves a handler by naming convention, a rename produces
+  no error at all - just a hook that stops firing.
+- **`padosoft-environment-gating`** (`core`, **global**) - *the answers are three, not two.* An environment
+  check is an exact string comparison against something somebody typed into a file, so a capitalised name, a
+  trailing space, an abbreviation or a region suffix are all live deployments answering *no, I am not
+  production* - and the development branch lights up on the real site, with no error, doing exactly what it
+  was told. The fix is not a better string: it is admitting the third answer (*unknown*) and choosing the
+  default from what the branch does. A **convenience** stays off when in doubt; a **protection** turns on
+  when in doubt. And staging is not production *and* is not a laptop - it is reachable from the internet and
+  holds real data.
+- **`padosoft-database-design`** (`data`, `laravel`) - the index as part of the table's design. The
+  three-star rule, the leftmost-prefix rule and the redundant single-column index it implies, covered
+  indexes and the primary key the engine already put inside every secondary one, the predicates that
+  silently disable an index, late row lookups. Then partitioning with the constraints that actually bite -
+  every unique index must contain the partition key, the generated column must be stored rather than
+  virtual, there must always be a catch-all partition - and the guard clauses a migration needs when the
+  schema on disk does not match the migration ledger.
+- **`padosoft-query-performance`** (`data`, `laravel`) - every rule here is the same rule: *the code was
+  written against the volume that existed when it was written.* No query inside a loop; explicit column
+  lists, including the foreign key in an eager load or the relation comes back silently empty; the volume
+  threshold that changes the technique; keyset pagination, because an offset makes page five hundred cost
+  five hundred pages of work; existence checks instead of counts. And recalculating a denormalised table
+  **without truncating it** - a truncate leaves everything reading that table seeing not an error but
+  *nothing*, for the whole duration of the rebuild.
+- **`padosoft-ci-failure-triage`** (`devops`) - the failed-step extract says where the run **stopped**, not
+  why. The cause is regularly in a step that passed - database setup, cache warm-up, a migration - or in a
+  warning. So: the complete log, every artifact, the application logs from the same window, and an explicit
+  written correlation before any hypothesis. Then a classification (test, application, environment, flaky)
+  with the other three ruled out, and a fix that names a file and a line. A raised timeout is not a
+  diagnosis, and "re-run it and see" is not triage.
+
+### Changed
+
+- **`padosoft-laravel-conventions`** - the query-builder layer as an architectural convention (naming that
+  survives a few hundred classes, no ambient state and no side effects inside a builder, no model scopes
+  once the layer exists), the null-safety specifics that keep recurring - including a date parser that
+  returns *now* when handed null, which is not a crash but a plausible wrong value - and failed jobs as a
+  subsystem, with the question that decides whether it is one: *who finds out, and how long after?*
+- **`padosoft-failure-visibility`** - **a check that does not decide is not a check.** The job fails only
+  when the alert reached *nobody*; a reported anomaly closes green. Silence is written **after** delivery,
+  never before, or a process dying in between mutes the channel for days. One alert a day teaches people not
+  to open any of them, including the one that matters. And a check that says "I was unable to verify" must
+  not report success - treating that as a pass switches the control off while leaving it apparently running.
+- **`padosoft-evidence-boundaries`** - the four invariants of a signed record, each of them violated by a
+  verifier that reported everything as fine: sign the whole object minus the signature, or an emptied record
+  gets counted among the valid ones; canonicalise deterministically, because a signature that is not
+  reproducible produces false tamper alerts and those are the fastest way to get an integrity check switched
+  off; a missing signature is an anomaly, not an exemption; and deletion at the edges leaves no gap, so it
+  takes an external anchor to see it.
+- **`padosoft-test-integrity`** - a test trait that rebuilds the schema is destructive by design, and it is
+  safe only for as long as the test connection points where you think it does. Prefer the
+  transaction-and-rollback trait: it leaves nothing behind and is harmless even against the wrong database.
+  A test that creates its own tables in setup is hiding a missing migration.
+
 ## [1.8.0] - 2026-09-20
 
 The catalogue goes from 23 to 27 skills across 9 profiles, and `payments` stops being an empty profile.

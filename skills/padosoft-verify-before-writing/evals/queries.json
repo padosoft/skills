@@ -1,0 +1,20 @@
+[
+  { "query": "hai inventato quel metodo, non esiste", "should_trigger": true },
+  { "query": "the agent hallucinated an API that isn't there", "should_trigger": true },
+  { "query": "you wrote a docblock describing behaviour you never read", "should_trigger": true },
+  { "query": "how do I stop the model from making things up about my code?", "should_trigger": true },
+  { "query": "you guessed the argument order of that helper", "should_trigger": true },
+  { "query": "it invented an enum case that sounds plausible", "should_trigger": true },
+  { "query": "run this task without asking me anything", "should_trigger": true },
+  { "query": "you edited a file the plan mentioned but that doesn't exist", "should_trigger": true },
+  { "query": "the comment explains a mechanism nobody checked", "should_trigger": true },
+  { "query": "fact-check the claims in this pull request description", "should_trigger": true },
+  { "query": "improve this system prompt", "should_trigger": false },
+  { "query": "which model is best for code generation?", "should_trigger": false },
+  { "query": "review this code for security issues", "should_trigger": false },
+  { "query": "the README documents a column that was renamed", "should_trigger": false },
+  { "query": "write a test for this function", "should_trigger": false },
+  { "query": "search the web for the library's changelog", "should_trigger": false },
+  { "query": "set up a new skill in the repo", "should_trigger": false },
+  { "query": "the CI job is red", "should_trigger": false }
+]

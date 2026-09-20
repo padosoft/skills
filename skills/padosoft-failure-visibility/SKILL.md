@@ -13,7 +13,7 @@ compatibility: >-
   Language-agnostic. The examples are PHP/Laravel and TypeScript/React because that is where the cases came
   from; the rule holds anywhere a call can fail.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   profiles: core
   scope: global
@@ -123,6 +123,36 @@ saw, because they saw nothing.
 Watch for the edge that gets discarded by a truncating conversion: a single-line file whose line count reads
 as "0 lines", a count cast to `int` that swallows a legitimate zero, a fallback to `''` when a library
 returned a non-string.
+
+---
+
+## 5. A check that does not decide is not a check
+
+A verification that prints numbers for somebody to compare by hand is a note. A scheduled job that writes a
+value into a log in case anyone looks is a note. The check exists when its outcome **reaches a person** who
+can act on it.
+
+- **The alert carries the decision, not the stack trace.** A generic "job failed" notification with sixty
+  lines of framework trace, where the actual finding sits in a log line nobody opened, is a disabled control
+  with a notification attached.
+- **The job fails only when the alert reached nobody.** An anomaly that was successfully reported is a green
+  job: the red belongs to the delivery failure, because that is the case where nothing else will surface it.
+  Partial delivery — some recipients, not all — closes green and is written to the log at a level that
+  cannot be filtered out, because "someone" is not "everyone" and the ones who missed it cannot tell.
+- **Write the silence after delivery, never before.** Reserving a "do not repeat this alert" marker before
+  sending makes it immune to the send failing: if the process dies in between, the channel stays quiet for
+  days and nobody read anything.
+- **One alert a day teaches people not to open any of them**, including the one that matters. A recurring
+  *state* — a misconfiguration that does not resolve itself — needs a cooling-off period; a dated *event*
+  does not, because it ages out on its own. And a suppression must never apply while there is a real finding.
+- **A check that cannot decide must not report success.** An outcome that says "I was unable to verify" is
+  not a pass; treating it as one switches off the control while leaving it apparently running. Split the
+  warnings into actionable and descriptive, and let the actionable ones alert exactly like a finding.
+- **Write the record at a level the environment cannot filter away.** The threshold comes from
+  configuration, so anything that must survive when the alert does not arrive goes in above it.
+- **Do not offer maintenance as an explanation it cannot support.** A key rotation invalidates signatures; it
+  does not delete a file. Suggesting an innocent cause for something it cannot cause is the fastest way to
+  get a real incident filed as noise.
 
 ---
 

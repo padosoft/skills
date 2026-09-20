@@ -12,7 +12,7 @@ license: MIT
 compatibility: >-
   Language-agnostic. Examples use PHPUnit and a JS testing library because that is where the cases came from.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   profiles: core
   scope: global
@@ -79,6 +79,24 @@ different order.
 
 ⚠️ Order matters in teardown: undo your own state **before** handing control to the framework's teardown, or
 the mock/DI layer may be gone when you try to touch it.
+
+## 3b. The test harness can destroy the database it was pointed at
+
+A trait that rebuilds the schema — dropping every table and re-running the migrations — is destructive by
+design. It is safe exactly as long as the test connection points where you think it does, and that
+assumption fails on a mistyped variable, a cached configuration, or a suite run from the wrong directory.
+When it fails, every table is gone, and the loss is not recoverable from the test run.
+
+**Prefer the trait that wraps each test in a transaction and rolls it back.** It leaves nothing behind, it
+is faster, and it is harmless even against the wrong database — the schema has to exist already, which is
+the point: creating it is the migrations' job, not the test's.
+
+- If a test genuinely needs a rebuilt schema, that is a decision to take deliberately, with the reason
+  written in the test.
+- **A test that creates its own tables in setup is hiding a missing migration.** Fix the migration.
+- Before running a suite against anything shared, check two things: which connection the tests resolve to,
+  and whether any test in the set uses a destructive trait. If either is uncertain, stop and ask — "it will
+  probably use the test environment" is the sentence that precedes the loss.
 
 ## 4. A failure-path test must actually fire the failure
 
@@ -170,6 +188,8 @@ Every hit is a **candidate**. The real check is reading the body against the nam
 - [ ] Failure-path tests trigger the failure, not just stub it
 - [ ] Assertions on the thing, not on a proxy
 - [ ] The implementation was broken on purpose at least once and the test went red
+- [ ] No destructive database trait; the test connection verified before running against anything shared
+- [ ] Performance claims measured on a production-like dataset, not a development one
 
 ## Final report
 

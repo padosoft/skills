@@ -1,7 +1,7 @@
 {
   "name": "padosoft-devops",
   "displayName": "Padosoft DevOps",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Repository and delivery workflows: triage of automated PR review comments, CI workflow gates that actually gate, and scripts that survive both a Windows workstation and a Linux runner.",
   "author": {
     "name": "Padosoft",
@@ -20,6 +20,7 @@
   "skills": [
     "../../skills/padosoft-pr-review-triage",
     "../../skills/padosoft-ci-workflow-gates",
-    "../../skills/padosoft-cross-platform-scripting"
+    "../../skills/padosoft-cross-platform-scripting",
+    "../../skills/padosoft-ci-failure-triage"
   ]
 }

@@ -1,0 +1,20 @@
+[
+  { "query": "in produzione si vedono gli stack trace agli utenti", "should_trigger": true },
+  { "query": "the profiler is recording on the live site", "should_trigger": true },
+  { "query": "how should I gate this debug endpoint?", "should_trigger": true },
+  { "query": "APP_ENV is 'prod' and the environment check doesn't match", "should_trigger": true },
+  { "query": "staging behaves like a developer machine, is that right?", "should_trigger": true },
+  { "query": "orders were sent to the provider in test mode", "should_trigger": true },
+  { "query": "review this feature flag that depends on the environment", "should_trigger": true },
+  { "query": "should this guard use 'not production' or 'is development'?", "should_trigger": true },
+  { "query": "the query dump appeared on the public site", "should_trigger": true },
+  { "query": "where do I put the auth mock so it can never run live?", "should_trigger": true },
+  { "query": "set up environment variables in the CI workflow", "should_trigger": false },
+  { "query": "how do I manage secrets in production?", "should_trigger": false },
+  { "query": "configure a staging server", "should_trigger": false },
+  { "query": "the logs are too verbose", "should_trigger": false },
+  { "query": "choose between Docker Compose and Kubernetes", "should_trigger": false },
+  { "query": "write a deployment script", "should_trigger": false },
+  { "query": "the test uses the wrong database", "should_trigger": false },
+  { "query": "review this authentication middleware", "should_trigger": false }
+]

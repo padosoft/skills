@@ -1,0 +1,20 @@
+[
+  { "query": "sto scrivendo la migration, quali indici metto?", "should_trigger": true },
+  { "query": "review this migration before I merge it", "should_trigger": true },
+  { "query": "the query is slow, I think an index is missing", "should_trigger": true },
+  { "query": "this table has 40 million rows and DELETE takes hours", "should_trigger": true },
+  { "query": "should I partition this log table?", "should_trigger": true },
+  { "query": "the migration fails because the column already exists", "should_trigger": true },
+  { "query": "can I store this as a JSON column?", "should_trigger": true },
+  { "query": "we have an index on (a) and one on (a,b), is that ok?", "should_trigger": true },
+  { "query": "which primary key should this table have?", "should_trigger": true },
+  { "query": "ORDER BY created_at DESC is slow on a big table", "should_trigger": true },
+  { "query": "rewrite this query to avoid the N+1", "should_trigger": false },
+  { "query": "the job runs out of memory reading the table", "should_trigger": false },
+  { "query": "should we use PostgreSQL or MySQL?", "should_trigger": false },
+  { "query": "configure the connection pool", "should_trigger": false },
+  { "query": "write a seeder for test data", "should_trigger": false },
+  { "query": "design the REST endpoints for this resource", "should_trigger": false },
+  { "query": "the backup job is failing", "should_trigger": false },
+  { "query": "add validation to this form request", "should_trigger": false }
+]

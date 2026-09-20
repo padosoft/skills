@@ -1,0 +1,20 @@
+[
+  { "query": "devo aggiungere un parametro a questo metodo, cosa controllo?", "should_trigger": true },
+  { "query": "Declaration must be compatible with the parent", "should_trigger": true },
+  { "query": "I changed the return type and half the app stopped loading", "should_trigger": true },
+  { "query": "can I reorder these parameters safely?", "should_trigger": true },
+  { "query": "how do I change this API without breaking consumers?", "should_trigger": true },
+  { "query": "the fixtures fail after I tightened the schema", "should_trigger": true },
+  { "query": "I renamed the handler and the hook stopped firing", "should_trigger": true },
+  { "query": "review this refactor of the service interface", "should_trigger": true },
+  { "query": "is changing a default value a breaking change?", "should_trigger": true },
+  { "query": "we need to deprecate this method", "should_trigger": true },
+  { "query": "design a new REST API from scratch", "should_trigger": false },
+  { "query": "write a database migration to rename a column", "should_trigger": false },
+  { "query": "how do I publish a package to npm?", "should_trigger": false },
+  { "query": "the test asserts nothing useful", "should_trigger": false },
+  { "query": "review this SQL query", "should_trigger": false },
+  { "query": "set up semantic versioning in CI", "should_trigger": false },
+  { "query": "explain how interfaces work in PHP", "should_trigger": false },
+  { "query": "the build fails on the Linux runner", "should_trigger": false }
+]

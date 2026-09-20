@@ -3,7 +3,9 @@
   "profiles": {
     "core": [
       "padosoft-atomic-invariants",
+      "padosoft-contract-changes",
       "padosoft-docs-match-code",
+      "padosoft-environment-gating",
       "padosoft-evidence-boundaries",
       "padosoft-failure-visibility",
       "padosoft-git-commit-integrity",
@@ -11,13 +13,16 @@
       "padosoft-skill-creator",
       "padosoft-skills-router",
       "padosoft-tenant-isolation",
-      "padosoft-test-integrity"
+      "padosoft-test-integrity",
+      "padosoft-verify-before-writing"
     ],
     "laravel": [
       "padosoft-admin-interface",
+      "padosoft-database-design",
       "padosoft-laravel-conventions",
       "padosoft-laravel-scaffolding",
-      "padosoft-laravel-security-review"
+      "padosoft-laravel-security-review",
+      "padosoft-query-performance"
     ],
     "node": [
       "padosoft-api-security-review",
@@ -43,9 +48,12 @@
       "padosoft-payments-reconciliation"
     ],
     "data": [
-      "padosoft-durable-effects"
+      "padosoft-database-design",
+      "padosoft-durable-effects",
+      "padosoft-query-performance"
     ],
     "devops": [
+      "padosoft-ci-failure-triage",
       "padosoft-ci-workflow-gates",
       "padosoft-cross-platform-scripting",
       "padosoft-pr-review-triage"
@@ -56,11 +64,15 @@
     "padosoft-agent-host-boundaries": "project",
     "padosoft-api-security-review": "project",
     "padosoft-atomic-invariants": "global",
+    "padosoft-ci-failure-triage": "project",
     "padosoft-ci-workflow-gates": "project",
+    "padosoft-contract-changes": "global",
     "padosoft-cross-platform-scripting": "project",
+    "padosoft-database-design": "project",
     "padosoft-docs-match-code": "global",
     "padosoft-durable-effects": "project",
     "padosoft-email-html-builder": "project",
+    "padosoft-environment-gating": "global",
     "padosoft-evidence-boundaries": "global",
     "padosoft-failure-visibility": "global",
     "padosoft-git-commit-integrity": "global",
@@ -73,11 +85,13 @@
     "padosoft-openapi-spec-workflow": "project",
     "padosoft-payments-reconciliation": "project",
     "padosoft-pr-review-triage": "project",
+    "padosoft-query-performance": "project",
     "padosoft-react-native-conventions": "project",
     "padosoft-rn-screen-scaffolding": "project",
     "padosoft-skill-creator": "global",
     "padosoft-skills-router": "global",
     "padosoft-tenant-isolation": "global",
-    "padosoft-test-integrity": "global"
+    "padosoft-test-integrity": "global",
+    "padosoft-verify-before-writing": "global"
   }
 }

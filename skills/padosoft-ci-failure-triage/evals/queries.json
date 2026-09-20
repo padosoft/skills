@@ -1,0 +1,20 @@
+[
+  { "query": "il test passa in locale ma e' rosso in CI", "should_trigger": true },
+  { "query": "the pipeline is red, find out why", "should_trigger": true },
+  { "query": "this browser test is flaky, can you fix it?", "should_trigger": true },
+  { "query": "fix the failing check on PR 40", "should_trigger": true },
+  { "query": "the assertion says the button isn't visible, but it is", "should_trigger": true },
+  { "query": "how do I get the artifacts from that run?", "should_trigger": true },
+  { "query": "the test fails only on shard 3", "should_trigger": true },
+  { "query": "should I just re-run the job?", "should_trigger": true },
+  { "query": "diagnose this failing playwright test", "should_trigger": true },
+  { "query": "the job failed at the migration step", "should_trigger": true },
+  { "query": "design the CI workflow for this repo", "should_trigger": false },
+  { "query": "write an end-to-end test for checkout", "should_trigger": false },
+  { "query": "does this test actually assert anything?", "should_trigger": false },
+  { "query": "the app crashes locally when I click save", "should_trigger": false },
+  { "query": "speed up the CI pipeline", "should_trigger": false },
+  { "query": "set up branch protection rules", "should_trigger": false },
+  { "query": "review the bot comments on the PR", "should_trigger": false },
+  { "query": "the Docker build is failing", "should_trigger": false }
+]
