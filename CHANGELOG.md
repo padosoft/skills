@@ -31,10 +31,10 @@ in the group is still on 12.
 **Two new global skills**, and the cap was raised from five to eight to take them.
 
 - `padosoft-failure-visibility` — the two halves of one bug, the caller cannot tell success from failure: an
-  ignored return value, and a success status served over a failure. *It happened:* a controller called
-  `Storage::put` without checking the return, the disk was configured not to throw, a full disk returned
-  `false`, the controller answered **202 Accepted**, and the job that came later died on a missing file —
-  ingestion silently dropped documents.
+  ignored return value, and a success status served over a failure. The shape it takes: a controller calls
+  `Storage::put` without checking the return, the disk is configured not to throw, a full disk returns
+  `false`, the controller answers **202 Accepted**, and the job that comes later dies on a missing file —
+  ingestion silently drops documents.
 - `padosoft-test-integrity` — the ways a test passes without testing anything: a name promising a transition
   with a body that never performs it, an ordering assertion with `toBeGreaterThanOrEqual` that passes under
   either order, global state mutated and never restored (which is where "flaky, it's CI" comes from), a
@@ -111,9 +111,9 @@ is.
 ### Added
 - `padosoft-git-commit-integrity` (`core`, **global**) — what git actually recorded, as opposed to what you
   changed. Two failures, both invisible on the machine that made the commit: files missing because `git add -A`
-  skips ignored paths in silence (the real case: a generic `logs/` pattern swallowed the source directory
-  `otel/logs/`, with build and tests green locally), and files whose stored line endings are those of whoever
-  committed them. The fixes that are not obvious: a negation in `.gitignore` rather than `git add -f`, which
+  skips ignored paths in silence (the shape: a generic `logs/` pattern swallows a source directory that
+  happens to be called `logs/`, with build and tests green locally), and files whose stored line endings are
+  those of whoever committed them. The fixes that are not obvious: a negation in `.gitignore` rather than `git add -f`, which
   leaves the trap armed for the next file; and `git add --renormalize .` after adding a `.gitattributes`,
   without which the already-committed blobs stay as they were while everyone assumes they are protected.
   Third global skill, on a cap of five.
@@ -123,7 +123,7 @@ is.
 ### Added
 - **Four skills extracted from two production projects** (a Bun/Hono API and its spec-first OpenAPI
   repository), generalised and translated to English. The know-how comes from a 2026-07 security audit, the
-  findings of a hardening PR and one real incident, not from generic checklists.
+  findings of hardening work, not from generic checklists.
   - `padosoft-api-security-review` (`api`, `node`) — ten checks with grep pre-screens: auth on every mutating
     route, ownership from the authenticated id, no secrets or PII in responses, redacted logs and telemetry,
     fail-safe environment gates, bound SQL, resource caps, downstream injection, no trust from caller input,

@@ -23,8 +23,8 @@ metadata:
 
 # Laravel security review
 
-Ten checks plus three rules that carry a real incident each. Run them on the diff before committing, and on
-the PR during review.
+Ten checks plus three rules whose cost is disproportionate to how easy they are to get wrong. Run them on the
+diff before committing, and on the PR during review.
 
 Output of a pre-screen is a **list of candidates to confirm or discard**, never an automatic bounce on a
 single grep match.
@@ -133,16 +133,15 @@ from an untrusted producer — is remote code execution. Use JSON.
 
 ## Error messages must not leak internals — `SEC-ERRLEAK-001`
 
-**The incident:** saving an address returned the native message of a `QueryException` to the user:
+A `QueryException` rendered with its native message is the worst single string an application can show a
+user. Laravel builds that message from the driver error **and the statement**, so it carries, in one line:
+the SQLSTATE and the driver code, the table and column, the connection host, port and database name, the
+full statement — and, because the statement is the one that was executed, **the values that were being
+written**. When the row being saved belongs to a person, those values are their data.
 
-```
-SQLSTATE[22001]: String data, right truncated: 1406 Data too long for column 'codice_fiscale' at row 1
-(Connection: mysql, Host: <prod-db-host>, Port: 3306, Database: <prod-db>,
-SQL: insert into `clienti_indirizzi` (...) values (147796, ..., <name>, <surname>, <phone>, ...))
-```
-
-Database schema, production host and database name, the full INSERT, **and the customer's personal data** —
-an infrastructure leak and a data incident in one string.
+That makes it two problems at once: an infrastructure disclosure that tells an attacker where to aim, and a
+personal-data exposure that reaches whoever is looking at the screen, plus the support ticket and the chat
+the screenshot ends up in.
 
 **No technical detail reaches the client**: no SQL or fragment of it, no SQLSTATE, no table or column name, no
 host, port or database name, no filesystem path, no stack trace, no PHP class name.
@@ -212,7 +211,7 @@ the UI is not a control. Prompts and conversation history are personal data.
 Every exception to the rules above is annotated inline, with author, date and reason:
 
 ```php
-// LM, 2026-05-13: HMAC-signed webhook, CSRF disabled after signature verification
+// <initials>, <date>: HMAC-signed webhook, CSRF disabled after signature verification
 protected $except = ['webhook/stripe'];
 ```
 

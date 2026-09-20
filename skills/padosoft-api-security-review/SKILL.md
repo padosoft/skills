@@ -25,8 +25,8 @@ metadata:
 # API security review
 
 Ten checks to run **before committing** a change to an API, and when reviewing a PR. Each one carries the
-mistake that produced it: these rules come from a security audit, from PR review findings and from one real
-incident, not from a generic checklist.
+mistake that produces it: these are failure modes that have been seen in production code, not items from a
+generic checklist.
 
 The complete rules, with identifiers and rationale, are in [`references/rules.md`](references/rules.md).
 Read it when a check fires and you need the full reasoning, or when you have to decide whether something is
@@ -49,8 +49,8 @@ still produces hits: they are the compliant implementations of the very rule bei
 happens, the check below shows what a compliant hit looks like — recognise it, say so in one line, move on.
 A check that reports 40 lines every time gets ignored, and then it protects nothing.
 
-Severity: a violation of checks 1, 2, 3 or 5 is **critical** (it is how a real incident started). The others
-block the commit but can be discussed.
+Severity: a violation of checks 1, 2, 3 or 5 is **critical** — each of them is, on its own, enough to expose
+data or credentials. The others block the commit but can be discussed.
 
 ---
 
@@ -103,8 +103,9 @@ grep -rniE 'select .*(password|secret|token|api_?key|private_key)' src/query
 grep -rnE 'SELECT \*' src/query
 ```
 
-**The incident this rule comes from:** an API key stored in the `settings` table was served by a public
-`GET /v1/settings` and used for an unauthorized Cloudflare Worker deploy.
+**Why this rule is first:** a credential in a settings table is one public endpoint away from being handed
+out. Settings are read by many callers and are the kind of table nobody re-reviews, so a key that lands
+there is served to whoever asks — and a leaked deploy credential means someone else can ship your code.
 
 - Secrets do not live in a settings table. Until they move to a key store, the runtime filter is the only
   barrier — and no endpoint may bypass it.

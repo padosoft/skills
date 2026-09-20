@@ -1,6 +1,6 @@
 # React Native rules (catalogue)
 
-> **Origin.** These rules were extracted from the code-review history of two production React Native apps.
+> **Origin.** These rules were distilled from the code-review history of two production React Native apps.
 > Ninety of them were **textually identical in both repositories** — that is the filter applied here: what
 > survived in two different products, not what sounded right once.
 >
@@ -88,8 +88,8 @@ changing it switches to a different cache entry — a snapshot taken at a differ
 snapshots make the effect an oscillator: it writes `b`, the key switches, `b`'s snapshot says `a`, and so on
 synchronously (the cache answers immediately, even stale) until `Maximum update depth exceeded`. With
 persistence the loop survives an app restart.
-*It happened:* a countries query keyed per locale, consumed by an effect writing the locale; a language
-removed and re-added on the backend left two entries holding different pictures.
+The shape: a countries query keyed per locale, consumed by an effect writing the locale. A language removed
+and re-added on the backend leaves two entries holding different pictures.
 **Fix:** one key **without** the parameter plus explicit invalidation when it changes — a sanctioned exception
 to RN-QUERY-001, documented in a comment — with a **single root-level owner** of the invalidation listener,
 never per-instance (N mounted consumers would fire N invalidations). Plus a ping-pong detector on the

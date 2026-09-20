@@ -148,8 +148,8 @@ a constant-frame wrapper, never in a dense mount window.
 **A query key parameterised on state that a consumer of that query writes is an oscillator.** If an effect
 consuming the query writes the parameter, changing it switches to a *different cache entry* — a snapshot taken
 at another time. Two disagreeing snapshots ping-pong synchronously until `Maximum update depth exceeded`, and
-with persistence the loop survives an app restart. *It happened:* a countries query keyed per locale, consumed
-by an effect that writes the locale; removing and re-adding a language on the backend left two entries with
+with persistence the loop survives an app restart. The shape: a countries query keyed per locale, consumed by
+an effect that writes the locale; removing and re-adding a language on the backend leaves two entries holding
 different pictures. Fix: **one key without the parameter** plus explicit invalidation when it changes (a
 sanctioned exception to the key rule, documented in a comment), with a **single root-level owner** of the
 invalidation listener — never per-instance, or N mounted consumers fire N invalidations. Plus a ping-pong

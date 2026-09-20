@@ -2,7 +2,7 @@
 
 > **Levels** — **MUST**: blocking, the email does not ship. **SHOULD**: the default, an exception has to be justified in the report. **MAY**: optional.
 > Every rule has a stable ID (`R-xxx`) quoted by the `scripts/lint_email.py` linter and in the delivery report.
-> **Sources** — [MT] Mailtrap (HTML Check on caniemail.com data, SpamAssassin, Blacklist, Template Inspector, best-practice blog) · [MU] MailUp (Check-up/Controlla, HTML editor manual, email design checklist, "10 HTML mistakes") · [GY] Gmail/Yahoo bulk sender requirements · [WCAG] 2.2 AA · [XP] real mistakes v1→v5 of the "Luisaviaroma welcome" template, verified on Mailtrap.
+> **Sources** — [MT] Mailtrap (HTML Check on caniemail.com data, SpamAssassin, Blacklist, Template Inspector, best-practice blog) · [MU] MailUp (Check-up/Controlla, HTML editor manual, email design checklist, "10 HTML mistakes") · [GY] Gmail/Yahoo bulk sender requirements · [WCAG] 2.2 AA · [XP] mistakes found across five revisions of a real welcome template, verified on Mailtrap.
 > Where the sources disagree, the **most restrictive rule verified in the field** wins ([XP] > [MT] > [MU]); the divergence is noted.
 
 ---

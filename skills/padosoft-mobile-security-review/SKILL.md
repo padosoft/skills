@@ -166,8 +166,9 @@ is when nobody has time to think about it.
 - **`git rm` does not revoke anything.** A key that was committed stays valid in the account until it is
   rotated at the provider, and it stays in the git history.
 - **Severity is not a feeling.** When the enforcement is outside the repo, say "CRITICAL if X is active" and
-  name the ops check. An audit that wrote CRITICAL while stating it could not see the edge configuration had
-  to be walked back to latent debt — the finding survived, the grade did not.
+  name the ops check. A grade written without being able to see the edge configuration has to be walked back
+  when the configuration turns out to differ — and a finding that gets walked back is a finding people stop
+  trusting, even when the defect is real.
 - **A remediation that ignores a real constraint is not applied**, and then the finding stays open forever
   while everyone believes it was handled.
 

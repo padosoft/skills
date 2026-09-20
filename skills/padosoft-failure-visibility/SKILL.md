@@ -44,9 +44,10 @@ if ($ok === false) {
 }
 ```
 
-*It happened:* a controller called `Storage::put(...)` without checking the return. The disk was configured
-with `throw => false`, so a full disk returned `false`, **the controller answered `202 Accepted`**, and the
-job that came later died with "file not found". From the client's side, ingestion silently dropped documents.
+The shape to recognise: a controller calls `Storage::put(...)` without checking the return, the disk is
+configured with `throw => false`, a full disk returns `false`, **the controller answers `202 Accepted`**, and
+the job that comes later dies with "file not found". From the client's side, ingestion silently drops
+documents — and the only signal anyone gets arrives hours later, somewhere else.
 
 Applies to storage put/delete/copy/move/makeDirectory, `file_put_contents`, `copy`, `rename`, `unlink`,
 `mkdir`, and any library call that returns `false` on failure.

@@ -45,9 +45,9 @@ This takes two seconds and is the only moment at which the next failure is cheap
 
 **`git add -A` skips the files excluded by `.gitignore` in silence.** No error, no warning, exit code 0.
 
-*The real case:* a generic `logs/` pattern, written for runtime logs, swallowed the **source** directory
-`otel/logs/`. Build, server and tests were green locally — the files were simply absent from the commit, so
-the endpoint did not exist for anyone else.
+The shape to recognise: a generic `logs/` pattern, written for runtime logs, swallows a **source** directory
+that happens to be called `logs/`. Build, server and tests stay green locally — the files are simply absent
+from the commit, so the feature does not exist for anyone else.
 
 ```bash
 git status --short              # what is still outside, compared with what you expected

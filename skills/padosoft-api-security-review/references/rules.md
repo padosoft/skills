@@ -3,8 +3,8 @@
 > **Levels** — **MUST**: blocking, the commit does not go through. **SHOULD**: the default, an exception is
 > justified in the report.
 > Every rule has a stable identifier quoted by the checks in `SKILL.md`.
-> **Origin** — these rules were extracted from a production API: a 2026-07 security audit, the findings of a
-> hardening PR, and one real incident. Where a rule says "this is how X happened", it happened.
+> **Origin** — these rules were extracted from the review history of a production API: security audits and
+> hardening work, not a generic checklist. Each one describes a failure mode that real code reached.
 
 Read a section when its check fires and you need the reasoning, or when you have to decide whether a case is
 a genuine exception.
@@ -79,8 +79,8 @@ if (!customerId) throw new ApiError(401, { code: "UNAUTHORIZED" });
 
 **MUST.**
 
-*Origin: the real incident. An API key stored in a database settings table was served by a public settings
-endpoint and used for an unauthorized Cloudflare Worker deploy.*
+*Why it leads the list: a credential in a settings table is one public endpoint away from being handed out,
+and a leaked deploy credential means someone else can ship your code.*
 
 1. **Never store secrets, API keys or tokens in a database settings table.** The structural fix is a
    centralized key store. Until it lands, the runtime redactor is the only barrier.
