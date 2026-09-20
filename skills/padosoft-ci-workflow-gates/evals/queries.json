@@ -1,0 +1,22 @@
+[
+  { "query": "il check e' verde ma non ha controllato niente", "should_trigger": true },
+  { "query": "the workflow doesn't start when I add the label", "should_trigger": true },
+  { "query": "we're burning Actions minutes on every push", "should_trigger": true },
+  { "query": "review this GitHub Actions workflow before I merge it", "should_trigger": true },
+  { "query": "the required check can't run before the merge", "should_trigger": true },
+  { "query": "our secret scanner skips big files", "should_trigger": true },
+  { "query": "a job has its own permissions block, is that a problem?", "should_trigger": true },
+  { "query": "someone pushed directly to the integration branch and bypassed review", "should_trigger": true },
+  { "query": "the PR stopped running CI after I added pull_request types", "should_trigger": true },
+  { "query": "the job succeeded but there's a deprecation annotation", "should_trigger": true },
+  { "query": "the application test is failing, find the bug", "should_trigger": false },
+  { "query": "set up a deployment pipeline to AWS", "should_trigger": false },
+  { "query": "should we use GitLab CI or GitHub Actions?", "should_trigger": false },
+  { "query": "my script fails on the Linux runner but works locally", "should_trigger": false },
+  { "query": "process the copilot comments on the PR", "should_trigger": false },
+  { "query": "does this test actually test anything?", "should_trigger": false },
+  { "query": "write a Dockerfile for this service", "should_trigger": false },
+  { "query": "the build is slow because of npm install", "should_trigger": false },
+  { "query": "add auth to this endpoint", "should_trigger": false },
+  { "query": "configure branch naming conventions for the team", "should_trigger": false }
+]

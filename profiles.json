@@ -36,6 +36,8 @@
       "padosoft-openapi-spec-workflow"
     ],
     "devops": [
+      "padosoft-ci-workflow-gates",
+      "padosoft-cross-platform-scripting",
       "padosoft-pr-review-triage"
     ]
   },
@@ -43,6 +45,8 @@
     "padosoft-admin-interface": "project",
     "padosoft-api-security-review": "project",
     "padosoft-atomic-invariants": "global",
+    "padosoft-ci-workflow-gates": "project",
+    "padosoft-cross-platform-scripting": "project",
     "padosoft-docs-match-code": "global",
     "padosoft-email-html-builder": "project",
     "padosoft-failure-visibility": "global",

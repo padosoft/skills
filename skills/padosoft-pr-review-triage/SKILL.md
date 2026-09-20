@@ -55,6 +55,19 @@ reading one too many.
 
 Read the **whole thread**: a comment with `in_reply_to_id` may already be answered or superseded.
 
+### Getting the complete set, which is harder than it looks
+
+- **Paginate to exhaustion.** A threads query without following the page cursor silently returns the first
+  page and nothing else, so actionable threads beyond it never reach you. Over REST the same applies:
+  without pagination you can miss the review for the current head — and note that a paginated call may emit
+  **one document per page**, which is not valid to parse as a single value.
+- **`commit_id` can move.** When a comment is successfully repositioned onto a newer diff, that field is
+  updated; `original_commit_id` still identifies the SHA where the finding was raised. Use the original when
+  you need to know *what* was being reviewed.
+- **Keep mutations and verification separate**, check the API's exit code before dereferencing the response,
+  and then **re-query the authoritative state**. A mutation that reported success and a follow-up count read
+  from a null response look identical in a log.
+
 ## 2. Categorise
 
 | Category | Criterion | Action |
@@ -132,6 +145,23 @@ gh api repos/{owner}/{repo}/pulls/{PR}/comments \
 | 🚫 wrong | `This follows our {rule}: {one-line why}. No change needed.` |
 
 **One or two lines.** Nobody reads a paragraph from a bot thread, bots included.
+
+## 5b. Knowing when a reviewer is done, and when it only looks done
+
+Re-requesting a bot that has nothing new to say spends review budget and returns no signal. But "done" is
+easy to misread, so check what you actually have:
+
+- **A request event is not a review.** The platform records the request immediately and the review may arrive
+  minutes later — or never. Poll for a *submitted* review, and verify the **reviewer** and the **commit SHA**
+  before believing it.
+- **A submitted review can contain no analysis.** A response whose body is an internal error is a review
+  record with nothing in it. It is not a pass.
+- **"No new comments" can still list suppressed findings.** Read the body: if it names actionable items,
+  they are actionable. Fix them with tests, then treat the reviewer as terminal.
+- **Track the terminal state per bot.** Once one has returned nothing new or cosmetic-only feedback, stop
+  re-requesting *that one*; the others are independent.
+- **An adjacent API answering "no seats" is not proof of failure.** It may not describe the reviewer's
+  effective access. Proof is a submitted review on the right SHA, nothing else.
 
 ## 6. Learn from it
 

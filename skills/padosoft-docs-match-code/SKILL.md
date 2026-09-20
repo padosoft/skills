@@ -97,6 +97,26 @@ Two specific traps:
   leave the example that taught it, the next change reintroduces it — you fixed the symptom and kept the
   cause.
 
+## 5b. State files rot by time, not by drift
+
+A progress ledger, a continuity note, a lessons file: these do not quote the code, they describe **a moment**
+— and the moment passes while the file stays. Four rules keep one true:
+
+- **Write memory as a dated historical observation**, not as a present-tense fact. "On <date> the tree was
+  untracked" stays true forever; "the tree is untracked" becomes false the day it is committed, and the file
+  now lies without anyone editing it.
+- **Record the state *after* the action, plus the next gate.** A ledger committed saying "staged, not yet
+  committed" is stale in the same commit that carries it. Worse is one saying "amend this commit, then push":
+  once that commit is under review, following the instruction rewrites published history.
+- **Keep it collaborator-neutral and machine-neutral.** No contributor name, no absolute path from the
+  authoring machine. Record the branch identity and the command that *discovers* the path, so the file works
+  for the next person and the next clone.
+- **Do not promise a tool the reader may not have.** If a check is mandatory it lives in the repository or is
+  installed reproducibly; anything environment-owned is labelled supplementary.
+
+The same applies to a lessons file itself: append a fix only once it is confirmed, with the test or rule that
+prevents recurrence — otherwise it accumulates hypotheses that read like conclusions.
+
 ## 6. When the code changes, the docs are part of the change
 
 Not a follow-up, not a ticket: the same commit. The reviewer who can tell whether the doc is now right is

@@ -1,0 +1,22 @@
+[
+  { "query": "lo script funziona in locale ma fallisce sul runner", "should_trigger": true },
+  { "query": "the command failed but the step reported success", "should_trigger": true },
+  { "query": "the scanner skipped a file with an accented name", "should_trigger": true },
+  { "query": "Test-Path doesn't find the dotfile on Ubuntu", "should_trigger": true },
+  { "query": "review this PowerShell script that also runs in CI", "should_trigger": true },
+  { "query": "the regex misses lines on one checkout and not the other", "should_trigger": true },
+  { "query": "indexing [0] returned a single character instead of the item", "should_trigger": true },
+  { "query": "python3 is installed but the script fails to parse", "should_trigger": true },
+  { "query": "the path with backslashes breaks on Linux", "should_trigger": true },
+  { "query": "my fixture inherits CI env vars and takes the wrong branch", "should_trigger": true },
+  { "query": "which scripting language should we standardise on?", "should_trigger": false },
+  { "query": "the workflow doesn't trigger on label", "should_trigger": false },
+  { "query": "write a Dockerfile", "should_trigger": false },
+  { "query": "our deploy to production failed", "should_trigger": false },
+  { "query": "optimize this SQL query", "should_trigger": false },
+  { "query": "set up pre-commit hooks for the team", "should_trigger": false },
+  { "query": "the React build is slow", "should_trigger": false },
+  { "query": "explain what an exit code is", "should_trigger": false },
+  { "query": "add logging to this service", "should_trigger": false },
+  { "query": "review the security of this endpoint", "should_trigger": false }
+]

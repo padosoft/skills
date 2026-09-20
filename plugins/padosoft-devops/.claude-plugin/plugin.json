@@ -1,11 +1,25 @@
 {
   "name": "padosoft-devops",
   "displayName": "Padosoft DevOps",
-  "version": "0.1.0",
-  "description": "Repository and delivery workflows: triage of automated PR review comments (Copilot, Codex, CodeRabbit) with approval before any fix.",
-  "author": { "name": "Padosoft", "url": "https://www.padosoft.com" },
+  "version": "0.2.0",
+  "description": "Repository and delivery workflows: triage of automated PR review comments, CI workflow gates that actually gate, and scripts that survive both a Windows workstation and a Linux runner.",
+  "author": {
+    "name": "Padosoft",
+    "url": "https://www.padosoft.com"
+  },
   "repository": "https://github.com/padosoft/skills",
   "license": "MIT",
-  "keywords": ["devops", "github", "pull request", "code review", "copilot"],
-  "skills": ["../../skills/padosoft-pr-review-triage"]
+  "keywords": [
+    "devops",
+    "github",
+    "ci",
+    "code review",
+    "actions",
+    "cross-platform"
+  ],
+  "skills": [
+    "../../skills/padosoft-pr-review-triage",
+    "../../skills/padosoft-ci-workflow-gates",
+    "../../skills/padosoft-cross-platform-scripting"
+  ]
 }

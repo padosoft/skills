@@ -102,6 +102,25 @@ Stubbing an error is not provoking it. Click the button, post the invalid body, 
   — not the absence of a side effect that has other causes.
 - An exact-match check for a sentinel beats a substring check that a longer message also satisfies.
 
+## 5b. A negative fixture is only valid if it fails for the named reason
+
+A test that asserts "this input is rejected" passes just as well when the input is rejected for the **wrong**
+reason — a stray blank line, a missing file, a parse error earlier than the thing under test. It is green,
+and it proves nothing about the rule it is named after.
+
+So: **observe the expected RED, and read the message.** If the failure text is not the one the test is about,
+the fixture is wrong, not the code.
+
+Three shapes that produce a right-answer-wrong-reason pass:
+
+- **An unbounded mutation.** A fixture that edits "up to the next marker" crosses into the following section
+  once validation gets stricter, and starts failing for that instead. Bound the edit by the next boundary.
+- **A regex for the expected diagnostic.** Punctuation in the message then decides the outcome, and a
+  reworded error flips a test that has nothing to do with wording. Compare the expected diagnostic
+  **literally**.
+- **A fixture that only exercises the clean path of the parser.** If the strict parser rejects malformed
+  input before your rule runs, the rule is untested. Give it input that reaches it.
+
 ## 6. Could this assertion ever fail?
 
 The last question before closing the test. Concretely:

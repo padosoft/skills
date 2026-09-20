@@ -71,8 +71,8 @@
       "name": "padosoft-devops",
       "source": "./plugins/padosoft-devops",
       "displayName": "Padosoft DevOps",
-      "description": "Repository and delivery workflows: triage of automated PR review comments.",
-      "version": "0.1.0",
+      "description": "Delivery workflows: PR review triage, CI gates that actually gate, cross-platform scripting.",
+      "version": "0.2.0",
       "author": {
         "name": "Padosoft"
       },
@@ -80,6 +80,7 @@
       "keywords": [
         "devops",
         "github",
+        "ci",
         "code review"
       ],
       "category": "productivity"

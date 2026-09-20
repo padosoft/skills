@@ -4,6 +4,39 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.6.0] - 2026-09-20
+
+### Added
+
+Two skills and three extensions, from the durable lessons file of a governance-heavy project — roughly sixty
+entries, each recorded only after the fix and the regression that prevents it. The domains that came out of
+it: automated review loops, CI gates, gate validators, negative fixtures, cross-platform scripting, and how
+a state file rots.
+
+- `padosoft-ci-workflow-gates` (`devops`) — **a gate that cannot fail is not a gate**. A manifest that omits
+  its own workflow stays green after half the contract is deleted; a security scan that *skips* what it
+  cannot process is decoration; a detector as strict as its parser cannot see the malformed input it exists
+  to catch. Plus the trigger semantics that silently replace your defaults (declaring `pull_request.types`
+  drops the rest; a label-gated job is inert if the trigger does not subscribe to the label event; a required
+  check cannot run on a merge commit that does not exist yet), inspecting annotations and not only
+  conclusions, fast/extended cost tiers, and the edges rulesets leave open.
+- `padosoft-cross-platform-scripting` (`devops`) — the ways a Windows workstation and a Linux runner disagree
+  **silently**: an exit-code variable that persists from a handled failure, parsing a tool's human error
+  renderer, display-form path listings that make a file unreachable so the scanner reports clean, case
+  semantics that belong to the filesystem, hidden files needing an explicit flag, and an interpreter that
+  exists but cannot run the syntax.
+
+### Changed
+
+- `padosoft-pr-review-triage` — how to know a bot reviewer is actually done: a request event is not a review,
+  a submitted review can contain no analysis, "no new comments" can still list suppressed actionable
+  findings, and the thread query has to be paginated to exhaustion or it silently returns one page.
+- `padosoft-test-integrity` — **a negative fixture is only valid if it fails for the named reason**. Observe
+  the expected red and read the message; bound fixture mutations; compare expected diagnostics literally
+  rather than by regex. Fourth independent source for this skill.
+- `padosoft-docs-match-code` — state files rot by time rather than by drift: write memory as a dated
+  historical observation, record the state *after* the action, keep it collaborator- and machine-neutral.
+
 ## [1.5.0] - 2026-09-20
 
 ### Removed — no incident or customer provenance in a public catalog
