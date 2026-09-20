@@ -4,6 +4,78 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.11.0] - 2026-09-20
+
+35 skills. The source is a security sprint on an enterprise codebase: a 19-domain posture assessment with
+219 control rows mapped onto the current OWASP Top 10, ASVS, the API and mobile equivalents, NIST SSDF and
+SLSA — plus the sixty-odd pull requests that closed it. Two new global skills and three extended.
+
+### Added
+
+- **`padosoft-security-baseline`** (`core`, **global**) — *a control you cannot prove is a control you do
+  not have.* Most applications are not insecure because somebody wrote a bad line; they are insecure because
+  a whole **domain** was never considered, and nothing in the code says so. This is the list of domains, the
+  order to take them in, and what makes each control real rather than declared.
+
+  It opens with the three things that silently cancel defences already paid for: an origin reachable
+  **outside** the edge, which turns every edge rule — bot management, rate limits, the trusted client
+  address — into an opt-in the attacker declines; a key rotation that was never followed by checking what it
+  invalidated, or never done at all; and a main language the static analysis does not cover.
+
+  Then the discipline of reading a status honestly, which is where most assessments become fiction. *Covered
+  by a rule* does **not** mean the existing codebase complies — a rule is applied in review on new code. And
+  its mirror image: an identifier quoted in a comment with no rule behind it means the control exists today
+  and nothing stops the next change from removing it. There, old code is unverified; here, **future** code
+  is unguarded.
+
+  Plus the rules that decide whether any control is real, whatever the domain: a setting is not a boundary;
+  an empty configuration value must never mean *disabled*; a fail-open needs a written reason and a second
+  control behind it; twin endpoints must be protected identically, because the one built last has the
+  controls and the one built first is still wired; and a gate born red and left red is switched off within a
+  week, after which it protects nothing at all. `references/controls.md` carries the individual controls,
+  domain by domain.
+
+- **`padosoft-auth-hardening`** (`core`, **global**) — *identity is a set of doors, and hardening means none
+  of them disagrees with the others.* These are the controls that are typically **present and ineffective**.
+
+  Rate limiting needs **two** keys: per address alone, distributed credential stuffing walks through; per
+  account alone, a single machine sweeps accounts in parallel. The account key is a hash, never the address
+  itself — otherwise the limiter keeps a second copy of your customer list in plaintext — and the client
+  address goes *into* it, or an attacker can lock a named customer out at will. Then check that a lockout
+  actually **emits an event**: many frameworks only emit one from their own built-in helper, so a hand-rolled
+  limiter raises nothing and the rule that counts lockouts can never fire.
+
+  Sessions: a sliding lifetime is not a timeout — a stolen session stays alive for ever as long as something
+  touches it — so an **absolute** lifetime is a separate control. Revocation has to be one service, because
+  changing a password usually has three doors and they routinely produce three different outcomes, and the
+  most-used door is rarely the most careful. A second factor is usually installed and off, and what is
+  missing is never the code but the audit of **how many accounts would be locked out tomorrow**.
+
+  And the captcha, which is friction rather than a control: the score is the verdict, not the success flag,
+  which is true for an obvious bot; a decimal threshold read through an integer cast becomes zero, which
+  means off, silently; failing open on a verifier timeout is correct and is only acceptable while the rate
+  limit carries the weight; and half a switch — server-side verification disabled while the page keeps
+  calling the provider — looks like a decision and is not one.
+
+### Changed
+
+- **`padosoft-laravel-security-review`** — six more checks from the sprint: authorisation that is present
+  and empty (a generated stub returning true, by the hundred), the presence check used as authorisation and
+  the tautological check that always passes; **the rule of twins**; formula injection in exports,
+  neutralised at the single writing choke point, with machine-to-machine feeds deliberately left alone;
+  the outbound-request guard with **name resolution enabled**, without which a hostname resolving to
+  loopback walks straight through; uploads whose choke point owns the name, the destination disk and the
+  scan; and internal identifiers, unescaped echoes and back-office-authored HTML.
+- **`padosoft-logging-discipline`** — concurrent writers never append to a shared file. The helper named
+  *append* is usually a read-modify-write of the whole file: quadratic over a day and lossy between
+  processes. Buffer through a queue with a single consumer, declare a dropped line with a marker rather than
+  leaving a gap, and sign at the **producer** so the signature covers the transit too.
+- **`padosoft-ci-workflow-gates`** — scanners earn their place by being read: block on the diff and report
+  on the history; run dependency audits on the pull request **and** on a schedule, because an advisory
+  published tomorrow concerns code nobody is touching; audit the lock file without excluding development
+  dependencies when the bundler ships them; and ignore the unfixable explicitly, or you teach people to skip
+  the output.
+
 ## [1.10.0] - 2026-09-20
 
 ### Changed

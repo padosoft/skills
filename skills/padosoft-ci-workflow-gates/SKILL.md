@@ -13,7 +13,7 @@ compatibility: >-
   GitHub Actions for the trigger and ruleset specifics; the reasoning about what makes a gate real applies to
   any CI system.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: A gate that cannot fail is not a gate.
   profiles: devops
@@ -127,6 +127,25 @@ Pinning the action is the start of it, not the end.
 - **Test the published bundle, not the working tree.** Assets resolve differently once packaged, an offline
   or air-gapped bundle has its own release identity, and an optional driver pulled into the main bundle
   changes what every user downloads. The shipped examples are part of the supply chain too.
+
+## 5c. Scanners earn their place by being read
+
+A scanner nobody reads is a line in a bill. Four decisions make the difference:
+
+- **Block on the diff, report on the history.** A secret introduced now must not merge; the accumulated
+  history starts as a report, because a job born red and left red is disabled within a week — and then the
+  diff is unprotected too. It becomes blocking after the triage.
+- **Run dependency audits on the pull request *and* on a schedule.** An advisory published tomorrow concerns
+  code nobody is touching, so a pull-request-only audit never sees it.
+- **Audit the lock file, and do not exclude development dependencies** when the bundler puts them in the
+  shipped bundle. "Which section is it declared in" is the wrong question; "does it reach the bundle" is the
+  right one.
+- **Ignore the unfixable, explicitly.** Output that contains items nobody can act on teaches people to skip
+  the output.
+
+Automated dependency updates: group patches and minors, **exclude majors**, and treat the bot's lock file as
+a notification — whoever lands it regenerates the lock in a stable environment. Check the first run of any
+new ecosystem rather than assuming it worked: a path that matches nothing reports success.
 
 ## 6. CI cost is part of the design
 

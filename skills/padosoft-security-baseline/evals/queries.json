@@ -1,0 +1,20 @@
+[
+  { "query": "stiamo per andare in produzione, siamo abbastanza sicuri?", "should_trigger": true },
+  { "query": "what security does a new service need before it opens to the public?", "should_trigger": true },
+  { "query": "a customer sent us a security questionnaire", "should_trigger": true },
+  { "query": "we have a pentest next month, what should we fix first?", "should_trigger": true },
+  { "query": "build me a hardening backlog for this application", "should_trigger": true },
+  { "query": "which security controls are we missing?", "should_trigger": true },
+  { "query": "how do I prove to an auditor that this control exists?", "should_trigger": true },
+  { "query": "we fixed the finding, how do we stop the class coming back?", "should_trigger": true },
+  { "query": "the new project should start at the same level as the old one", "should_trigger": true },
+  { "query": "is a green dependency dashboard enough?", "should_trigger": true },
+  { "query": "review this pull request for security issues", "should_trigger": false },
+  { "query": "is this SQL query injectable?", "should_trigger": false },
+  { "query": "write a threat model for the checkout flow", "should_trigger": false },
+  { "query": "run a dependency scan", "should_trigger": false },
+  { "query": "configure the WAF rules", "should_trigger": false },
+  { "query": "the login endpoint is slow", "should_trigger": false },
+  { "query": "add authentication to this route", "should_trigger": false },
+  { "query": "explain what CSRF is", "should_trigger": false }
+]

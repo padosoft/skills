@@ -12,7 +12,7 @@ compatibility: >-
   Language-agnostic. The worked mechanisms cover TypeScript/Node, React Native and Laravel/PHP; on another
   stack apply the invariant and find the local equivalent before copying any of them.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: Keep the diagnosis, drop the data — and the log is not the only way data gets out.
   profiles: core
@@ -101,6 +101,26 @@ and both were found only after the artifact was needed.
 A debug line added while hunting a bug is the most common way one of these ships. Grep the staged diff before
 committing — and when you find one in someone else's code, **stop and report it, do not silently delete it**:
 it may be load-bearing for a session that is still open.
+
+## 3b. Concurrent writers never append to a shared file
+
+With more than one process — pods, workers, a middleware on every request — a log written straight to a
+shared file is a correctness problem, not a performance one.
+
+- **The framework helper named `append` is usually a read-modify-write of the whole file.** It is quadratic
+  over the day and loses writes between processes. It is not an append.
+- **An append without an exclusive lock interleaves**, and on a network filesystem even small writes are not
+  guaranteed atomic.
+- **A rotating file handler written to in-request from many processes** produces interleaved lines and
+  timestamps out of order, plus one network write per line.
+
+In order of preference: a **buffered channel** — processes push to a queue, one scheduled consumer writes
+batches in timestamp order; **structured telemetry** exported outside the request path; or, only for a
+low-frequency single writer, a real locked append.
+
+Two consequences worth stating: the buffer means a line can be dropped when the cap is reached, so the
+dropping is **declared** by a marker in the file rather than left as a gap; and anything that signs a line
+signs it at the **producer**, before it enters the buffer, so the signature also covers the transit.
 
 ## 4. Detail belongs at debug, not info
 

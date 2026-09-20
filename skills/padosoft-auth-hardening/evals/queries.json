@@ -1,0 +1,20 @@
+[
+  { "query": "stiamo subendo credential stuffing sul login", "should_trigger": true },
+  { "query": "the reset form tells you whether the email exists", "should_trigger": true },
+  { "query": "a session never seems to expire", "should_trigger": true },
+  { "query": "changing the password didn't log the other devices out", "should_trigger": true },
+  { "query": "should we add a captcha to the login?", "should_trigger": true },
+  { "query": "how do we turn on two-factor without locking everyone out?", "should_trigger": true },
+  { "query": "review the registration and password reset flow", "should_trigger": true },
+  { "query": "our lockout alert has never fired, is that good?", "should_trigger": true },
+  { "query": "what rate limit key should the login use?", "should_trigger": true },
+  { "query": "we want to warn users about logins from new devices", "should_trigger": true },
+  { "query": "can this user read another customer's order?", "should_trigger": false },
+  { "query": "design the roles and permissions for the admin", "should_trigger": false },
+  { "query": "set up SSO with an identity provider", "should_trigger": false },
+  { "query": "build a hardening backlog for the whole app", "should_trigger": false },
+  { "query": "the password field validation message is ugly", "should_trigger": false },
+  { "query": "store the session in Redis instead of files", "should_trigger": false },
+  { "query": "the login page is slow to render", "should_trigger": false },
+  { "query": "write a migration for the users table", "should_trigger": false }
+]
