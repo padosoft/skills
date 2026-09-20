@@ -1,0 +1,20 @@
+[
+  { "query": "nell'app si vede la chiave di traduzione invece del testo", "should_trigger": true },
+  { "query": "clean up the unused translation keys", "should_trigger": true },
+  { "query": "this string is hardcoded, should it be a key?", "should_trigger": true },
+  { "query": "German is missing half the strings", "should_trigger": true },
+  { "query": "audit our i18n catalogue", "should_trigger": true },
+  { "query": "how do I know if a translation key is still used?", "should_trigger": true },
+  { "query": "the plural form is wrong for two items", "should_trigger": true },
+  { "query": "I added a key, where else does it go?", "should_trigger": true },
+  { "query": "the accessibility label is in English only", "should_trigger": true },
+  { "query": "the placeholder disappeared in the French translation", "should_trigger": true },
+  { "query": "translate this page into German", "should_trigger": false },
+  { "query": "which i18n library should we use?", "should_trigger": false },
+  { "query": "format this date for the Italian locale", "should_trigger": false },
+  { "query": "the locale-aware sort is slow", "should_trigger": false },
+  { "query": "design the language switcher", "should_trigger": false },
+  { "query": "review this API endpoint", "should_trigger": false },
+  { "query": "the build fails on the runner", "should_trigger": false },
+  { "query": "write a test for this component", "should_trigger": false }
+]

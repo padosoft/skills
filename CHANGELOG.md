@@ -4,6 +4,63 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.14.0] - 2026-09-20
+
+40 skills. The last of the large Laravel codebase, and the React Native repositories finished.
+
+### Added
+
+- **`padosoft-crash-triage`** (`core`, **global**) - a crash report is somebody else's failure, on a device
+  you do not have, in a build you cannot attach to. Finding a plausible cause is cheap; the work is
+  **separating what you know from what you inferred**, and writing the difference down.
+
+  How to collect the report before interpreting it, and why an issue with variants across builds is a
+  **bucket rather than a defect** - reporters group by a signature coarser than the cause. Whether the
+  crashing build already contained the candidate fix, decided by ancestry rather than by memory: if it did,
+  this is not a recurrence - the fix is incomplete, or it is another class. Symbolication with the
+  uncertainty **measured**: a rebuilt artifact is not the shipped one until it is byte-identical, the offset
+  is not constant across it, and the honest wording is *attributed to, with an offset of N lines*, never
+  "exact".
+
+  Reading a thread dump, where most of what is in it is the dump's own footprint: a native transition frame
+  waiting on a condition variable is not a contested lock, the blocking operation may have finished between
+  the timeout and the capture, and **the threads that are absent are evidence too**. Custom keys are frozen
+  at the last moment the application published them, so a short session age against a much later event says
+  nothing ran after that point.
+
+  And the part that generalises furthest - **a grade on every claim**: verified, attributed, suspected, not
+  verified, with the wording carrying the grade, plus a word check over your own text for *exact, always,
+  never, deterministic, unresolved, the cause is*. A diagnosis right in substance and overstated in wording
+  gets corrected by whoever checks it, and costs more than being wrong would have.
+
+- **`padosoft-i18n-hygiene`** (`laravel`, `node`, `react-native`) - a translation catalogue decays in two
+  directions at once: it fills with keys nothing uses, and it misses the ones something does. **Searching
+  for the key as a string is the search that misses**: with a typed selector API the keys are not strings at
+  all, a dynamic leaf shows only its parent, and a composed key shows only its prefix. Never delete a key
+  whose parent is accessed with a variable - that is the deletion that reaches production as a raw key on a
+  screen nobody opens in development. A key exists in every locale or in none, and the base language is the
+  one the developer is looking at, which is why it is the one that ships alone.
+
+### Changed
+
+- **`padosoft-evidence-boundaries`** - the grade of proof applied to assessments: an assessment is read as
+  prose, and prose does not distinguish what you measured from what you inferred unless you make it.
+- **`padosoft-durable-effects`** - a batch with per-row outcomes. **Counters are derived, never
+  incremented**: an increment from parallel chunks is a lost update on every collision, and the drift is
+  invisible because the number still looks plausible. The row processor returns or throws and never records
+  its own failure; progress is broadcast at a bounded rate rather than per row; and re-running protects what
+  already completed.
+- **`padosoft-failure-visibility`** - **the decision trace**, for the question support actually gets: why
+  did this customer not see that option, and why was this one refused? Every catch traces even when it
+  rethrows; every refusal carries a reason code and not only the translated sentence; and **every silent
+  exclusion traces**, which is the half that is always missing, because nothing went wrong - something
+  merely did not appear. What happens on every page view is not a decision, and a channel that is mostly
+  noise is one nobody opens. Plus: a resolver that degrades by returning its input unchanged makes an
+  incomplete registration indistinguishable from a legitimate no-op.
+- **`padosoft-payments-reconciliation`** - a price change needs a history, not just a new value: showing a
+  discount is regulated in several markets, and the prior price over a window cannot be reconstructed
+  afterwards from the current one.
+
 ## [1.13.1] - 2026-09-20
 
 ### Changed

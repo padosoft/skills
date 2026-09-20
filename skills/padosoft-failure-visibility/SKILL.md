@@ -6,14 +6,15 @@ description: >-
   an array — and whenever the user says something "silently did nothing", data disappeared without an error,
   a request returned 200 but the page is empty, a job later died on something that was reported as accepted,
   or a retry loop never fires. It covers the two halves of the same bug: an ignored return value, and a
-  success status served over a failure. Do not use it for what goes inside a log line
+  success status served over a failure. It also covers the decision trace, for when nobody can reconstruct why a user got the
+  outcome they got. Do not use it for what goes inside a log line
   (padosoft-logging-discipline) or for retry and timeout policy.
 license: MIT
 compatibility: >-
   Language-agnostic. The examples are PHP/Laravel and TypeScript/React because that is where the cases came
   from; the rule holds anywhere a call can fail.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: The caller must be able to tell success from failure, and a check that does not decide is not a check.
   profiles: core
@@ -127,6 +128,33 @@ returned a non-string.
 
 ---
 
+## 4b. The decision trace: being able to answer "why did this happen to this user?"
+
+Logging is for diagnosing a failure. An audit trail is for proving nothing was altered. Neither answers the
+question support actually gets: *why did this customer not see that option, and why was this one refused?*
+
+For any funnel where the outcome matters — a checkout, an application, an onboarding, a claim — **every
+decision that changes the outcome writes one line to a dedicated channel**, with a machine-readable reason.
+
+- **Every `catch` traces**, even when it rethrows, and even when the user gets a generic message. A silent
+  catch is a violation of this rule, not a style preference.
+- **Every refusal shown to a user carries a reason code**, not only the translated sentence. The sentence is
+  for the user; the code is for the person reconstructing the session three weeks later.
+- **Every silent exclusion traces.** A payment method filtered out, a line dropped while reloading a basket,
+  a discount removed by a later change: the reader has to find **why** the option was not there. This is the
+  half that is always missing, because nothing went wrong — something merely did not appear.
+- **Every external outcome traces a summary**, never the whole response and never the credentials.
+- **What happens on every page view is not a decision.** A gateway that initialises on each product page
+  produces dozens of rows per session with no decision behind them, and a channel that is mostly noise is a
+  channel nobody opens. Trace the *failed* initialisation and the *selection*; skip the routine success.
+- **Attach the configuration that was in force**, not just the event: the flags, the limits, the per-brand
+  exceptions. Half the answers to "why" are in a setting, and the setting has changed since.
+- **Put the explicit trace before the error log of the same failure**, so the generic handler does not
+  produce a second line for one event.
+
+The test of the channel: take a real complaint, open only this channel, and see whether you can answer it
+without reading the code.
+
 ## 5. A check that does not decide is not a check
 
 A verification that prints numbers for somebody to compare by hand is a note. A scheduled job that writes a
@@ -156,6 +184,18 @@ can act on it.
   get a real incident filed as noise.
 
 ---
+
+## 6. A resolver that degrades silently hides an incomplete registration
+
+A lookup that cannot find its entry and **returns the input unchanged** is the worst of the three states in
+§4 at once: not found, nothing to do and broken all produce the same output. Register a new type in four
+places out of five and the fifth one keeps working — for a value of "working" that means the feature quietly
+does nothing, with no error and no log line, until somebody notices months later.
+
+Two protections: the unresolved branch **logs and names the type it could not resolve**, and a test
+enumerates the registered types and asserts that every resolver knows all of them. Adding a type then fails
+loudly at the place that forgot it, instead of succeeding silently everywhere — see
+**`padosoft-contract-changes`** for the general form.
 
 ## How to find it in a diff
 

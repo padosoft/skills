@@ -13,7 +13,7 @@ compatibility: >-
   Language- and stack-agnostic. The examples come from storage, identity, telemetry, queue and release
   pipelines because that is where the substitution is easiest to make.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: Name the claim, then name what would prove it.
   profiles: core
@@ -136,6 +136,24 @@ Four invariants, each of which has been violated by a verifier that reported eve
   declared.
 - **"Verified locally" closes nothing.** A replay against a local fixture and a probe against the real system
   are different claims with different exit codes.
+
+## 6b. Grade every claim, in the words you write
+
+An assessment is read as prose, and prose does not distinguish what you measured from what you inferred
+unless you make it. Four grades, and the wording is the grade:
+
+| Grade | How it is written | Earned by |
+|---|---|---|
+| **Verified** | "is", "verified on…" | read, run, queried, reproduced |
+| **Attributed** | "attributed to…, with an offset of N" | derived from a reconstruction, with the uncertainty measured |
+| **Suspected** | "suspected", "a precondition" | consistent with the symptom, never reproduced |
+| **Not verified** | "not verified: …" | a hypothesis, or behaviour nobody observed |
+
+Then read your own text for the words that assert more than you can show — **exact, always, never,
+deterministic, unresolved, the cause is** — and give each one its evidence or rewrite it. A conclusion
+that is right in substance and overstated in wording gets corrected by whoever checks it, and costs more
+than being wrong would have. See **`padosoft-crash-triage`** for the same discipline applied to a defect
+nobody could reproduce.
 
 ---
 

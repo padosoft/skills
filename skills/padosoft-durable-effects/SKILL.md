@@ -13,7 +13,7 @@ compatibility: >-
   Stack-agnostic. Examples assume a relational store behind the queue, because that is where the fencing and
   serialisation semantics become explicit.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: A queue moves work, not effects — claim the effect atomically before performing it.
   profiles: api, data
@@ -93,6 +93,27 @@ still working, and another worker picks up the same job.
   transaction-scoped advisory lock and do the whole schema step inside it.
 - **Cross-replica retry cannot rely on a filesystem check.** Use a database primary key, insert atomically,
   and compare the stored digest on conflict.
+
+## 5b. A batch with per-row outcomes
+
+An import, an export, a bulk recalculation: one job, thousands of rows, each with its own fate. Five rules,
+and the first one is where the data actually goes wrong.
+
+- **Counters are derived, never incremented.** `increment()` on a progress counter from parallel chunks is
+  a lost update on every collision, and the drift is invisible because the number still looks plausible.
+  Recompute with one aggregate over the rows themselves — they are the source of truth — after each flush,
+  each chunk, and each manual edit.
+- **Validation is orchestrated by the base, not overridden by the concrete type.** Give it phases — the
+  declarative rules, then per-field checks found by convention, then the cross-field hook — so a new import
+  type can only fill in the parts, never replace the sequence and silently skip one.
+- **The row processor returns an identifier or throws.** It does **not** record its own failure: the caller
+  owns the outcome, marks the row and moves on. A processor that writes its own error state and returns
+  normally makes a failed row indistinguishable from a successful one that produced nothing.
+- **Progress is broadcast at a bounded rate**, not per row. A real-time event per row on a large file is a
+  denial of service you wrote yourself.
+- **Re-running protects what already completed.** Delete and re-parse only the rows that are not in a
+  terminal state, skip the completed ones while parsing, and let the recount include them. Otherwise a
+  re-validation silently undoes work somebody already reviewed.
 
 ## 6. Event streams and replay
 

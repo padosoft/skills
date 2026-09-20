@@ -13,7 +13,7 @@ compatibility: >-
   Provider-agnostic. Applies to card processors, wallets, stored value, subscriptions and metered usage; the
   arithmetic rules assume an exact integer type for minor units.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: Money is a ledger that has to balance, not a status field.
   profiles: payments
@@ -106,6 +106,14 @@ layer, and a REST wrapper around it is not evidence of live checkout, webhooks o
   instant means two deployments attach two different meanings to the same catalog.
 - **A ledger, not a counter.** Loyalty points, credits and stored value reconcile from immutable idempotent
   transactions. A mutable balance cannot show a duplicate earn, and cannot stop a negative one.
+- **A price change needs a history, not just a new value.** Consumer-facing price display is regulated in
+  several markets: showing a discount requires being able to state the prior price over a defined window.
+  That is a table of price events with their validity, written at the moment of the change — it cannot be
+  reconstructed afterwards from the current value. Keep the pipeline explicit too: the source list, the
+  queue of items to recompute, the staged prices that are not live yet, the live ones, and the history.
+- **A margin, a markup or any derived commercial figure is computed server-side and is never an input from
+  the interface.** It is arithmetic over values the server already holds, and accepting it from a form is
+  accepting a number the customer chose.
 - **Stored value has a temporal boundary**: *expired* carries an elapsed instant, and *active* must not
   carry an expiry already in the past.
 

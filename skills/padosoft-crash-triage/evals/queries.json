@@ -1,0 +1,20 @@
+[
+  { "query": "abbiamo un crash in produzione e non riesco a riprodurlo", "should_trigger": true },
+  { "query": "symbolicate this stack trace from the minified bundle", "should_trigger": true },
+  { "query": "is this crash a regression or a new one?", "should_trigger": true },
+  { "query": "the app freezes and we only have a thread dump", "should_trigger": true },
+  { "query": "which release introduced this exception?", "should_trigger": true },
+  { "query": "triage this crashlytics issue", "should_trigger": true },
+  { "query": "how do I write the diagnosis if I could not reproduce it?", "should_trigger": true },
+  { "query": "the same top frame appears on two different builds", "should_trigger": true },
+  { "query": "the error tracker groups these together, is that one bug?", "should_trigger": true },
+  { "query": "we shipped a fix but the crash is still reported", "should_trigger": true },
+  { "query": "the CI pipeline is red", "should_trigger": false },
+  { "query": "this test fails locally, debug it", "should_trigger": false },
+  { "query": "write an error boundary component", "should_trigger": false },
+  { "query": "set up Sentry in the project", "should_trigger": false },
+  { "query": "the app is slow on startup", "should_trigger": false },
+  { "query": "review this pull request", "should_trigger": false },
+  { "query": "add logging to this service", "should_trigger": false },
+  { "query": "why does this query return nothing?", "should_trigger": false }
+]
