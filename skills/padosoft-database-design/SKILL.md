@@ -16,6 +16,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The index, the key and the partition are part of the table's design, not a later fix.
   profiles: data, laravel
   scope: project
   repository: https://github.com/padosoft/skills

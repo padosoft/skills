@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: Where the logic lives and what crosses which boundary, on any framework version.
   profiles: laravel
   scope: project
   repository: https://github.com/padosoft/skills

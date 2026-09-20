@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: A gate that cannot fail is not a gate.
   profiles: devops
   scope: project
   repository: https://github.com/padosoft/skills

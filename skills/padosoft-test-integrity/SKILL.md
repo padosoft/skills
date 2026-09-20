@@ -14,6 +14,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: A test that cannot fail is worse than no test.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

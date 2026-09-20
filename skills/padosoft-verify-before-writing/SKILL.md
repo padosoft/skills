@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: Never invent silently — ask, or record the doubt and report it.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

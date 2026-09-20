@@ -9,6 +9,7 @@ compatibility: >-
 metadata:
   version: 1.1.0
   author: Padosoft
+  summary: HTML email that passes the deliverability checks on the first send.
   profiles: email
   scope: project
   repository: https://github.com/padosoft/skills

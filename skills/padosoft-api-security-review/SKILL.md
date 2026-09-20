@@ -14,8 +14,9 @@ compatibility: >-
   Any HTTP API. The grep pre-screens assume a POSIX shell and a TypeScript/JavaScript codebase; the rules
   themselves are language-agnostic. Some notes are specific to Hono, and are marked as such.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
+  summary: Ten checks on an API change, each carrying the mistake that produces it.
   profiles: api, node
   scope: project
   repository: https://github.com/padosoft/skills
@@ -77,6 +78,17 @@ grep -rnE '\.use\("\*",\s*\w*[Aa]uth' src/routes
   The grep flags every `use("*", …auth…)`, so before calling it a violation check the two things that make it
   one: **is the prefix shared** with other sub-apps, and **is it a gate**? A wildcard `optionalAuthMiddleware`
   on a sub-app with its own prefix is neither — it populates the context, it does not block.
+
+
+**Audit every equivalent mutating route, not only the newest one.** When a second import, upload or
+provisioning path exists for the same resource, the controls added to the one built last are routinely
+absent from the one built first — and the old path is still wired. List the routes that mutate a given
+resource and compare their middleware stacks side by side, rather than reviewing the one in the diff.
+
+**A permissive cross-origin default on a control plane is an opening.** An administrative API that answers
+with a wildcard origin while authenticating with cookies or credentials has given every site the ability to
+act for a logged-in operator. Default to same-origin, allow exact configured origins, vary the cache by
+origin, and reject a disallowed cross-origin state-changing request **before** the route handler runs.
 
 ## 2. Ownership from the authenticated id — `API-SEC-IDOR-001`
 
@@ -260,6 +272,12 @@ Per-identity rate limiting, if present:
   availability control and authorization is upstream. Do not "fix" it to fail closed without a decision.
 - Never log the identity value — log its *kind*. An IP is personal data.
 
+
+**A process-local counter protects one process.** With more than one replica, the window has to be decided
+by shared storage — serialised inside a transaction, or on a store that can make the decision atomically.
+The in-process fallback is fine for development, and it does not support a claim about production. Key the
+limit on the tenant or the credential, never on a client-supplied address header.
+
 ## 8. Injection into downstream consumers — `API-SEC-OUTPUT-001`
 
 ```bash
@@ -289,6 +307,17 @@ grep -rniE 'etag|if-none-match|304' src/middlewares
   charset. Behind a proxy that forwards, the hop-by-hop headers are the *proxy's* address. Even the right
   header is spoofable unless the origin only accepts traffic from that edge (mTLS or IP allow-list) — so
   per-IP limits are an obstacle, not a barrier.
+- **An allowlist on the initial URL does not survive a redirect.** Disable automatic following, validate
+  the destination against the same explicit allowlist, reject credential-bearing URLs, and surface the
+  blocked response as evidence instead of silently following it.
+- **Redirect safety is not name-resolution safety.** Re-checking the allowlist at send time and disabling
+  redirects is necessary and is not protection against a destination that resolves inward; that belongs in
+  a connection-aware egress layer, and claiming it from a portable client wrapper is claiming something you
+  do not have.
+- **When the caller is a browser you drive, constrain the whole context, not the navigation.** Validating
+  the URL handed to a navigation call says nothing about redirects, subresources or form-triggered
+  requests: install the network policy on the context before the page exists, and abort anything that is
+  not allowlisted.
 - Cache: default `private`/`no-store`; any `Authorization`/`Cookie` forces it. Evaluate `If-None-Match`
   **after** auth, never before — and derive the ETag from the body only once the handler has run.
 

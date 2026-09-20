@@ -14,6 +14,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The code is the easy part — what gets forgotten is the wiring.
   profiles: laravel
   scope: project
   repository: https://github.com/padosoft/skills

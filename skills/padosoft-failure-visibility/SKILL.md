@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: The caller must be able to tell success from failure, and a check that does not decide is not a check.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

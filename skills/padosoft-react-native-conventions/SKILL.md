@@ -16,6 +16,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The rules that survived independently in two production apps.
   profiles: react-native
   scope: project
   repository: https://github.com/padosoft/skills

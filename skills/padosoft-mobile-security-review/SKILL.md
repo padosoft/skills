@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The bundle ships to every device and can be decompiled — everything follows from that.
   profiles: react-native
   scope: project
   repository: https://github.com/padosoft/skills

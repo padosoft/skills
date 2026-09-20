@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: A back-office screen is a filtered query with a chart on top, and four states that must all exist.
   profiles: laravel
   scope: project
   repository: https://github.com/padosoft/skills

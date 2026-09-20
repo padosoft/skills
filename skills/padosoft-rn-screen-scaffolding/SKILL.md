@@ -14,6 +14,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: What breaks is never the code, it is the registration.
   profiles: react-native
   scope: project
   repository: https://github.com/padosoft/skills

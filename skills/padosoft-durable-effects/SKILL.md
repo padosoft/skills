@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: A queue moves work, not effects — claim the effect atomically before performing it.
   profiles: api, data
   scope: project
   repository: https://github.com/padosoft/skills

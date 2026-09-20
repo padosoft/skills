@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: Either the invariant is recorded in the same atomic step that checked it, or it does not exist.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

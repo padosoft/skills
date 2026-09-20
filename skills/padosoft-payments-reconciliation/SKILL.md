@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: Money is a ledger that has to balance, not a status field.
   profiles: payments
   scope: project
   repository: https://github.com/padosoft/skills

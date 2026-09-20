@@ -16,6 +16,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The answers are three, not two — a convenience defaults off, a protection defaults on.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

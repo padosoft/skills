@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: Skills that follow the spec and the repo conventions, and carry no provenance out with them.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

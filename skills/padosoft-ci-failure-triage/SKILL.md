@@ -16,6 +16,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The failed step says where the run stopped, not why — collect everything before diagnosing.
   profiles: devops
   scope: project
   repository: https://github.com/padosoft/skills

@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: Ten checks plus three rules whose cost is disproportionate to how easy they are to get wrong.
   profiles: laravel
   scope: project
   repository: https://github.com/padosoft/skills

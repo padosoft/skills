@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The ways a Windows workstation and a Linux runner disagree silently.
   profiles: devops
   scope: project
   repository: https://github.com/padosoft/skills

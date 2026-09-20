@@ -14,6 +14,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: Keep the diagnosis, drop the data — and the log is not the only way data gets out.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

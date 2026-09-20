@@ -14,6 +14,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: Every fact quoted from the code is verified against the code before merging.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

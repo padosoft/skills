@@ -16,6 +16,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: Changing a signature is editing everything that agreed to it.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

@@ -14,6 +14,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: What git recorded is not always what you changed.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

@@ -13,8 +13,9 @@ compatibility: >-
   A spec-first repository that publishes an OpenAPI contract plus a typed client, with a mock server. Assumes
   Node.js 18+/Bun and, for the release flow, Changesets.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
+  summary: A published contract other projects depend on — change it in every place, once.
   profiles: api, node
   scope: project
   repository: https://github.com/padosoft/skills
@@ -40,6 +41,32 @@ This skill is the sync list and the verification loop.
 
 Making an optional field required is a breaking change even though nothing is deleted. If you are about to
 do it, say so before writing code: it is usually cheaper to add a second field.
+
+## 1b. Where the contract comes from, and what it must not invent
+
+A specification maintained by hand, next to the routes rather than from them, drifts the moment a route, a
+permission or a path parameter changes — and nothing fails.
+
+- **Generate the first contract from the same concrete route table the server uses.** That catches an
+  omitted route and a method/path mismatch immediately, which is exactly what review does not catch.
+- **Keep the transport generator separate from the domain schemas.** Generic placeholders are useful for
+  discovery, and they must never be mistaken for a complete versioned payload contract or for proof that a
+  client can be generated from it.
+- **Reference the versioned schema, never hand-write a second copy of a payload in the spec.** A duplicated
+  shape is a new source of drift with nothing to keep it aligned. Model the transport envelope locally and
+  point at the schema package for the rest. An endpoint whose domain response is not settled stays visibly
+  generic — better than a plausible contract nobody validated.
+- **A documented route has to be reachable from the real boot path.** Handler tests can be complete while
+  the route is dead, because the HTTP shell only delegates a narrower prefix. Keep the prefix allowlist and
+  the route registry aligned, and cover the boot itself — this matters most for the provisioning and
+  administrative endpoints, where "documented but unreachable" looks identical to "implemented".
+- **The specification cannot describe a stream's vocabulary.** It documents the endpoint; it says nothing
+  about which event types exist or what they carry. Keep a small event-type registry as the single source
+  for the asynchronous description, and have the stream adapter consume that same vocabulary — otherwise a
+  consumer discovers a transport with no stable message semantics.
+- **Some invariants no generated schema can express**: cross-field rules, rejection of unknown fields,
+  references to host-held secrets, comparators that are only valid in combination. Those belong in a source
+  validator that runs before execution, with the runtime check kept as defence in depth.
 
 ## 2. The sync list
 
@@ -115,6 +142,10 @@ If files are missing:
 ---
 
 ## Gotchas
+
+- **Tightening a schema breaks the fixtures written under the looser one.** Making a field mandatory
+  exposes every previously accepted but semantically invalid fixture at the API boundary. They are
+  dependents of the contract and are updated in the same change — see **`padosoft-contract-changes`**.
 
 - **The per-tenant mocks are the ones that get forgotten.** The default one is right there; the overrides are
   in another folder.

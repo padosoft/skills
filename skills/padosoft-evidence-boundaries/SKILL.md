@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.2.0
   author: Padosoft
+  summary: Name the claim, then name what would prove it.
   profiles: core
   scope: global
   repository: https://github.com/padosoft/skills

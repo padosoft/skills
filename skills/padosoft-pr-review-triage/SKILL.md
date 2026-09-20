@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: A bot review is a list of candidates, not a task list.
   profiles: devops
   scope: project
   repository: https://github.com/padosoft/skills

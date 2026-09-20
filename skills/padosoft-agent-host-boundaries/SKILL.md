@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The host decides what an agent may do, what gets recorded, and what any of it proves.
   profiles: api
   scope: project
   repository: https://github.com/padosoft/skills

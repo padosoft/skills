@@ -13,8 +13,9 @@ compatibility: >-
   Hono on Bun with TypeScript. The database patterns assume a driver with named placeholders (mysql2 style);
   the layering and typing rules hold with any driver.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
+  summary: Three layers one direction, typed context, bound SQL, and the mistakes that keep returning.
   profiles: node, api
   scope: project
   repository: https://github.com/padosoft/skills
@@ -132,6 +133,19 @@ reduce rows, so you get N rows per source row: inflated pagination, and `rows[0]
 there is no `ORDER BY`. That is the "sometimes it doesn't translate" bug. Full explanation in
 `padosoft-api-security-review` (`API-SEC-SQL-001`).
 
+
+**Keep the placeholders contiguous.** A statement that binds `$1, $2, $5` and never uses `$3` and `$4` is
+rejected by the server with a parameter-type error, not by the type system and not by an in-memory double.
+The same class of defect hides behind every store that is not the real engine: run the provider contract
+whenever a new durable path is added.
+
+**Decode at the durable boundary, not at the call site.** A driver can return a JSON column as a *string* —
+including the literal `"null"` for a nullable field — so a cached response read back inside a transaction
+can be shaped differently from the same read outside it. Select the column as text at transaction
+boundaries, pass everything through one decoder, and guard an absent row explicitly. A type assertion at a
+JSON boundary does not strip unknown properties either: an allowlist has to run at runtime, before
+persistence and before serialisation.
+
 ## 6. Transactions on multi-write
 
 **A repository function that performs two or more writes (INSERT/UPDATE/DELETE) wraps them in a transaction
@@ -201,11 +215,44 @@ hand inside the controller, and never read `c.req.query()` raw when a validated 
 treated as *absent* and resolved by the server fallback — never a 422 caused by that field alone. The same
 field in a response or an entity stays strict: the documented contract does not bend.
 
+## 8b. Concurrent edits: the conditional write is an API contract
+
+An optimistic editor in the client prevents nothing while the API still accepts an unconditional
+last-write-wins update. The rule lives on the server:
+
+- **Reads return a version or content identity**; writes require it; a stale write is rejected with a
+  machine-readable precondition failure, and the newer server value is left untouched.
+- **The lifecycle crosses the client boundary**: capture the identity when the editor opens, attach it to
+  the write, and replace it with the response's identity after a successful save. A test that proves the
+  header actually crosses that boundary is the only thing that proves the feature.
+- **A precondition failure without a recovery path is a safe dead end.** The client has to say that another
+  writer won and offer an explicit reload of the authoritative representation together with its new
+  identity — otherwise the operator is stuck holding edits they cannot apply.
+- **An atomic lock does not make two incompatible transitions both valid.** Two concurrent transitions out
+  of the same state are serialised, and the second one *correctly* fails. A concurrency test asserts
+  atomicity **and** explicit conflict handling — never that both writes commit.
+
+## 8c. A stream is transport, and transport does not remember
+
+- **Filter by authenticated tenant before writing to the stream**, emit bounded heartbeats, and clean up the
+  subscription on **both** request abort and response close.
+- **Reconnect restores a socket, not the events lost while it was down.** Refetch the durable projection on
+  the reconnect edge; use individual events only as low-latency invalidation hints.
+- **Event ids alone are not replay.** Persist the event before publishing the notification, subscribe before
+  replaying, deduplicate the overlap, and signal a missing or expired cursor explicitly rather than
+  returning an empty result. See **`padosoft-durable-effects`**.
+- **A passing stream-writer test is not a live journey.** The causal proof is: create the subscriber,
+  publish a tenant-scoped event, parse it in the real client, render the connection state, assert it there.
+
 ---
 
 ## Gotchas
 
 These are the ones that come back in review:
+
+**0. An identifier that crosses a trust boundary needs a real random source.** A UUID-shaped string built
+from the ordinary pseudo-random generator is not a security identifier, and it looks exactly like one.
+Queue, job and event ids cross tenant and retry boundaries: use the runtime's cryptographic generator.
 
 **1. `null` instead of an empty array.** The controller expects a list.
 

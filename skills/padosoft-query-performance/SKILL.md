@@ -15,6 +15,7 @@ compatibility: >-
 metadata:
   version: 0.1.0
   author: Padosoft
+  summary: The code was written against the volume that existed then, and the volume moved.
   profiles: data, laravel
   scope: project
   repository: https://github.com/padosoft/skills
