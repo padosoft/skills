@@ -2,6 +2,8 @@
   "repo": "padosoft/skills",
   "profiles": {
     "core": [
+      "padosoft-atomic-invariants",
+      "padosoft-docs-match-code",
       "padosoft-failure-visibility",
       "padosoft-git-commit-integrity",
       "padosoft-logging-discipline",
@@ -10,6 +12,7 @@
       "padosoft-test-integrity"
     ],
     "laravel": [
+      "padosoft-admin-interface",
       "padosoft-laravel-conventions",
       "padosoft-laravel-scaffolding",
       "padosoft-laravel-security-review"
@@ -37,7 +40,10 @@
     ]
   },
   "scope": {
+    "padosoft-admin-interface": "project",
     "padosoft-api-security-review": "project",
+    "padosoft-atomic-invariants": "global",
+    "padosoft-docs-match-code": "global",
     "padosoft-email-html-builder": "project",
     "padosoft-failure-visibility": "global",
     "padosoft-git-commit-integrity": "global",

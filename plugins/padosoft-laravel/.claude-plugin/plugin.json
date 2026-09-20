@@ -1,15 +1,25 @@
 {
   "name": "padosoft-laravel",
   "displayName": "Padosoft Laravel",
-  "version": "0.1.0",
-  "description": "Building and reviewing Laravel applications: conventions for Laravel 13+/PHP 8.5+, the security review with its ten checks, and the scaffolding of endpoints, services, CRUD and jobs.",
-  "author": { "name": "Padosoft", "url": "https://www.padosoft.com" },
+  "version": "0.2.0",
+  "description": "Building and reviewing Laravel applications: conventions, the security review with its ten checks, scaffolding, and the admin/back-office interface pattern.",
+  "author": {
+    "name": "Padosoft",
+    "url": "https://www.padosoft.com"
+  },
   "repository": "https://github.com/padosoft/skills",
   "license": "MIT",
-  "keywords": ["laravel", "php", "eloquent", "security", "conventions"],
+  "keywords": [
+    "laravel",
+    "php",
+    "eloquent",
+    "security",
+    "conventions"
+  ],
   "skills": [
     "../../skills/padosoft-laravel-conventions",
     "../../skills/padosoft-laravel-security-review",
-    "../../skills/padosoft-laravel-scaffolding"
+    "../../skills/padosoft-laravel-scaffolding",
+    "../../skills/padosoft-admin-interface"
   ]
 }

@@ -65,11 +65,18 @@ only worth it if the answer is yes to all three:
 2. **Is it correct everywhere?** If its rules only hold for certain projects, it would do damage elsewhere.
 3. **Would its absence be a problem?** If a dev can install it when needed, leave it at project level.
 
-Global skills always live in the `core` profile, and a test fails CI if they go above **eight**. The cap
-started at five and was raised once, when a third stack joined the catalog and three rules turned out to be
-reached independently by all of them — at that point the alternative to one global skill is the same content
-copied into every stack skill, free to diverge. It is still a forcing function, not a budget to spend:
-raising it again is a deliberate decision in a PR, like adding a profile.
+Global skills always live in the `core` profile. **There is no fixed ceiling on how many there are**, and
+there used to be one — it was removed once it started arguing against evidence.
+
+The rule that replaced it: **independent convergence**. When stacks that share no code reach the same rule on
+their own, it is not a per-stack convention, and the alternative to promoting it is the same content copied
+into every stack skill, free to diverge. When that evidence exists, the skill goes global, whatever the
+current count. When it does not, three yeses to the questions above are still required — the absence of a
+number is not permission.
+
+What CI still enforces is structural: a global skill is in `core`, and its description states its boundaries.
+That second one is not bureaucracy — a description loaded in every session that never says what it is *not*
+for is the thing that produces wrong activations.
 
 ### `profiles:` — which stack it belongs to
 

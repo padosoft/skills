@@ -13,8 +13,8 @@
       "name": "padosoft-core",
       "source": "./plugins/padosoft-core",
       "displayName": "Padosoft Core",
-      "description": "Cross-project skills to keep always on: router, skill creation, commit integrity, logging, failure visibility, test integrity.",
-      "version": "0.4.0",
+      "description": "Cross-project skills, always on: router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs drift.",
+      "version": "0.5.0",
       "author": {
         "name": "Padosoft"
       },
@@ -106,8 +106,8 @@
       "name": "padosoft-laravel",
       "source": "./plugins/padosoft-laravel",
       "displayName": "Padosoft Laravel",
-      "description": "Laravel 13+/PHP 8.5+: conventions, security review with ten checks, scaffolding of endpoints, services, CRUD and jobs.",
-      "version": "0.1.0",
+      "description": "Laravel: conventions, security review with ten checks, scaffolding, and the admin/back-office interface pattern.",
+      "version": "0.2.0",
       "author": {
         "name": "Padosoft"
       },

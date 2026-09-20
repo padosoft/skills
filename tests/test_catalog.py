@@ -25,18 +25,34 @@ class TestFrontmatter(unittest.TestCase):
                 self.assertIn(s.scope, bc.KNOWN_SCOPES)
                 self.assertTrue(s.name.startswith("padosoft-"), "the name must carry the brand prefix")
 
-    def test_global_skills_stay_few(self) -> None:
-        """Every global skill costs context in EVERY session: the core profile stays small.
+    def test_global_skills_are_deliberate(self) -> None:
+        """A global skill costs context in EVERY session, so each one is a deliberate choice.
 
-        The cap was raised from 5 to 8 when the third stack joined the catalog: a rule that three
-        independent stacks reached on their own is not a per-stack convention, and the alternative
-        to a global skill is the same content duplicated in every stack skill, free to diverge.
-        The number is still a forcing function, not a budget to fill: raising it again is a
-        deliberate decision in a PR, exactly like adding a profile.
+        There is no fixed ceiling, and there used to be one. The rule that replaced it: a rule
+        reached independently by stacks that share no code is not a per-stack convention, and the
+        alternative to promoting it is the same content copied into every stack skill, free to
+        diverge. When that evidence exists the skill goes global, whatever the current count.
+
+        What stays enforced is structural, because it is the part a mistake breaks: a global skill
+        lives in the `core` profile (that is what makes `install-profile.sh core --global` install
+        it), and its description states boundaries — with many skills loaded, a description that
+        never says what it is NOT for is what produces wrong activations.
+
+        The generous ceiling below is a smoke check against a scope set by accident, not a budget.
         """
         skills, _ = bc.load_skills()
-        globals_ = [s.name for s in skills if s.scope == "global"]
-        self.assertLessEqual(len(globals_), 8, f"too many global skills: {globals_}")
+        globals_ = [s for s in skills if s.scope == "global"]
+
+        for s in globals_:
+            with self.subTest(skill=s.name):
+                self.assertIn("core", s.profiles, "a global skill belongs to the core profile")
+                self.assertRegex(
+                    s.description.lower(),
+                    r"do not use |does not (replace|do|cover|apply)|not for ",
+                    "a global skill must state its boundaries in the description",
+                )
+
+        self.assertLessEqual(len(globals_), 20, f"every skill went global by accident? {[s.name for s in globals_]}")
 
 
 class TestGeneratedFiles(unittest.TestCase):

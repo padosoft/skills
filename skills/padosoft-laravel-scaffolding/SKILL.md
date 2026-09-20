@@ -9,8 +9,8 @@ description: >-
   review existing code (padosoft-laravel-conventions) or for the security review.
 license: MIT
 compatibility: >-
-  Laravel 13+ / PHP 8.5+ for new work; the file list holds on 10-12. Paths are examples — read the
-  repository layout first.
+  Any Laravel version: the list is about which pieces have to exist and be wired, which has not changed.
+  Paths are examples — read the repository layout first.
 metadata:
   version: 0.1.0
   author: Padosoft

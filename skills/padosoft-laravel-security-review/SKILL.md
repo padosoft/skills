@@ -10,8 +10,8 @@ description: >-
   or mobile (padosoft-mobile-security-review) work, nor for infrastructure hardening.
 license: MIT
 compatibility: >-
-  Laravel 13+ / PHP 8.5+ for new work; the rules hold on Laravel 10-12 too, and the differences that matter
-  are called out inline. The pre-screens assume a POSIX shell.
+  Any Laravel version — these are classes of vulnerability, not framework features. Where a version moved a
+  file, it is noted inline. The pre-screens assume a POSIX shell.
 metadata:
   version: 0.1.0
   author: Padosoft
@@ -224,9 +224,9 @@ protected $except = ['webhook/stripe'];
 - **`$request->all()` is not validation** even when a FormRequest ran: it returns everything that was sent.
 - **A policy that is never called is not a control.** Check that `authorize()` is actually reached on the path
   you are reviewing.
-- **Laravel 12 → 13 differences:** the exception handler moved into the application bootstrap file; if you
-  are reading an older codebase, the same logic lives in the exception handler class. The rule does not
-  change, only the file.
+- **Where the framework moved things:** the exception handler lives in the application bootstrap file in
+  recent versions and in a dedicated handler class in older ones. The rule is identical; only the path
+  changes, and the same goes for where middleware is registered.
 
 ## Final report
 

@@ -1,0 +1,22 @@
+[
+  { "query": "due richieste hanno usato lo stesso coupon monouso", "should_trigger": true },
+  { "query": "the job ran twice and sent two emails", "should_trigger": true },
+  { "query": "is this check-then-update safe under concurrency?", "should_trigger": true },
+  { "query": "we check if the code was used and then mark it used", "should_trigger": true },
+  { "query": "the counter drifts when traffic spikes", "should_trigger": true },
+  { "query": "do I need a unique constraint here or is the transaction enough?", "should_trigger": true },
+  { "query": "the user double tapped and got charged twice", "should_trigger": true },
+  { "query": "review this redemption endpoint before I merge", "should_trigger": true },
+  { "query": "how should the idempotency key be generated?", "should_trigger": true },
+  { "query": "two workers picked up the same row", "should_trigger": true },
+  { "query": "design the retry policy for this queue", "should_trigger": false },
+  { "query": "our database is slow under load", "should_trigger": false },
+  { "query": "set up read replicas", "should_trigger": false },
+  { "query": "what isolation level should the database use by default?", "should_trigger": false },
+  { "query": "write the migration for the coupons table", "should_trigger": false },
+  { "query": "the endpoint returns 500 sometimes", "should_trigger": false },
+  { "query": "add auth to this route", "should_trigger": false },
+  { "query": "our queue worker keeps dying", "should_trigger": false },
+  { "query": "explain what a deadlock is", "should_trigger": false },
+  { "query": "profile this slow query", "should_trigger": false }
+]

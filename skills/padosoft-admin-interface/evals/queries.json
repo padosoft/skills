@@ -1,0 +1,22 @@
+[
+  { "query": "creami la pagina admin per le statistiche ordini", "should_trigger": true },
+  { "query": "add a dashboard with KPI cards and a chart", "should_trigger": true },
+  { "query": "the admin panel spins forever and shows nothing", "should_trigger": true },
+  { "query": "the export times out on large date ranges", "should_trigger": true },
+  { "query": "the chart draws on top of the previous one when I change filters", "should_trigger": true },
+  { "query": "the KPI numbers don't match the table", "should_trigger": true },
+  { "query": "add an autosuggest on this foreign key field", "should_trigger": true },
+  { "query": "empty result looks identical to a failed request", "should_trigger": true },
+  { "query": "review this backoffice screen before merge", "should_trigger": true },
+  { "query": "build the filtered listing with export for this domain", "should_trigger": true },
+  { "query": "is this admin route missing auth?", "should_trigger": false },
+  { "query": "optimize the N+1 in this service", "should_trigger": false },
+  { "query": "design the storefront product page", "should_trigger": false },
+  { "query": "which chart library should we adopt?", "should_trigger": false },
+  { "query": "write the migration for the stats table", "should_trigger": false },
+  { "query": "our React Native list stutters", "should_trigger": false },
+  { "query": "set up the CI for the frontend build", "should_trigger": false },
+  { "query": "translate the admin UI into Spanish", "should_trigger": false },
+  { "query": "what should I log when the export fails?", "should_trigger": false },
+  { "query": "configure the queue for the export job", "should_trigger": false }
+]

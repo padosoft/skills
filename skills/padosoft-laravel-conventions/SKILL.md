@@ -5,13 +5,13 @@ description: >-
   a migration, an Eloquent query, a model event, a queued or bulk operation — and whenever a symptom shows
   up: a controller that grew into the business logic, an N+1 found in the logs, a bulk command that runs out
   of memory, a job that retries something it should not, a soft-deleted row reappearing in a count, a model
-  event that fires on a mass update and does not. Baseline: Laravel 13+ / PHP 8.5+ for new work, with the
-  differences on 10-12 called out. Do not use it for a security review (padosoft-laravel-security-review),
+  event that fires on a mass update and does not. It applies to any Laravel version: the rules are about the
+  shape of the application. Do not use it for a security review (padosoft-laravel-security-review),
   for what goes in a log (padosoft-logging-discipline), or for infrastructure and deployment.
 license: MIT
 compatibility: >-
-  Laravel 13+ / PHP 8.5+ as the baseline for new projects and modules. Almost everything holds on Laravel
-  10-12 and PHP 8.2+; where it does not, the text says so.
+  Any Laravel version. The rules are about how an application is shaped, not about framework features;
+  where a version moved a file rather than changing a rule, the text says so.
 metadata:
   version: 0.1.0
   author: Padosoft
@@ -23,11 +23,18 @@ metadata:
 
 # Laravel conventions
 
-Baseline for **new** projects and modules: **Laravel 13.x, PHP 8.5+**, Pint for formatting, Larastan/PHPStan
-for static analysis, PHPUnit unless the repository already chose Pest.
+**None of this depends on a framework or language version.** These are rules about how the application is
+shaped — where the logic lives, what crosses a boundary, what the database is asked to do — and they were
+earned on codebases several major versions apart. A rule that only held on one version would not be a rule,
+it would be a release note.
 
-On an existing Laravel 10-12 / PHP 8.2 codebase the rules below still apply — adopt the project's version,
-and do not mix a new idiom with the legacy one halfway through a file.
+For a **new** project, start from the current Laravel and PHP, a formatter and a static analyser, and the
+test framework the repository already chose. On an **existing** codebase apply the same rules with that
+project's idiom, and do not mix a new idiom with the legacy one halfway through a file — a file that does
+both is harder to read than a file that is consistently old.
+
+Where a version genuinely moved something it is noted inline. In every one of those cases what moved was the
+*file*, not the rule.
 
 ---
 
@@ -121,7 +128,8 @@ the job runs against a row that is not there yet.
 
 ## 7. Types, null and errors
 
-- **Type hints everywhere**: parameters, return types, properties. On PHP 8.5 there is no excuse left.
+- **Type hints everywhere**: parameters, return types, properties. Whatever the language version allows,
+  use all of it — an untyped boundary is where the null gets in.
 - Prefer an explicit object to a "magic" helper when it makes the contract clearer.
 - **Do not use exceptions for expected user-validation flows** — that is what validation is for. Exceptions
   are for what should not happen.

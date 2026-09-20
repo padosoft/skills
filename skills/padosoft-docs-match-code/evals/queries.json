@@ -1,0 +1,22 @@
+[
+  { "query": "il README dice di usare un comando che non esiste più", "should_trigger": true },
+  { "query": "update the docs for this change", "should_trigger": true },
+  { "query": "the setup instructions fail on a clean machine", "should_trigger": true },
+  { "query": "CLAUDE.md references a helper we renamed", "should_trigger": true },
+  { "query": "the env var in the readme isn't in .env.example", "should_trigger": true },
+  { "query": "document the new endpoint", "should_trigger": true },
+  { "query": "is this doc still accurate?", "should_trigger": true },
+  { "query": "the API doc shows a field the response doesn't have", "should_trigger": true },
+  { "query": "review the docs in this PR", "should_trigger": true },
+  { "query": "a new dev followed the onboarding and got stuck", "should_trigger": true },
+  { "query": "translate the README into English", "should_trigger": false },
+  { "query": "which documentation platform should we use?", "should_trigger": false },
+  { "query": "rewrite this paragraph, it reads badly", "should_trigger": false },
+  { "query": "generate API docs from OpenAPI", "should_trigger": false },
+  { "query": "the build is failing on lint", "should_trigger": false },
+  { "query": "add a diagram to the architecture page", "should_trigger": false },
+  { "query": "write the release notes", "should_trigger": false },
+  { "query": "set up a docs site with search", "should_trigger": false },
+  { "query": "our docs are too long, summarise them", "should_trigger": false },
+  { "query": "fix the broken links in the wiki", "should_trigger": false }
+]

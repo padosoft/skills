@@ -4,6 +4,58 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.5.0] - 2026-09-20
+
+### Removed — no incident or customer provenance in a public catalog
+
+The catalog is public and indexed in the Agent Skills directory, so it must not carry anything that
+identifies a customer, a person or an incident that actually happened. An incident narrative tells a reader
+which weakness a company really had; a customer name in an example template publishes a commercial
+relationship.
+
+Removed from skills, references, the changelog and the four GitHub release notes: a customer brand in the
+reference email template and its sources line, a verbatim error message with table, column, row id and
+personal-data placeholders, the account of a credential incident, a person's initials and a date in an
+example comment, the reference to a specific audit and its outcome, and every first-person attribution
+phrase that framed a rule as something that befell us.
+
+**Not one rule, severity or pre-screen was removed.** Only the framing changed, from "this happened to us" to
+"this is the shape of the defect" — and it usually reads better, because it describes the class instead of
+the anecdote. The error-leak rule, for instance, now explains *why* that message carries host, schema and
+written values, which is what lets someone recognise it on a different project.
+
+### Added
+
+- `padosoft-admin-interface` (`laravel`) — the back-office pattern: the server pipeline
+  (enum → DTO → request → query service → metrics service → controller → route → export), the data contract
+  that passes endpoints and caps from the server instead of hardcoding them in the client, the client module
+  split, and **the four states** — initial, loading, success, error — of which a missing one is a broken
+  screen. Drawn from an admin-interface family used across several products and expressed for a React client
+  over a Laravel API.
+- `padosoft-atomic-invariants` (`core`, **global**) — either the invariant is recorded in the same atomic
+  step that checked it, or it does not exist. Check-then-act, locks released before the write, conditional
+  updates whose row count is discarded, and when a unique constraint has to back the rule. Reached
+  independently on two stacks, which is what earned the promotion.
+- `padosoft-docs-match-code` (`core`, **global**) — every fact quoted from the code (column, env var,
+  command flag, route, path) verified against the code before merging, generators and pointers preferred to
+  copies, and agent instruction files treated as documentation with a shorter fuse: when one goes stale the
+  agent follows it confidently, which is worse than having none.
+
+### Changed
+
+- **The cap on global skills is gone.** It was five, then eight, and then it started arguing against
+  evidence. The rule that replaces it is **independent convergence**: when stacks that share no code reach
+  the same rule on their own, it is promoted whatever the count. What CI still enforces is structural — a
+  global skill is in `core`, and its description states its boundaries, because a description loaded in every
+  session that never says what it is *not* for is what produces wrong activations.
+- **The Laravel skills are no longer tied to a framework or language version.** They said "Laravel 13+ /
+  PHP 8.5+ baseline"; they now say what they always meant: these are rules about how an application is
+  shaped, earned on codebases several major versions apart. A rule that only held on one version would not
+  be a rule, it would be a release note. Where a version genuinely moved something — the exception handler,
+  middleware registration — what moved was the *file*, and the text says so.
+- `scripts/new_skill.py` scaffolds `references/rules.md` instead of a stub named after the skill, which had
+  twice been committed empty beside the real one.
+
 ## [1.4.0] - 2026-09-20
 
 ### Added
