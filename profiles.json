@@ -54,7 +54,8 @@
       "padosoft-durable-effects",
       "padosoft-edge-worker-security",
       "padosoft-hono-api-conventions",
-      "padosoft-openapi-spec-workflow"
+      "padosoft-openapi-spec-workflow",
+      "padosoft-rag-ingestion-security"
     ],
     "payments": [
       "padosoft-payments-reconciliation"
@@ -62,13 +63,19 @@
     "data": [
       "padosoft-database-design",
       "padosoft-durable-effects",
-      "padosoft-query-performance"
+      "padosoft-query-performance",
+      "padosoft-rag-knowledge-base"
     ],
     "devops": [
       "padosoft-ci-failure-triage",
       "padosoft-ci-workflow-gates",
       "padosoft-cross-platform-scripting",
       "padosoft-pr-review-triage"
+    ],
+    "ai": [
+      "padosoft-agent-host-boundaries",
+      "padosoft-rag-ingestion-security",
+      "padosoft-rag-knowledge-base"
     ]
   },
   "scope": {
@@ -104,6 +111,8 @@
     "padosoft-payments-reconciliation": "project",
     "padosoft-pr-review-triage": "project",
     "padosoft-query-performance": "project",
+    "padosoft-rag-ingestion-security": "project",
+    "padosoft-rag-knowledge-base": "project",
     "padosoft-react-native-conventions": "project",
     "padosoft-rn-screen-scaffolding": "project",
     "padosoft-security-baseline": "global",

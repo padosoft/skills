@@ -1,0 +1,27 @@
+{
+  "name": "padosoft-ai",
+  "displayName": "Padosoft AI",
+  "version": "0.1.0",
+  "description": "Building on a model: what the host owns when an agent is the caller, the corpus it retrieves from, and the trust boundary where somebody else's documents become grounding.",
+  "author": {
+    "name": "Padosoft",
+    "url": "https://www.padosoft.com"
+  },
+  "repository": "https://github.com/padosoft/skills",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "llm",
+    "agent",
+    "rag",
+    "retrieval",
+    "mcp",
+    "ingestion",
+    "knowledge-base"
+  ],
+  "skills": [
+    "../../skills/padosoft-agent-host-boundaries",
+    "../../skills/padosoft-rag-knowledge-base",
+    "../../skills/padosoft-rag-ingestion-security"
+  ]
+}

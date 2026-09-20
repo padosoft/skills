@@ -139,6 +139,26 @@
         "reconciliation"
       ],
       "category": "productivity"
+    },
+    {
+      "name": "padosoft-ai",
+      "source": "./plugins/padosoft-ai",
+      "displayName": "Padosoft AI",
+      "description": "Agents, tools, retrieval and the corpus behind them.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Padosoft"
+      },
+      "license": "MIT",
+      "keywords": [
+        "ai",
+        "llm",
+        "agent",
+        "rag",
+        "retrieval",
+        "mcp"
+      ],
+      "category": "productivity"
     }
   ]
 }

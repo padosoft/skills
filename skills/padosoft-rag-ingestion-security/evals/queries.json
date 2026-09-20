@@ -1,0 +1,20 @@
+[
+  { "query": "l'assistente ha mostrato un documento che quell'utente non doveva vedere", "should_trigger": true },
+  { "query": "how do we mirror Drive permissions into the index?", "should_trigger": true },
+  { "query": "we ingest a shared mailbox, is that a prompt injection risk?", "should_trigger": true },
+  { "query": "what happens when we cannot map an external collaborator?", "should_trigger": true },
+  { "query": "review our connector ingestion contract", "should_trigger": true },
+  { "query": "personal data is ending up in the embeddings", "should_trigger": true },
+  { "query": "a document was unshared at the source but is still retrievable", "should_trigger": true },
+  { "query": "can an untrusted document trigger a tool call?", "should_trigger": true },
+  { "query": "how do we add a capability to the connector interface safely?", "should_trigger": true },
+  { "query": "who should be able to re-identify a redacted value?", "should_trigger": true },
+  { "query": "which vector database should we pick?", "should_trigger": false },
+  { "query": "the retrieval quality is poor", "should_trigger": false },
+  { "query": "design the document schema", "should_trigger": false },
+  { "query": "write the prompt for summarisation", "should_trigger": false },
+  { "query": "the ingest job runs out of memory", "should_trigger": false },
+  { "query": "set up OAuth for the connector", "should_trigger": false },
+  { "query": "review this React component", "should_trigger": false },
+  { "query": "the CI job is red", "should_trigger": false }
+]

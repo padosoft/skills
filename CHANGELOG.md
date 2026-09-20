@@ -4,6 +4,68 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.15.0] - 2026-09-20
+
+42 skills, and a new `ai` profile with its own package. The source is a retrieval-augmented assistant
+platform: twenty-nine architecture decision records, forty-nine internal skills, and the connector family
+around it.
+
+### Added
+
+- **`padosoft-rag-ingestion-security`** (`ai`, `api`) - ingestion looks like a data problem and is an
+  authorisation problem. **The contract records what a document *is* - path, title, type, tenant - and not
+  where its authority comes from.** There is nowhere to put the fact that it was shared with three people,
+  so it arrives readable by everyone with access to the corpus. Nothing in the code is wrong; no reviewer
+  sees a mistake. That is oversharing, and it is the headline failure of enterprise assistant rollouts.
+
+  A connector reports **principals, not decisions** - what the source said, plus whether the list was
+  truncated - and the host maps them, because resolution depends on directory state the connector does not
+  have. **And when the mapping fails, it fails closed**: a document whose access could not be fully mapped
+  must not fall back to corpus-wide visibility. That fallback is the bug the whole design exists to remove,
+  and it is the tempting shortcut every time. Some documents become invisible that were visible yesterday -
+  that is the point, not a regression.
+
+  Then revocation, which is the half that gets forgotten: a mirror that only ever **adds** permissions is a
+  slow leak, in the direction nobody watches. Permission rows carry their origin so a re-sync reconciles
+  mirrored grants without destroying an operator's manual ones. And authorisation belongs **inside the
+  retrieval query**, because the hot path does not call your policy object.
+
+  The second half is provenance. Most connectors bring in content written inside the organisation; a mailbox
+  connector brings in content written by **anyone who can send an email**. That message becomes a document,
+  the document becomes chunks, the chunks become grounding - and the same platform exposes tools an agent
+  can call. That is a complete indirect-injection chain with no boundary between the two ends. Ship the
+  label before the enforcement, then enforce the asymmetry: an untrusted chunk may be **quoted** in an
+  answer and must never **influence a tool call**. And keep provenance separate from curation tier: a
+  human-approved summary of an external email is approved *and* externally authored, and both facts matter.
+
+  Plus redaction before embedding, with deterministic surrogates so search still works, a vault salted per
+  tenant so nothing correlates across them, one redaction core for every ingestion path, and
+  re-identification as a privileged audited operation whose trail records counts and never values.
+
+- **`padosoft-rag-knowledge-base`** (`ai`, `data`) - **a model may propose knowledge; only a human promotes
+  it.** The attractive version of the system is "every agent reads from the knowledge base and writes back
+  to it", and it is the version that makes the corpus untrustworthy within a month. Split it: the model
+  suggests, the model validates, and only a human or an operator command writes - with an audit row carrying
+  the actor and the before and after.
+
+  Around that: one idempotency anchor, because duplicate documents read as **corroboration** to a model that
+  cannot know it is seeing one source three times; path normalisation through a single function used by
+  ingest, read and delete alike, since **when ingest and delete normalise differently a document becomes
+  undeletable** and the "not found" is believed; typed columns on the existing table rather than a parallel
+  one; identifiers unique per tenant, never globally, which is a single-tenant assumption that survives
+  right up to the second customer; trust ordering at retrieval; and a delete path that cascades through one
+  place, because orphaned graph nodes are invisible until a traversal returns something that no longer
+  exists.
+
+### Changed
+
+- **`padosoft-contract-changes`** - the trap the breaking-change table hides: **an optional trailing
+  parameter is additive for callers and breaking for implementers.** Adding one to an interface method
+  leaves every call site valid and makes every existing implementation invalid - the class fails to load,
+  before a line of its own code runs. If the interface is public API other people implement, the parameter
+  is not the mechanism.
+- **`padosoft-agent-host-boundaries`** now also belongs to the `ai` profile.
+
 ## [1.14.0] - 2026-09-20
 
 40 skills. The last of the large Laravel codebase, and the React Native repositories finished.

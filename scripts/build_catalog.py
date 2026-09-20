@@ -39,6 +39,7 @@ REPO = "padosoft/skills"
 #: so the birth of a profile goes through review like any other choice.
 KNOWN_PROFILES: tuple[str, ...] = (
     "core", "laravel", "node", "react-native", "email", "api", "payments", "data", "devops",
+    "ai",
 )
 KNOWN_SCOPES: tuple[str, ...] = ("global", "project")
 
@@ -225,6 +226,7 @@ PROFILE_BLURB: dict[str, str] = {
     "payments": "anything where money moves and has to balance",
     "data": "the database, and everything read from it in volume",
     "devops": "CI, gates, releases and the scripts around them",
+    "ai": "building on a model: agents, tools, retrieval and the corpus behind them",
 }
 
 

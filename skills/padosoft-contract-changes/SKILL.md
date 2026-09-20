@@ -14,7 +14,7 @@ compatibility: >-
   Any language with callers and inheritance. The covariance rules are stated for languages that enforce
   substitutability; the search and staging procedure applies everywhere.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: Changing a signature is editing everything that agreed to it.
   profiles: core
@@ -74,6 +74,13 @@ search above. If the codebase resolves anything by convention, §4 is about you.
 | Change a default **value** | silently | nothing breaks; behaviour changes for every caller that omitted it |
 
 The last row is the dangerous one, because nothing anywhere goes red.
+
+And one trap the table above hides: **an optional trailing parameter is additive for callers and breaking
+for implementers.** Adding `?T $x = null` to an interface method leaves every call site valid and makes
+every existing implementation of that interface invalid — in a language that checks the declaration, the
+class fails to load, before a line of its own code runs. If the interface is public API that other people
+implement, the parameter is not the mechanism: add an optional capability interface, or carry the new fact
+in an extension channel that already exists.
 
 ## 3. The whole change lands together
 

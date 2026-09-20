@@ -13,10 +13,10 @@ compatibility: >-
   Provider- and runtime-agnostic. The rules assume you control the host: the process that dispatches calls,
   persists their records and exposes tools.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: The host decides what an agent may do, what gets recorded, and what any of it proves.
-  profiles: api
+  profiles: ai, api
   scope: project
   repository: https://github.com/padosoft/skills
   keywords: llm, agent, mcp, tool calling, budget, trajectory, replay, redaction, threshold, approval

@@ -1,0 +1,20 @@
+[
+  { "query": "lo stesso documento e' finito due volte nell'indice", "should_trigger": true },
+  { "query": "the delete says not found but the document is there", "should_trigger": true },
+  { "query": "should an agent be able to write into the knowledge base?", "should_trigger": true },
+  { "query": "retrieval is grounding answers on a draft", "should_trigger": true },
+  { "query": "two projects collided on the same document id", "should_trigger": true },
+  { "query": "design the schema for our document corpus", "should_trigger": true },
+  { "query": "how do we promote knowledge from a chat transcript?", "should_trigger": true },
+  { "query": "what should a chunk carry so we can cite it?", "should_trigger": true },
+  { "query": "review the ingestion idempotency contract", "should_trigger": true },
+  { "query": "a superseded runbook keeps coming back in answers", "should_trigger": true },
+  { "query": "which embedding model should we use?", "should_trigger": false },
+  { "query": "the vector search is slow", "should_trigger": false },
+  { "query": "who is allowed to see this document?", "should_trigger": false },
+  { "query": "write a connector for Google Drive", "should_trigger": false },
+  { "query": "improve the system prompt", "should_trigger": false },
+  { "query": "the chat UI scrolls badly", "should_trigger": false },
+  { "query": "set up a Postgres index", "should_trigger": false },
+  { "query": "review this API endpoint", "should_trigger": false }
+]
