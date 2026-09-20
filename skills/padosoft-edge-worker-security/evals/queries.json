@@ -1,0 +1,20 @@
+[
+  { "query": "il worker blocca la richiesta ma non so quale strato risponde", "should_trigger": true },
+  { "query": "review this Cloudflare Worker before we deploy it", "should_trigger": true },
+  { "query": "should CSRF be validated at the edge or in the backend?", "should_trigger": true },
+  { "query": "a cached page showed another user's data", "should_trigger": true },
+  { "query": "which header carries the real client IP behind the CDN?", "should_trigger": true },
+  { "query": "the bypass works with just a user agent, is that ok?", "should_trigger": true },
+  { "query": "we want rate limiting at the edge, how do we roll it out?", "should_trigger": true },
+  { "query": "the worker forwards a test header to the origin", "should_trigger": true },
+  { "query": "our SSR helper at the edge is leaking state between requests", "should_trigger": true },
+  { "query": "can I reflect the Origin header with credentials?", "should_trigger": true },
+  { "query": "review this Laravel controller for security", "should_trigger": false },
+  { "query": "configure the WAF managed rules", "should_trigger": false },
+  { "query": "the worker is slow, reduce the cold start", "should_trigger": false },
+  { "query": "write the OpenAPI spec for this endpoint", "should_trigger": false },
+  { "query": "add an index to speed up this query", "should_trigger": false },
+  { "query": "how do I deploy with wrangler?", "should_trigger": false },
+  { "query": "design the roles and permissions for the admin", "should_trigger": false },
+  { "query": "the CI job is red", "should_trigger": false }
+]

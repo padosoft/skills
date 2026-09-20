@@ -4,6 +4,60 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.12.0] - 2026-09-20
+
+36 skills. Source: the twelve rules and the security audit of a Cloudflare Worker that sits in front of an
+application — proxying, rendering and caching on its behalf.
+
+### Added
+
+- **`padosoft-edge-worker-security`** (`node`, `api`) — an edge worker is not a thin proxy. It terminates
+  the request, decides things the origin never sees, renders pages and caches. It is a **security boundary
+  of its own**, and the failure mode that produces most of the damage is not a bug in it: it is the
+  ambiguity between it and the origin.
+
+  **Split-brain is the headline risk.** Anti-forgery, header trust, rate limiting, redirect policy, security
+  headers — both layers *could* enforce each of them, so each assumes the other does and nobody does. Name
+  the owner on both sides, in the place where the other layer would otherwise have done the work. And where
+  both sides keep a list of exclusions, that is one artefact with two copies: an entry added on one side
+  only leaves the route uncovered on **both**.
+
+  The six invariants of anti-forgery at the edge, each of which has been violated in an implementation that
+  looked correct: exclusion matching is one-way and anchored to a segment (the reverse excludes the
+  **ancestors** of every entry, and a trailing wildcard compared as a literal segment excludes nothing); the
+  token cookie and the server-side secret share **one** expiry read from the store, or the token outlives
+  the secret and every write fails permanently; validation happens **before** the fetch to the origin,
+  because forgery is blind — the attacker needs the effect, not the answer; the token arrives through a
+  channel a third-party site cannot populate, since **a value that comes only from cookies proves nothing**
+  and what was actually blocking those requests was the same-site attribute; the identity cookie is
+  server-only and the token cookie is deliberately readable; and the refusal is a `403` — never a `401`,
+  which means *not authenticated* and can trigger a login flow — carrying a **marker and a code**, because a
+  bare 403 on a write is indistinguishable from the origin's, the firewall's or the platform's.
+
+  Plus: the client address as a **two-hop model**, where the trustworthy header at the edge is not the one
+  the origin should read, and the whole thing holds only while the origin refuses non-edge traffic; header
+  forwarding as a **deny-list**, which makes every new internal header a decision — and mock-authentication
+  headers reaching the origin from public traffic is full impersonation; private caching applied to the
+  **subrequest** and not only the response; keys with bounded cardinality and never built from a client
+  identifier; cross-origin reflection through a canonical resolver with suffix matching over HTTPS only;
+  and **no module-level mutable state**, the trap specific to a long-lived isolate, where a helper that
+  memoises something leaks it into the next request, which belongs to somebody else.
+
+  Edge rate limiting gets its own section: native counters rather than an in-memory or eventually-consistent
+  one; three modes with the default **off**, and a *log* mode that consumes the buckets exactly as
+  enforcement would without ever blocking, which is the only way to learn the real thresholds; an
+  unrecognised mode value must never block traffic, because a typo in a variable is not a reason to return
+  errors to everybody; the key is the platform's own address header, never a forwarded one; and **verified
+  crawlers bypass every bucket in every mode**, because rate-limiting a verified search crawler is direct,
+  self-inflicted damage.
+
+### Changed
+
+- **`padosoft-api-security-review`** — the client address stated as a two-hop model next to the trust rule
+  it completes: at the edge the trustworthy header is the one the platform sets itself; at the origin that
+  same header carries the **edge's** address, so the origin reads what the edge forwarded — and that value
+  is trustworthy only while the origin refuses traffic that did not come through the edge.
+
 ## [1.11.0] - 2026-09-20
 
 35 skills. The source is a security sprint on an enterprise codebase: a 19-domain posture assessment with

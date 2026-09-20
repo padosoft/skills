@@ -28,6 +28,7 @@
     ],
     "node": [
       "padosoft-api-security-review",
+      "padosoft-edge-worker-security",
       "padosoft-hono-api-conventions",
       "padosoft-openapi-spec-workflow"
     ],
@@ -43,6 +44,7 @@
       "padosoft-agent-host-boundaries",
       "padosoft-api-security-review",
       "padosoft-durable-effects",
+      "padosoft-edge-worker-security",
       "padosoft-hono-api-conventions",
       "padosoft-openapi-spec-workflow"
     ],
@@ -74,6 +76,7 @@
     "padosoft-database-design": "project",
     "padosoft-docs-match-code": "global",
     "padosoft-durable-effects": "project",
+    "padosoft-edge-worker-security": "project",
     "padosoft-email-html-builder": "project",
     "padosoft-environment-gating": "global",
     "padosoft-evidence-boundaries": "global",

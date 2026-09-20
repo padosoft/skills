@@ -14,7 +14,7 @@ compatibility: >-
   Any HTTP API. The grep pre-screens assume a POSIX shell and a TypeScript/JavaScript codebase; the rules
   themselves are language-agnostic. Some notes are specific to Hono, and are marked as such.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: Ten checks on an API change, each carrying the mistake that produces it.
   profiles: api, node
@@ -303,6 +303,10 @@ grep -rniE 'etag|if-none-match|304' src/middlewares
   timestamp + method + exact URL, short anti-replay window, timing-safe compare, fail-closed with no secret.
 - An explicit `Authorization` header takes **absolute precedence** and never downgrades to an ambient session
   cookie.
+- **The client address is a two-hop model.** At the edge, the trustworthy header is the one the platform
+  sets itself. At the origin, that same header now carries the **edge's** address, so the origin reads what
+  the edge forwarded instead — and that value is only trustworthy while the origin refuses traffic that did
+  not come through the edge. See **`padosoft-edge-worker-security`**.
 - Read the client IP through **one helper**, from the single header your edge actually sets, and validate the
   charset. Behind a proxy that forwards, the hop-by-hop headers are the *proxy's* address. Even the right
   header is spoofable unless the origin only accepts traffic from that edge (mTLS or IP allow-list) — so
