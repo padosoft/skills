@@ -1,7 +1,7 @@
 {
   "name": "padosoft-laravel",
   "displayName": "Padosoft Laravel",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Building and reviewing Laravel applications: conventions, the security review with its ten checks, scaffolding, and the admin/back-office interface pattern.",
   "author": {
     "name": "Padosoft",
@@ -22,6 +22,7 @@
     "../../skills/padosoft-laravel-scaffolding",
     "../../skills/padosoft-admin-interface",
     "../../skills/padosoft-database-design",
-    "../../skills/padosoft-query-performance"
+    "../../skills/padosoft-query-performance",
+    "../../skills/padosoft-frontend-testability"
   ]
 }

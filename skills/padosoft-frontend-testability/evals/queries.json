@@ -1,0 +1,20 @@
+[
+  { "query": "il test si e' rotto dopo un refactor solo grafico", "should_trigger": true },
+  { "query": "the e2e test waits two seconds instead of an assertion", "should_trigger": true },
+  { "query": "our selectors depend on hashed class names", "should_trigger": true },
+  { "query": "review this Blade template before I write the tests", "should_trigger": true },
+  { "query": "how do I make this modal testable?", "should_trigger": true },
+  { "query": "the test cannot tell empty from still loading", "should_trigger": true },
+  { "query": "should I add data-testid to everything?", "should_trigger": true },
+  { "query": "the button text changed and the suite went red", "should_trigger": true },
+  { "query": "make this React Native screen testable", "should_trigger": true },
+  { "query": "what should a loading state expose?", "should_trigger": true },
+  { "query": "write the playwright test for checkout", "should_trigger": false },
+  { "query": "does this test actually assert anything?", "should_trigger": false },
+  { "query": "the CI job is red, find out why", "should_trigger": false },
+  { "query": "design the checkout page layout", "should_trigger": false },
+  { "query": "pick a component library", "should_trigger": false },
+  { "query": "the page is slow to render", "should_trigger": false },
+  { "query": "add validation to this form request", "should_trigger": false },
+  { "query": "review the API security", "should_trigger": false }
+]

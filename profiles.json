@@ -2,6 +2,7 @@
   "repo": "padosoft/skills",
   "profiles": {
     "core": [
+      "padosoft-agent-instructions-sync",
       "padosoft-atomic-invariants",
       "padosoft-auth-hardening",
       "padosoft-contract-changes",
@@ -21,6 +22,7 @@
     "laravel": [
       "padosoft-admin-interface",
       "padosoft-database-design",
+      "padosoft-frontend-testability",
       "padosoft-laravel-conventions",
       "padosoft-laravel-scaffolding",
       "padosoft-laravel-security-review",
@@ -29,10 +31,12 @@
     "node": [
       "padosoft-api-security-review",
       "padosoft-edge-worker-security",
+      "padosoft-frontend-testability",
       "padosoft-hono-api-conventions",
       "padosoft-openapi-spec-workflow"
     ],
     "react-native": [
+      "padosoft-frontend-testability",
       "padosoft-mobile-security-review",
       "padosoft-react-native-conventions",
       "padosoft-rn-screen-scaffolding"
@@ -66,6 +70,7 @@
   "scope": {
     "padosoft-admin-interface": "project",
     "padosoft-agent-host-boundaries": "project",
+    "padosoft-agent-instructions-sync": "global",
     "padosoft-api-security-review": "project",
     "padosoft-atomic-invariants": "global",
     "padosoft-auth-hardening": "global",
@@ -81,6 +86,7 @@
     "padosoft-environment-gating": "global",
     "padosoft-evidence-boundaries": "global",
     "padosoft-failure-visibility": "global",
+    "padosoft-frontend-testability": "project",
     "padosoft-git-commit-integrity": "global",
     "padosoft-hono-api-conventions": "project",
     "padosoft-laravel-conventions": "project",

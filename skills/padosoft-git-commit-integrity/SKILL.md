@@ -12,7 +12,7 @@ license: MIT
 compatibility: >-
   Any git repository. The commands are plain git, no extra tooling.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: What git recorded is not always what you changed.
   profiles: core
@@ -118,6 +118,42 @@ change in the content.
 
 ---
 
+## 5. Three things that should not be in the commit at all
+
+**Debug leftovers.** Before staging, grep the changed files for the dump-and-inspect calls of the language —
+the die-and-dump family, the variable printers, console output, the breakpoint statement, a stray alert.
+Two rules about what to do next:
+
+- **Report them, do not remove them silently.** Some of those lines are deliberate — a real log call, an
+  alert that belongs to the interface. Deleting one because it matched a pattern is how a working feature
+  quietly loses a branch. Show the list and let the author decide.
+- **Check again before the push** if anything else was staged in between.
+
+**Lock files, when the convention says the merger owns them.** Dependency resolvers on a contributor's
+machine can produce a tree that differs from the one the target environment would produce: the build goes
+green locally and the deploy breaks. Where that risk is real, the contributor changes the manifest and
+**not** the lock, and whoever merges regenerates the lock on a stable environment. Label the change so the
+merger knows there is one to regenerate. (If instead your convention is that the lock is committed with the
+change, then it is committed **every** time — the failure is the repository that does both.)
+
+**A parallel working tree, created to give an agent an isolated copy.** On a small repository it is cheap.
+On a large one it copies or links the whole tree, waits for the filesystem, and spends minutes of wall clock
+and a great deal of an agent's budget on hydration — while the isolation it buys is already provided by a
+branch, a stash, and the fact that the change is reviewed before it lands. Ask before creating one, and
+prefer a branch on the tree that is already there.
+
+## 6. Git actions an agent does not take on its own
+
+- **No direct push to the release branch.** Everything arrives through a reviewed change, including a
+  one-character fix.
+- **No force push**, in any of its forms, without being asked. It rewrites shared history and can destroy
+  somebody else's work on the same branch. A situation that seems to require one is a situation to stop and
+  describe — see the history-rewrite procedure in **`padosoft-security-baseline`** for the one case where it
+  is the right answer, and what it costs.
+- **The branch name says where the change goes back to.** Whatever the convention, encode the base branch
+  in it, and keep it consistent with the title of the change: a branch that does not say where it came from
+  is one somebody will rebase onto the wrong thing.
+
 ## Gotchas
 
 - **A green local build proves nothing about the commit.** Both failures above leave the working tree working
@@ -133,6 +169,10 @@ change in the content.
 
 ## Checklist
 
+- [ ] Changed files grepped for debug leftovers; findings reported, not auto-removed
+- [ ] Lock files handled the way the repository actually decided, consistently
+- [ ] No parallel working tree created without being asked
+- [ ] No direct push to the release branch and no force push
 - [ ] `git show --stat HEAD` run, file count matching the expected list
 - [ ] Any missing file diagnosed with `git check-ignore -v`, fixed with a negation and not with `-f`
 - [ ] `git ls-files --eol | grep -E '^i/(crlf|mixed)'` empty, or the repository has an open decision about it

@@ -1,0 +1,20 @@
+[
+  { "query": "ho aggiornato CLAUDE.md, cosa devo allineare?", "should_trigger": true },
+  { "query": "Copilot applies a rule that Claude ignores", "should_trigger": true },
+  { "query": "we deleted a rule but one agent still enforces it", "should_trigger": true },
+  { "query": "the instructions file is too long and gets cut off", "should_trigger": true },
+  { "query": "how do I keep AGENTS.md and the Copilot instructions in sync?", "should_trigger": true },
+  { "query": "I added a new rule folder, what else needs updating?", "should_trigger": true },
+  { "query": "two agents are applying opposite conventions to the same file", "should_trigger": true },
+  { "query": "does Gemini support path-scoped instructions?", "should_trigger": true },
+  { "query": "review our multi-agent setup files", "should_trigger": true },
+  { "query": "should the generated instructions file say it is generated?", "should_trigger": true },
+  { "query": "write a new rule about query performance", "should_trigger": false },
+  { "query": "create a skill for the marketplace", "should_trigger": false },
+  { "query": "the README documents a column that no longer exists", "should_trigger": false },
+  { "query": "which model should we use?", "should_trigger": false },
+  { "query": "set up a pre-commit hook", "should_trigger": false },
+  { "query": "review this pull request", "should_trigger": false },
+  { "query": "the agent hallucinated a method", "should_trigger": false },
+  { "query": "configure the CI workflow", "should_trigger": false }
+]

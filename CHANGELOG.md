@@ -4,6 +4,50 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.13.0] - 2026-09-20
+
+38 skills. A coverage pass over the large Laravel codebase: 27 of its 64 rules had not been mined, and this
+release takes the ones that generalise.
+
+### Added
+
+- **`padosoft-agent-instructions-sync`** (`core`, **global**) - a repository used with more than one coding
+  agent holds the same rules in several places, in formats that are not interchangeable. Change one and the
+  others keep instructing the old behaviour, **silently**, because nothing in a repository fails when two
+  instruction files disagree - the only symptom is two agents behaving differently, which gets blamed on the
+  models.
+
+  One authoritative source, every other file derived in the same change. The targets are not copies but
+  **transformations**: a size limit that silently truncates, so the rule at the bottom of the file does not
+  exist; path scoping that one tool has and another does not, which means the instruction has to carry its
+  own applicability in the text; and condensation that is allowed while contradiction never is. Deletion
+  propagates too - a rule removed from the source and left in a target has an agent enforcing a convention
+  the team abandoned, with nothing to point at.
+
+- **`padosoft-frontend-testability`** (`laravel`, `node`, `react-native`) - a brittle end-to-end suite is
+  usually not the tests' fault: the interface gave them nothing stable to hold on to, so they held on to a
+  class name and a delay. **The markup owes the test a stable anchor and an observable state**, and both are
+  part of the interface's contract.
+
+  The locator hierarchy the markup has to support, from the accessible role down to the style selector that
+  requires a written justification; the eight contract rules - real labels, test identifiers treated as a
+  published interface rather than sprayed everywhere, no anchoring to marketing copy, no generated class
+  name as the only way in; and the states every asynchronous action owes its test, where a spinner with no
+  role and no identifier tells a test nothing and "it looks done" is not a signal. Disabling the submit
+  control during the request is the cheapest observable state there is, and it doubles as protection against
+  a double submission.
+
+### Changed
+
+- **`padosoft-git-commit-integrity`** - three things that should not be in the commit at all, and four an
+  agent does not do on its own. Debug leftovers are **reported, not silently removed**: some of those lines
+  are deliberate, and deleting one because it matched a pattern is how a working feature quietly loses a
+  branch. Lock files are handled the way the repository actually decided - and the failure is the repository
+  that does both. A parallel working tree created to give an agent an isolated copy is cheap on a small
+  repository and, on a large one, spends minutes of wall clock and a great deal of budget on hydration to
+  buy isolation that a branch already provides. Plus: no direct push to the release branch, no force push
+  without being asked, and a branch name that says where the change goes back to.
+
 ## [1.12.0] - 2026-09-20
 
 36 skills. Source: the twelve rules and the security audit of a Cloudflare Worker that sits in front of an
