@@ -11,6 +11,7 @@ job, and `padosoft-knowhow-harvest` is the skill that does it.
     python3 scripts/harvest.py scan --json              # same, machine-readable
     python3 scripts/harvest.py scan --id laravel-app    # one source only
     python3 scripts/harvest.py record <key> covered --skill padosoft-x --note "..."
+    python3 scripts/harvest.py adopt --id <source>      # what to thin in that repo
     python3 scripts/harvest.py status                   # what is still pending
 
 The ledger is written only by `record`, never by `scan`: a session that dies
@@ -320,6 +321,48 @@ def cmd_record(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_adopt(args: argparse.Namespace) -> int:
+    """Per source, the local files a skill now covers — the list to thin down to its binding."""
+    ledger = load_json(Path(args.ledger), "ledger")
+    entries = ledger.get("entries", {})
+    if not entries:
+        print("Ledger empty: run a harvest first, the adoption list comes out of it.")
+        return 1
+
+    by_source: dict[str, list[tuple[str, str]]] = {}
+    for key, e in entries.items():
+        if e.get("outcome") != "covered" or e.get("state") == "gone":
+            continue
+        source_id, _, rel = key.partition("|")
+        if args.id and source_id != args.id:
+            continue
+        by_source.setdefault(source_id, []).append((rel, e.get("skill", "")))
+
+    if not by_source:
+        print("Nothing covered yet for that source.")
+        return 1
+
+    print(f"# Adoption list — {date.today().isoformat()}")
+    print()
+    print("Each file below has its general rule in an installed skill. Thin it to the **binding**:")
+    print("what that rule means *here* — the table, the helper, the path, the documented exception —")
+    print("and a line naming the skill. Do not delete it unless nothing project-specific is left,")
+    print("and do not leave the full copy: two copies of one rule drift, and the agent reads both.")
+    print()
+    for source_id in sorted(by_source):
+        rows = sorted(by_source[source_id])
+        print(f"## `{source_id}` — {len(rows)} files")
+        print()
+        for rel, skill in rows:
+            print(f"- `{rel}`  →  **{skill}**")
+        print()
+    print("---")
+    print()
+    print("Derived instruction files for other agents follow the same thinning, or you have just")
+    print("created a disagreement — see `padosoft-agent-instructions-sync`.")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ledger = load_json(Path(args.ledger), "ledger")
     entries = ledger.get("entries", {})
@@ -369,6 +412,10 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--skill")
     r.add_argument("--note")
     r.set_defaults(func=cmd_record)
+
+    ad = sub.add_parser("adopt", help="the local files a skill now covers, to thin to their binding")
+    ad.add_argument("--id", help="only this source")
+    ad.set_defaults(func=cmd_adopt)
 
     st = sub.add_parser("status", help="what has been considered, and what is pending")
     st.set_defaults(func=cmd_status)

@@ -4,6 +4,36 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.18.0] - 2026-09-20
+
+### Added
+
+- **`harvest.py adopt`** - the step that was missing, and the one that decides whether the whole loop is
+  worth running. You harvest a rule **out of** a repository and then install the package **into** it: without
+  a further step the rule exists twice, the agent reads both, and the day the skill improves they quietly
+  disagree.
+
+  They are not duplicates, they are **two layers**. The skill holds the class of defect - what goes wrong,
+  why, what prevents it - in one copy for every project. The local rule holds the **binding**: what that
+  class means *here*, the table, the helper, the path, the documented exception. So the step after
+  installing is to **thin the source, not delete it**: a four-hundred-line rule becomes twenty lines that
+  name the skill and keep only what the general rule cannot know.
+
+  `adopt` prints exactly which local files a skill now covers, per source, straight out of the ledger.
+
+### Changed
+
+- **`padosoft-knowhow-harvest`** - the adoption section: the two layers, the precedence rule (**the skill is
+  the default; a project may narrow, add or override, and an override carries a written reason**), an empty
+  rules folder for a new project, and the once-per-repository reconciliation for an existing one - install,
+  thin what is covered, leave what is not, **resolve the contradictions explicitly** because a local rule
+  that says the opposite of a skill means one of the two is out of date and until now nobody knew which, and
+  thin the derived instruction files for the other agents too.
+- **README** - a section on running a skills registry for a whole company: the two layers and why they must
+  not overlap, the second copy as the failure mode of every shared catalogue, precedence stated so a
+  disagreement is never silent, promotion decided by counted evidence rather than seniority, and the
+  provenance rule enforced by a check that fails.
+
 ## [1.17.0] - 2026-09-20
 
 44 skills. This one closes the loop: instead of harvesting the other repositories by hand, there is now a

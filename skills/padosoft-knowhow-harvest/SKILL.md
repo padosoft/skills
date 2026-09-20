@@ -5,7 +5,8 @@ description: >-
   lessons files, rule folders, internal skills, decision records and security docs, deciding for each
   finding whether it updates an existing skill, becomes a new one, or is deliberately left alone. Also when
   the user says "check the repos for new rules", "harvest the know-how", "what changed since last time",
-  asks how to keep the catalogue current, or wants to know whether something was already considered. It
+  asks how to keep the catalogue current, wants to know whether something was already considered, or asks what to do with the local
+  rules a skill now duplicates. It
   covers the work order, the judgement that turns a finding into a rule, the promotion criterion, and the
   ledger that stops the same material being mined twice. Do not use it to write a single skill from scratch
   (padosoft-skill-creator) or to audit an existing one.
@@ -15,7 +16,7 @@ compatibility: >-
   sources and the ledger live in gitignored files, because a list of the repositories you run is metadata
   about your business.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: Harvest the rule, leave the story, and record what you decided so nobody mines it twice.
   profiles: core
@@ -142,6 +143,72 @@ that is waiting for a second independent source.
 scanned, findings, what was extended, what was created, what was rejected and why. A harvest that produced
 nothing is a valid outcome **and it is still recorded**, so the next one starts from the right place.
 
+## 8. After the harvest: the source and the skill are two layers, not two copies
+
+This is the part that decides whether the whole loop is worth running. You harvested a rule **out of** a
+repository, and now you install the package **into** that same repository. Without a further step you have
+the rule twice: the agent loads both, they cost context, and the day the skill improves they disagree.
+
+They are not duplicates. They are two layers:
+
+| Layer | Holds | Lives in |
+|---|---|---|
+| **The skill** | the class of defect — what goes wrong, why, what prevents it | the package, one copy for every project |
+| **The local rule** | the binding — what that class means *here*: the table, the helper, the path, the documented exception | the repository |
+
+So the step after installing is to **thin the source, not delete it**. A four-hundred-line rule becomes
+twenty lines that name the skill and keep only what is true about this repository.
+
+```bash
+python3 scripts/harvest.py adopt --id <source>     # exactly which files, and into which skill
+```
+
+```markdown
+<!-- .claude/rules/rule-database-design.md, after adoption -->
+# Database design — local binding
+
+The general rule is **`padosoft-database-design`** (installed with the `data` profile).
+This file only records what is specific to this repository.
+
+- Index naming here is `idx_<abbrev>_<col>_<col>`.
+- The partition key helper is `App\Support\PartitionKey`.
+- Migration guards go through `App\Support\SchemaGuard`, not inline checks.
+- **Documented deviation:** the archive tables keep a redundant single-column index,
+  because the reporting tool cannot use a composite prefix. Revisit when it is replaced.
+```
+
+Delete it outright only when nothing project-specific is left. Keep the full local copy only in a repository
+that cannot install the package at all — and write down that this is why.
+
+### Precedence, so a disagreement is never silent
+
+**The skill is the default. The local file may narrow it, add to it, or override it — and an override
+carries a written reason.** A local rule that contradicts a skill without saying so is a bug in one of the
+two: either the project is a genuine exception (say so, in the binding) or the skill is wrong (fix the
+skill, for everybody).
+
+### Starting a new project
+
+Install the profiles and **write no local rules at all**. The rules folder starts empty and grows only with
+bindings — a local file appears the first time this project needs to say something the general rule cannot
+know. That is also the honest test of whether you needed it.
+
+### Adopting in a project that already has rules
+
+Once, per repository, in this order:
+
+1. **Install** the profiles it needs.
+2. **Take the adoption list** above. For every file the ledger says is covered: thin it to its binding.
+3. **Leave what is not covered.** Those are candidates for the next harvest, not debt.
+4. **Resolve the contradictions explicitly.** A local rule that says the opposite of a skill is the most
+   valuable thing the adoption finds: one of the two is out of date, and until now nobody knew which.
+5. **Thin the derived instruction files too** — the copies for the other agents. Thinning one and not the
+   others is how you create the disagreement that
+   **`padosoft-agent-instructions-sync`** exists to prevent.
+
+Do it repository by repository, not all at once. Each one takes an hour and removes a source of drift
+permanently.
+
 ---
 
 ## Gotchas
@@ -169,6 +236,7 @@ nothing is a valid outcome **and it is still recorded**, so the next one starts 
 - [ ] Provenance gate green before committing
 - [ ] Every finding recorded — covered with its skill, rejected with its reason, pending with what it waits for
 - [ ] Catalogue rebuilt, checks green, changelog written, release tagged
+- [ ] Adoption: every source file now covered by a skill thinned to its binding, derived instruction files included
 
 ## Final report
 
@@ -181,4 +249,5 @@ Rejected: <n> — <the categories, with an example each>
 Pending:  <n> — waiting for <what>
 Provenance gate: clean
 Release: <tag>
+Adoption pending: <source> — <n> files still holding a full copy
 ```

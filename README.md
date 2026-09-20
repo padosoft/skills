@@ -379,6 +379,52 @@ Before the PR, the [review checklist](skills/padosoft-skill-creator/references/c
 symptoms and their cause ("the skill never triggers" → a description written from the skill's point of view
 instead of the user's; "the agent ignores a rule" → it sits in the references instead of the gotchas).
 
+## A skills registry for the whole company
+
+The point of this repository is not that it holds skills. It is that it holds them **once**.
+
+A rule learned on one project — how a resolver hides an incomplete registration, why a mirror that only
+grants permissions is a slow leak, what a captcha does and does not buy — is worth the same on every other
+project. Left in the repository where it was learned, it is worth it to one. The registry is the mechanism
+that makes it worth it to all of them, and keeps it worth it as it improves.
+
+**Two layers, and they must not overlap.**
+
+| | Holds | Lives | Changes |
+|---|---|---|---|
+| **The skill** | the class of defect: what goes wrong, why, what prevents it | here, installed everywhere | once, for everybody |
+| **The local rule** | the binding: the table, the helper, the path, the documented exception | in the project | when that project changes |
+
+The failure mode of any shared catalogue is the **second copy**. Harvest a rule out of a repository, install
+the package back into it, and the rule now exists twice: the agent reads both, they cost context, and the
+day one improves they quietly disagree. So harvesting is only half of it — the other half is **thinning the
+source to its binding**, a short file that names the skill and keeps only what the general rule cannot know.
+
+```bash
+python3 scripts/harvest.py adopt --id <source>   # which local files a skill now covers
+```
+
+**Precedence is stated, so a disagreement is never silent.** The skill is the default; a project may narrow
+it, add to it, or override it, and an override carries a written reason. A local rule that contradicts a
+skill without saying so means one of the two is out of date — and finding those is the most valuable thing
+an adoption pass does.
+
+**A new project starts with an empty rules folder.** Install the profiles; write a local file the first time
+the project needs to say something the general rule cannot know. **An existing project** is reconciled once,
+repository by repository: install, thin what the ledger says is covered, leave what is not as candidates for
+the next harvest, resolve the contradictions explicitly, and thin the derived instruction files for the
+other agents too — otherwise you have created the disagreement that
+[`padosoft-agent-instructions-sync`](#agent-instructions-sync) exists to prevent.
+
+**Promotion to `core` is decided by evidence, not by seniority.** A rule becomes global when stacks that
+share no line of code arrive at it independently; `harvest-status` counts how many unrelated sources feed
+each skill, and that count is the argument. There is no cap on how many global skills there may be — there
+is a requirement that each one states its boundaries, because it loads into every session.
+
+And **nothing about where a rule came from ever ships with it**. The sources are private and this registry
+is public: no dates, no customers, no people, no real tables or identifiers. That one is enforced by a check
+that fails, not by good intentions.
+
 ## Keeping it current: the harvest loop
 
 The catalogue is only worth what the repositories behind it have learned since last time. `harvest.py`
@@ -387,10 +433,13 @@ rule folders, internal skills and decision records, and prints what is **new, ch
 ledger of what was already considered.
 
 ```bash
-cp .harvest-sources.example.json .harvest-sources.json    # once, then fill in your paths
-make harvest                                              # the work order
-make harvest-status                                       # what is pending, and what feeds each skill
+cp .harvest-sources.example.json .harvest-sources.json   # once, then fill in your paths
+make harvest                                             # the work order
+make harvest-status                                      # pending, and what feeds each skill
+python3 scripts/harvest.py adopt --id <source>           # what to thin in that repository
 ```
+
+(No `make` on the machine? Every target is a one-line `python3 scripts/harvest.py …` command.)
 
 The judgement half belongs to **`padosoft-knowhow-harvest`**: is this a rule or a note, would the agent get
 it wrong without it, is it a class of defect or one project's instance — and then extend, create, promote
@@ -760,9 +809,9 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-i18n
 
 **Harvest the rule, leave the story, and record what you decided so nobody mines it twice.**
 
-`padosoft-knowhow-harvest` · profiles: `core` · scope: `global` · version: 0.1.0
+`padosoft-knowhow-harvest` · profiles: `core` · scope: `global` · version: 0.2.0
 
-**Triggers when** — Use this skill to turn what other repositories have learned into skills — a periodic harvest of their lessons files, rule folders, internal skills, decision records and security docs, deciding for each finding whether it updates an existing skill, becomes a new one, or is deliberately left alone. Also when the user says "check the repos for new rules", "harvest the know-how", "what changed since last time", asks how to keep the catalogue current, or wants to know whether something was already considered. It covers the work order, the judgement that turns a finding into a rule, the promotion criterion, and the ledger that stops the same material being mined twice. Do not use it to write a single skill from scratch (padosoft-skill-creator) or to audit an existing one.
+**Triggers when** — Use this skill to turn what other repositories have learned into skills — a periodic harvest of their lessons files, rule folders, internal skills, decision records and security docs, deciding for each finding whether it updates an existing skill, becomes a new one, or is deliberately left alone. Also when the user says "check the repos for new rules", "harvest the know-how", "what changed since last time", asks how to keep the catalogue current, wants to know whether something was already considered, or asks what to do with the local rules a skill now duplicates. It covers the work order, the judgement that turns a finding into a rule, the promotion criterion, and the ledger that stops the same material being mined twice. Do not use it to write a single skill from scratch (padosoft-skill-creator) or to audit an existing one.
 
 **Where it goes** — installed **globally** with the `core` profile: it applies to every project. Folder: [`skills/padosoft-knowhow-harvest`](skills/padosoft-knowhow-harvest).
 
