@@ -1,0 +1,22 @@
+[
+  { "query": "CI e' verde, possiamo dire che la feature e' pronta per la produzione?", "should_trigger": true },
+  { "query": "we tested the S3 integration against MinIO, is that enough to ship?", "should_trigger": true },
+  { "query": "the backup job succeeded every night, are we covered for disaster recovery?", "should_trigger": true },
+  { "query": "coverage is at 85%, can we close the compliance item?", "should_trigger": true },
+  { "query": "the artifact is signed, so the contents are verified right?", "should_trigger": true },
+  { "query": "review our release gate before the audit", "should_trigger": true },
+  { "query": "the optional integration test is skipped in CI, is that a problem?", "should_trigger": true },
+  { "query": "we validated the Kubernetes manifests, is observability done?", "should_trigger": true },
+  { "query": "the API accepted the encryption header, so the object is encrypted", "should_trigger": true },
+  { "query": "what would actually prove that the webhook effects are exactly-once?", "should_trigger": true },
+  { "query": "the mutation score is 72, is that good enough to gate on?", "should_trigger": true },
+  { "query": "write a unit test for this function", "should_trigger": false },
+  { "query": "does this test actually assert anything, or is it vacuous?", "should_trigger": false },
+  { "query": "the required check can't run before the merge commit exists", "should_trigger": false },
+  { "query": "the pipeline is red, find out why", "should_trigger": false },
+  { "query": "set up code coverage reporting in the repo", "should_trigger": false },
+  { "query": "my script works locally but fails on the Linux runner", "should_trigger": false },
+  { "query": "choose between Vitest and Jest for this project", "should_trigger": false },
+  { "query": "the README documents a column that no longer exists", "should_trigger": false },
+  { "query": "add retry logic to this HTTP client", "should_trigger": false }
+]

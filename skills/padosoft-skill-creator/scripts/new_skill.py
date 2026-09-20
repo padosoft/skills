@@ -112,6 +112,8 @@ def load_known_profiles() -> tuple[str, ...]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    if hasattr(sys.stdout, "reconfigure"):  # the notice below is not ASCII
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap.add_argument("name", help="name without the prefix, e.g. laravel-conventions")
     ap.add_argument("--profiles", nargs="+", required=True)
     ap.add_argument("--scope", choices=("project", "global"), default="project")

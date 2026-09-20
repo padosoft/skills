@@ -24,6 +24,38 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   protects, so committing it publishes exactly what it defends. It lives outside the tree
   (`PROVENANCE_DENYLIST`), and in CI it is written from a secret.
 
+- **`padosoft-evidence-boundaries`** (`core`, **global**) — *name the claim, then name what would prove it.*
+  Almost every false "done" has one shape: a claim about the expensive thing, and a **cheaper artifact**
+  accepted as proof of it. The artifact is real and honestly produced; it just does not demonstrate the
+  claim. A green run against an emulator proves the request shape, not the provider's key identity or
+  retention. A static topology check proves the transitions are *declared*, not that anything reached them.
+  An accepted write request proves the option was transmitted, not applied. A signature on a manifest does
+  not cover what the manifest points at. A successful dump is not a restore. And a skipped optional check
+  proves less than nothing, because it is the only one that looks exactly like success.
+
+  Six questions turn an artifact into evidence (who produced it, what it is bound to, is it re-verified at
+  read time, what is the boundary of the claim, does it fail closed, could all of it be true and the system
+  still be broken), plus the rule that merging a cheap gate with an expensive one does not average their
+  strength — the weaker one becomes the verdict. `references/rules.md` carries the substitutions by domain:
+  storage and encryption, identity and access, telemetry, queues and effects, supply chain, money, data
+  protection.
+
+  Promoted global on the spot: this is the single most repeated lesson in a large QA-framework ledger —
+  roughly one entry in five — and it converges with `padosoft-test-integrity` ("a test that cannot fail"),
+  `padosoft-ci-workflow-gates` ("a gate that cannot fail") and `padosoft-docs-match-code`. Four independent
+  sources, same defect class at four different altitudes.
+
+### Changed
+
+- **`padosoft-logging-discipline`** — a fourth independent source, and two new sections. **The redactor is
+  software and has its own defects**: one too eager destroys the evidence (a rule keyed on the word "token"
+  turns a numeric usage counter into `[REDACTED]`; a "13 to 19 digits" card rule rewrites timestamped
+  identifiers), one too narrow leaks — and a redaction pass that can mutate a correlation id or an audit
+  hash breaks the chain it exists to protect. **The log is not the only way data gets out**: sanitising the
+  logger and stopping there leaves the API's own error response as an independent disclosure path, carrying
+  connection strings, tokens and identifiers from the row that failed. Metrics labels are an outbound
+  boundary too, and telemetry is never the source of truth.
+
 ### Fixed
 
 - The gate found real provenance on its first run: a live sandbox inbox id in a published example, and three

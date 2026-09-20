@@ -12,7 +12,7 @@ compatibility: >-
   Language-agnostic. The worked mechanisms cover TypeScript/Node, React Native and Laravel/PHP; on another
   stack apply the invariant and find the local equivalent before copying any of them.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   profiles: core
   scope: global
@@ -70,6 +70,26 @@ Same idea everywhere else: keep what identifies the failure, drop what identifie
 | a correlation id the user is also shown | tokens, cookies, `Authorization`, passwords |
 | the *kind* of an identity (`operator`, `ip`) | the identity value — an IP is personal data |
 
+## 2b. The redactor is software, and it has its own defects
+
+A redactor that is too eager destroys the evidence; one that is too narrow leaks. Both failures are silent,
+and both were found only after the artifact was needed.
+
+- **Redaction must never mutate identity.** If a DLP pass can rewrite a correlation id, a checkpoint key or
+  an audit hash, it breaks the chain it exists to protect. Identity fields are excluded by construction.
+- **A card-number rule that is just "13 to 19 digits" is not one**, especially if it accepts separators: a
+  timestamped run id matches it. Validate with the checksum the format actually has, and keep regression
+  cases for both a real test number **and** a production-shaped identifier.
+- **Never weaken redaction to make a fixture pass.** If the fixture trips the rule, the fixture is wrong —
+  give it a deterministic semantic id instead of a timestamp-derived one.
+- **Matching on a key *name* catches the wrong things.** A rule keyed on the word "token" turns a numeric
+  usage counter into `[REDACTED]` and makes cost evidence unreadable, while a token in a field called
+  something else walks out. Keep name-based exceptions to an explicit, narrow list.
+- **Attach entropy detection to an assignment**, not to every opaque string: `api_key: <value>` is a secret,
+  a base64 identifier is not.
+- **Binary artifacts are not covered by text redaction.** Screenshots, PDFs and captured trace archives carry
+  whatever was on the screen or the wire; they need their own classification and their own access rules.
+
 ## 3. Nothing ad hoc on stdout
 
 | | Forbidden in runtime code | Use |
@@ -100,6 +120,22 @@ It is a net, not an excuse to keep writing `$e->getMessage()`.
 A generic message plus a **reference code**, and the same code in the log line. The user gets nothing
 technical; support gets the exact row. Never a stack trace, a class name, a filesystem path, a host, a table
 or a column.
+
+## 6b. The log is not the only way data gets out
+
+Sanitising the logger and stopping there leaves an independent disclosure path wide open: the **error the
+API returns**. A driver or provider exception is not safe just because it is diagnostic — it carries
+connection strings with credentials, tokens, and identifiers from the row that failed.
+
+- **One shared sanitiser on the outbound boundary**, bounded in length, with control characters normalised.
+  Detail belongs in the access-controlled log, not in the response.
+- **Report failures from an upstream provider as status and status text only.** The body is attacker- and
+  tenant-influenced content that callers routinely persist.
+- **Metrics are an outbound boundary too.** An unauthenticated scrape endpoint exposes whatever is in the
+  labels, so exposure is opt-in, fails closed at boot without an explicit authoriser, and label values never
+  carry payload.
+- **Telemetry is not the source of truth.** Exporters sample, drop and reorder; bound the export queue,
+  redact before serialisation, and keep the durable record independent of whether delivery succeeded.
 
 ## 7. In local, you are not seeing production
 

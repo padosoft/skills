@@ -4,6 +4,7 @@
     "core": [
       "padosoft-atomic-invariants",
       "padosoft-docs-match-code",
+      "padosoft-evidence-boundaries",
       "padosoft-failure-visibility",
       "padosoft-git-commit-integrity",
       "padosoft-logging-discipline",
@@ -49,6 +50,7 @@
     "padosoft-cross-platform-scripting": "project",
     "padosoft-docs-match-code": "global",
     "padosoft-email-html-builder": "project",
+    "padosoft-evidence-boundaries": "global",
     "padosoft-failure-visibility": "global",
     "padosoft-git-commit-integrity": "global",
     "padosoft-hono-api-conventions": "project",
