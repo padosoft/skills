@@ -1,8 +1,8 @@
 {
   "name": "padosoft-core",
   "displayName": "Padosoft Core",
-  "version": "0.7.0",
-  "description": "Padosoft cross-project skills, always on: catalog router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs-code drift, evidence boundaries.",
+  "version": "0.8.0",
+  "description": "Padosoft cross-project skills, always on: catalog router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs-code drift, evidence boundaries, tenant isolation.",
   "author": {
     "name": "Padosoft",
     "url": "https://www.padosoft.com"
@@ -18,7 +18,8 @@
     "testing",
     "concurrency",
     "docs",
-    "evidence"
+    "evidence",
+    "multi-tenant"
   ],
   "skills": [
     "../../skills/padosoft-skills-router",
@@ -29,6 +30,7 @@
     "../../skills/padosoft-test-integrity",
     "../../skills/padosoft-atomic-invariants",
     "../../skills/padosoft-docs-match-code",
-    "../../skills/padosoft-evidence-boundaries"
+    "../../skills/padosoft-evidence-boundaries",
+    "../../skills/padosoft-tenant-isolation"
   ]
 }

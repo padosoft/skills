@@ -10,6 +10,7 @@
       "padosoft-logging-discipline",
       "padosoft-skill-creator",
       "padosoft-skills-router",
+      "padosoft-tenant-isolation",
       "padosoft-test-integrity"
     ],
     "laravel": [
@@ -32,9 +33,17 @@
       "padosoft-email-html-builder"
     ],
     "api": [
+      "padosoft-agent-host-boundaries",
       "padosoft-api-security-review",
+      "padosoft-durable-effects",
       "padosoft-hono-api-conventions",
       "padosoft-openapi-spec-workflow"
+    ],
+    "payments": [
+      "padosoft-payments-reconciliation"
+    ],
+    "data": [
+      "padosoft-durable-effects"
     ],
     "devops": [
       "padosoft-ci-workflow-gates",
@@ -44,11 +53,13 @@
   },
   "scope": {
     "padosoft-admin-interface": "project",
+    "padosoft-agent-host-boundaries": "project",
     "padosoft-api-security-review": "project",
     "padosoft-atomic-invariants": "global",
     "padosoft-ci-workflow-gates": "project",
     "padosoft-cross-platform-scripting": "project",
     "padosoft-docs-match-code": "global",
+    "padosoft-durable-effects": "project",
     "padosoft-email-html-builder": "project",
     "padosoft-evidence-boundaries": "global",
     "padosoft-failure-visibility": "global",
@@ -60,11 +71,13 @@
     "padosoft-logging-discipline": "global",
     "padosoft-mobile-security-review": "project",
     "padosoft-openapi-spec-workflow": "project",
+    "padosoft-payments-reconciliation": "project",
     "padosoft-pr-review-triage": "project",
     "padosoft-react-native-conventions": "project",
     "padosoft-rn-screen-scaffolding": "project",
     "padosoft-skill-creator": "global",
     "padosoft-skills-router": "global",
+    "padosoft-tenant-isolation": "global",
     "padosoft-test-integrity": "global"
   }
 }

@@ -1,0 +1,20 @@
+[
+  { "query": "un cliente vede i dati di un altro nella lista", "should_trigger": true },
+  { "query": "can one workspace overwrite another's record with the same name?", "should_trigger": true },
+  { "query": "review this scoped endpoint before I ship it", "should_trigger": true },
+  { "query": "the page count is wrong when I filter by organisation", "should_trigger": true },
+  { "query": "a background job processed the wrong customer's data", "should_trigger": true },
+  { "query": "we use the project slug as the key, is that safe?", "should_trigger": true },
+  { "query": "should the idempotency key include the tenant?", "should_trigger": true },
+  { "query": "legacy records without a namespace are visible to everyone", "should_trigger": true },
+  { "query": "two orgs have a user with the same external id and it breaks", "should_trigger": true },
+  { "query": "design the login flow with refresh tokens", "should_trigger": false },
+  { "query": "which roles should an editor have inside a project?", "should_trigger": false },
+  { "query": "shard the database by customer for performance", "should_trigger": false },
+  { "query": "the SQL query is slow, add an index", "should_trigger": false },
+  { "query": "write a migration to add a column", "should_trigger": false },
+  { "query": "set up SSO with our identity provider", "should_trigger": false },
+  { "query": "how do I paginate a REST API?", "should_trigger": false },
+  { "query": "review this React component", "should_trigger": false },
+  { "query": "configure rate limiting on nginx", "should_trigger": false }
+]

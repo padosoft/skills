@@ -1,8 +1,8 @@
 {
   "name": "padosoft-api",
   "displayName": "Padosoft API",
-  "version": "0.1.0",
-  "description": "Building and reviewing HTTP APIs: security review with ten checks from a real audit, Hono/Bun conventions, and the OpenAPI spec-change workflow.",
+  "version": "0.2.0",
+  "description": "Building and reviewing HTTP APIs: security review with ten checks from a real audit, Hono/Bun conventions, the OpenAPI spec-change workflow, durable background effects, and the boundaries a host owns when it calls a model or runs an agent.",
   "author": { "name": "Padosoft", "url": "https://www.padosoft.com" },
   "repository": "https://github.com/padosoft/skills",
   "license": "MIT",
@@ -10,6 +10,8 @@
   "skills": [
     "../../skills/padosoft-api-security-review",
     "../../skills/padosoft-hono-api-conventions",
-    "../../skills/padosoft-openapi-spec-workflow"
+    "../../skills/padosoft-openapi-spec-workflow",
+    "../../skills/padosoft-durable-effects",
+    "../../skills/padosoft-agent-host-boundaries"
   ]
 }

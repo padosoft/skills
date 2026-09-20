@@ -13,12 +13,12 @@ compatibility: >-
   GitHub Actions for the trigger and ruleset specifics; the reasoning about what makes a gate real applies to
   any CI system.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   profiles: devops
   scope: project
   repository: https://github.com/padosoft/skills
-  keywords: ci, github actions, gate, workflow, permissions, ruleset, secret scanning, required checks
+  keywords: ci, github actions, gate, workflow, permissions, ruleset, secret scanning, required checks, supply chain, signing
 ---
 
 # CI workflow gates
@@ -102,6 +102,31 @@ broken action six months later.
 Pin actions to an **immutable SHA**, not a floating tag, and check that the tag you pinned is the current
 official one before freezing it.
 
+## 5b. Supply chain: what runs is not what you reviewed
+
+Pinning the action is the start of it, not the end.
+
+- **Hardened runtime flags do not pin the bytes.** Read-only filesystems, dropped capabilities and
+  no-new-privileges protect the *invocation*; a mutable image tag can change the executable between two
+  runs. Require an immutable digest, and fail **before** dispatch when the operator has not supplied one.
+  Render deployment templates with `repository@digest`, and keep the tag fallback as a visibly
+  non-production choice.
+- **An integrity hash is not an identity.** It proves the bytes did not change, not who produced them.
+  Verifying a signature proves the supplied key signed it — **pin the expected key identity too**, or an
+  authentic document signed by the wrong key passes. Rotate the approved key and its identifier together.
+- **A parsed signing bundle is not a trust decision.** Verification has to bind the payload, the certificate
+  identity, the issuer and the transparency evidence, and fail closed on a malformed or policy-less bundle.
+  Pin a maintained verifier and track its advisories rather than reimplementing the cryptography.
+- **A signature on a manifest does not cover the content the manifest lists.** Load listed resources before
+  the first use, reject missing paths, duplicate ids and symlink escapes, and expand only explicit
+  references. Signing policy belongs at the **import** boundary, where the content enters.
+- **A clean dependency dashboard is not a gate.** Run the audit on every lockfile change, and re-run the
+  build, the bundle and the full suite after a toolchain upgrade — the findings that matter are transitive
+  and invisible to application tests. One repository can hold **more than one dependency perimeter**.
+- **Test the published bundle, not the working tree.** Assets resolve differently once packaged, an offline
+  or air-gapped bundle has its own release identity, and an optional driver pulled into the main bundle
+  changes what every user downloads. The shipped examples are part of the supply chain too.
+
 ## 6. CI cost is part of the design
 
 Rerunning every integration and browser matrix on every push makes feedback progressively slower and spends
@@ -162,6 +187,8 @@ checks are the ones that can run pre-merge (§4).
 - [ ] Required checks gate the PR head SHA, not a merge SHA that does not exist yet
 - [ ] Annotations inspected, not just conclusions; actions pinned to SHAs
 - [ ] Fast/extended tiers, with the extended trigger actually wired
+- [ ] Images and artifacts pinned by digest; key identity pinned alongside the signature
+- [ ] Dependency audit on every lockfile change; the published bundle tested, not the tree
 - [ ] Rulesets cover intermediate branches; tag creation and immutability split
 
 ## Final report

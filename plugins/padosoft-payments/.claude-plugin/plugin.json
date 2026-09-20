@@ -1,0 +1,23 @@
+{
+  "name": "padosoft-payments",
+  "displayName": "Padosoft Payments",
+  "version": "0.1.0",
+  "description": "Money that has to balance: the settlement equation, the joins that look done and are not, timeouts classified as unknown, redemption atomicity, minor units and ledgers.",
+  "author": {
+    "name": "Padosoft",
+    "url": "https://www.padosoft.com"
+  },
+  "repository": "https://github.com/padosoft/skills",
+  "license": "MIT",
+  "keywords": [
+    "payments",
+    "refunds",
+    "chargebacks",
+    "payouts",
+    "settlement",
+    "reconciliation"
+  ],
+  "skills": [
+    "../../skills/padosoft-payments-reconciliation"
+  ]
+}

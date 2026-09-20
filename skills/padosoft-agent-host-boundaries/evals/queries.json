@@ -1,0 +1,20 @@
+[
+  { "query": "la bolletta delle API del modello e' esplosa questo mese", "should_trigger": true },
+  { "query": "prompts are ending up in our logs", "should_trigger": true },
+  { "query": "review this MCP server before we deploy it", "should_trigger": true },
+  { "query": "how many tools should we expose to the agent?", "should_trigger": true },
+  { "query": "we store the full agent trajectory, is that a problem?", "should_trigger": true },
+  { "query": "the similarity score decides whether to merge, is that safe?", "should_trigger": true },
+  { "query": "how do we stop a tool call from running over budget?", "should_trigger": true },
+  { "query": "the agent said it was approved so we committed the order", "should_trigger": true },
+  { "query": "we put two providers behind one OpenAI-compatible adapter", "should_trigger": true },
+  { "query": "can we replay this agent run to reproduce the bug?", "should_trigger": true },
+  { "query": "improve this system prompt", "should_trigger": false },
+  { "query": "which model should we use for classification?", "should_trigger": false },
+  { "query": "fine-tune a model on our data", "should_trigger": false },
+  { "query": "write a skill for our repo conventions", "should_trigger": false },
+  { "query": "the chat UI scrolls badly on mobile", "should_trigger": false },
+  { "query": "set up a vector database", "should_trigger": false },
+  { "query": "explain how transformers work", "should_trigger": false },
+  { "query": "review this REST controller", "should_trigger": false }
+]

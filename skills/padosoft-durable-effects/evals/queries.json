@@ -1,0 +1,20 @@
+[
+  { "query": "il job e' stato processato due volte", "should_trigger": true },
+  { "query": "a retry sent the email a second time", "should_trigger": true },
+  { "query": "two workers picked up the same job", "should_trigger": true },
+  { "query": "I cancelled the job but the report says it succeeded", "should_trigger": true },
+  { "query": "review this webhook consumer", "should_trigger": true },
+  { "query": "the worker exits and then throws an unhandled rejection", "should_trigger": true },
+  { "query": "does verifying the signature make the handler idempotent?", "should_trigger": true },
+  { "query": "our queue is built on LISTEN/NOTIFY, is that durable?", "should_trigger": true },
+  { "query": "what happens when the visibility timeout expires mid-job?", "should_trigger": true },
+  { "query": "jobs disappear when the worker restarts", "should_trigger": true },
+  { "query": "should we use Redis or RabbitMQ?", "should_trigger": false },
+  { "query": "how many workers should we run?", "should_trigger": false },
+  { "query": "wrap these two writes in a transaction", "should_trigger": false },
+  { "query": "the cron expression doesn't fire at the right time", "should_trigger": false },
+  { "query": "optimise this N+1 query", "should_trigger": false },
+  { "query": "add a loading state to this screen", "should_trigger": false },
+  { "query": "write a Dockerfile for the worker", "should_trigger": false },
+  { "query": "the CI job is slow", "should_trigger": false }
+]

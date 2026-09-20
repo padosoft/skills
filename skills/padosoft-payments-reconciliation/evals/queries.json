@@ -1,0 +1,20 @@
+[
+  { "query": "i totali non tornano tra ordini e payout", "should_trigger": true },
+  { "query": "a customer was charged twice after a timeout", "should_trigger": true },
+  { "query": "the refund is larger than the payment and nothing complained", "should_trigger": true },
+  { "query": "review our checkout before we go live", "should_trigger": true },
+  { "query": "a promotion went over its usage cap", "should_trigger": true },
+  { "query": "how do we know which orders funded this payout?", "should_trigger": true },
+  { "query": "should an open dispute count as a loss?", "should_trigger": true },
+  { "query": "we store the loyalty balance as a column, is that ok?", "should_trigger": true },
+  { "query": "the subscription renewed but the order still says paid", "should_trigger": true },
+  { "query": "our token billing doesn't match the provider invoice", "should_trigger": true },
+  { "query": "integrate the Stripe SDK into this controller", "should_trigger": false },
+  { "query": "are we in PCI scope if we use a hosted field?", "should_trigger": false },
+  { "query": "what should our pricing tiers be?", "should_trigger": false },
+  { "query": "design the checkout UI", "should_trigger": false },
+  { "query": "calculate VAT for EU customers", "should_trigger": false },
+  { "query": "the payment form validation is wrong", "should_trigger": false },
+  { "query": "set up a webhook endpoint in Laravel", "should_trigger": false },
+  { "query": "review this database migration", "should_trigger": false }
+]

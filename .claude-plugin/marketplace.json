@@ -119,6 +119,26 @@
         "security"
       ],
       "category": "productivity"
+    },
+    {
+      "name": "padosoft-payments",
+      "source": "./plugins/padosoft-payments",
+      "displayName": "Padosoft Payments",
+      "description": "Money that has to balance: settlement, refunds, chargebacks, payouts, metered billing.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Padosoft"
+      },
+      "license": "MIT",
+      "keywords": [
+        "payments",
+        "refunds",
+        "chargebacks",
+        "payouts",
+        "settlement",
+        "reconciliation"
+      ],
+      "category": "productivity"
     }
   ]
 }

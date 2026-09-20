@@ -4,6 +4,58 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.8.0] - 2026-09-20
+
+The catalogue goes from 23 to 27 skills across 9 profiles, and `payments` stops being an empty profile.
+Same source as 1.7.0 — a 303-entry lessons ledger — worked through to the end.
+
+### Added
+
+- **`padosoft-tenant-isolation`** (`core`, **global**) — *the scope belongs to the key, not to the filter.*
+  Filtering by tenant is what happens on the way out; isolation is what the key carries on the way in. A
+  `WHERE org = ?` protects the list endpoint and does nothing for the `PUT` that follows it, so two records
+  with the same name in two tenants overwrite each other. Paginating before the scope leaks counts and
+  identities through page boundaries. A project slug is not a tenant key, because two organisations reuse
+  the same one. A transparent "fall back to the unscoped record" is convenient in a migration and unsafe at
+  an API boundary. And everything asynchronous crosses the boundary a second time: scope at enqueue,
+  identity **and** scope at dequeue, the same check again on acknowledge — a payload must never choose a
+  filesystem root. Promoted global: the same rule was already independently present in the Node/API and
+  Laravel security reviews.
+- **`padosoft-durable-effects`** (`api`, `data`) — *a queue moves work, not effects.* A valid retry carries a
+  valid signature and captures a second time: verification and idempotency are two separate prior checks,
+  and only one protects the effect. Reclaiming a stale lease does not make anything exactly-once, because
+  the previous holder may have finished the external call in the moment before it died. A lost lease is a
+  third outcome, neither an acknowledgement nor a failure. A force-killed job marked `done` lets reporting
+  claim success. Clearing a timer does not cancel an in-flight request. A durable queue on a volatile store
+  is volatile, and a notification channel is not a queue.
+- **`padosoft-payments-reconciliation`** (`payments`) — *money is a ledger that has to balance, not a status
+  field.* `captured − refunds − lost_chargebacks = net`, with every effect linked to its exact payment. The
+  four joins that look finished and are not: an amount equal to a payout total is not inclusion in it; a
+  payout linked to a balance transaction does not say which orders funded it; an open dispute is exposure,
+  not loss; a paid order is not a shipped one. A timeout is **not** a negative result — classify it unknown
+  and reconcile, or one slow response becomes two charges. Validate-and-commit is not redemption atomicity.
+  Minor units in an exact integer type, one canonical timezone, and a balance derived from immutable
+  idempotent transactions rather than incremented in place.
+- **`padosoft-agent-host-boundaries`** (`api`) — *the host decides what is allowed, what is recorded, and
+  what any of it proves.* An adapter is not production-grade because it parses a 200: abortable timeout,
+  generation bound, injectable transport, redaction of prompt, response **and error**, pinned model
+  identity. Budgets enforced on both sides of the call, with exhaustion emitted as an event. Trajectories
+  treated as opaque — digests and metadata, never payloads, with allowlists applied *before* dispatch,
+  because redaction after persistence is too late. A tool surface is an authority grant: few tools, scope
+  from the authenticated principal, sessions bound at the transport edge. Generated output is a hypothesis
+  until an approval is bound to its exact digest — and an agent saying "approved" is not an authorisation
+  event. Scores need a held-out split and an inconclusive state.
+
+### Changed
+
+- **`padosoft-ci-workflow-gates`** — a supply-chain section: *what runs is not what you reviewed.* Hardened
+  runtime flags protect the invocation while a mutable tag changes the executable between runs; an integrity
+  hash proves the bytes did not change, not who produced them, so the expected **key identity** is pinned
+  alongside the signature; a parsed signing bundle is not a trust decision without a policy; a signature on
+  a manifest does not cover the content it lists; a clean dependency dashboard is not a gate; and the thing
+  to test is the published bundle, not the working tree.
+- **README** — a section on where these rules come from, and why that is the point of the repository.
+
 ## [1.7.0] - 2026-09-20
 
 ### Added
