@@ -2,6 +2,20 @@
 
 Thanks: these skills live on real cases. A rule is only worth having if somebody has seen it break.
 
+## Before anything else: provenance
+
+A skill in this repository is public, installed by strangers and kept forever by every fork. The work it was
+learned from is **input**, never content: no dates, no customer or brand names, no people, no real tables,
+hosts or identifiers, no error message copied verbatim. Keep the rule, drop the story.
+
+```bash
+make privacy      # python3 skills/padosoft-skill-creator/scripts/check_provenance.py skills/
+```
+
+The scanner catches shapes. It cannot know your customers' names — add them to a denylist and point
+`PROVENANCE_DENYLIST` at it. That file must stay **outside** the repository: a list of client names is
+itself the thing being protected.
+
 ## Principles
 
 1. **Evidence before opinion.** Every new or changed rule comes with a Mailtrap report (HTML Check or spam),

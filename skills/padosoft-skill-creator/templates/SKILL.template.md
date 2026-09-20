@@ -15,6 +15,12 @@ metadata:
   keywords: {{comma-separated keywords}}
 ---
 
+<!-- PROVENANCE: the work this came from is input, never content. No dates, no customer or
+     brand names, no people, no real tables/hosts/ids, no error messages copied verbatim.
+     Before committing, this must be green:
+       python3 skills/padosoft-skill-creator/scripts/check_provenance.py skills/{{name}}
+     Delete this comment once the skill is written. -->
+
 # {{Title}}
 
 {{One or two lines: what the skill produces and what the expected result is, measurable if possible.}}

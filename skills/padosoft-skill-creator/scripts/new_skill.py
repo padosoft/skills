@@ -186,9 +186,13 @@ def main() -> int:
 
     print(f"Created {target.relative_to(REPO_ROOT)}")
     print("\nNext steps:")
-    print("  1. fill in the description and the body of SKILL.md (see the padosoft-skill-creator skill, §4 and §5)")
-    print(f"  2. add {slug} to a package in plugins/")
-    print("  3. make catalog && make all")
+    print("  1. PROVENANCE: no date, customer, brand, person, real table/host/id, or error")
+    print("     message copied verbatim. The work is input, not content — keep the rule, drop")
+    print("     the story. A skill is published and read by strangers.")
+    print("  2. fill in the description and the body of SKILL.md (padosoft-skill-creator, §5 and §6)")
+    print(f"  3. python3 skills/padosoft-skill-creator/scripts/check_provenance.py skills/{slug}")
+    print(f"  4. add {slug} to a package in plugins/")
+    print("  5. make catalog && make all")
     return 0
 
 

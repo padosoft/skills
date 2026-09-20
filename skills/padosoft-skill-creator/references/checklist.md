@@ -2,6 +2,18 @@
 
 To be used before the PR, and during review. If an item does not pass, the skill is not ready.
 
+## Provenance — the item that is never waived
+
+- [ ] `check_provenance.py` green on the skill **and** on its references, evals and scripts
+- [ ] No date, release or sprint anywhere
+- [ ] No customer, brand or product code name — a denylist is configured, and is **not** in the repository
+- [ ] No person: name, initials, address, handle
+- [ ] No real table, column, host, queue, bucket, or path from the machine it was written on
+- [ ] No identifier anyone could look up: row, order, ticket
+- [ ] No error message copied verbatim — its shape, not its text
+- [ ] A reader cannot work out which project or which customer this came from
+- [ ] The commit message that carries it is clean too
+
 ## Activation
 
 - [ ] The `description` starts with "Use this skill when…" and lists **situations**, not features

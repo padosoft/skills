@@ -97,7 +97,7 @@ Reference media query (standard classes):
 | R-406 | MUST | Subject: **35–50 characters** (hard max 60), specific, no ALL CAPS, no `!!!`/`$$$`, at most 1 emoji, no trigger words ("FREE", "URGENT", "100%", "click here"). Non-ASCII characters in the subject over SMTP: Quoted-Printable encoding (`=?utf-8?Q?…?=`), not Base64. | MT, MU |
 | R-407 | MUST | Mailtrap SpamAssassin: **target ≤ 0.1** (in testing through the API only `MISSING_MID` 0.1 is allowed — the Message-ID is added by the MTA). Delivery blocking threshold: **≥ 1.0**. Mailtrap's "good" threshold < 5, marketing < 3: those are not targets, they are limits. | MT, XP |
 | R-408 | MUST | Mailtrap blacklist report: **0 listings** for the sender IP and domain and for every linked domain; MailUp Check-up: no blacklisted link. | MT, MU |
-| R-409 | MUST | No URL shortener (bit.ly and similar), no bare IP in links, link text consistent with the destination (no "www.brand.com" pointing somewhere else). | MT, MU |
+| R-409 | MUST | No URL shortener (bit.ly and similar), no bare IP in links, link text consistent with the destination (no "www.example.com" pointing somewhere else). | MT, MU |
 | R-410 | MUST | Text/image ratio **≥ 80/20** [MT] (absolute minimum 60/40 [MU]); never an "image only" email; the main message and the CTA in HTML text. | MT, MU |
 | R-411 | SHOULD | Body text ≤ 1,000 characters for short promotional/transactional emails; short paragraphs; message and CTA above the fold. | MT |
 | R-412 | MUST | Sender: authenticated domain with **SPF + DKIM + DMARC** (aligned), no `noreply@` when avoidable → use a monitored `Reply-To`. Sender name = the brand or "Person · Brand". | MT, GY |

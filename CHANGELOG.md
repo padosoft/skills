@@ -4,6 +4,31 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.7.0] - 2026-09-20
+
+### Added
+
+- **A provenance gate, and it is mandatory.** `padosoft-skill-creator` gains §2 — *provenance is input,
+  never output* — plus `scripts/check_provenance.py`, which fails on the shapes that can only come from a
+  real event: a calendar date, an address, a credential, a private host or IP, a personal or fiscal
+  identifier, a long row/order id, an absolute path from somebody's machine, narration ("our client
+  reported"), and any term on a project denylist. `make privacy` runs it over every skill; CI runs it before
+  anything else; `tests/fixtures/provenance-leak.md` proves it can go red, one line per rule.
+
+  The reasoning: a rule in a document is advice to whichever agent happens to read it. A rule that must hold
+  for every contributor, under any agent, has to be a check that fails. The scanner matches *shapes* rather
+  than topics, so it does not cry wolf on a skill that legitimately discusses security — and `--topic-ok`
+  exists for one that is genuinely about incident response.
+
+  **The denylist is deliberately not in the repository.** It names the customers, brands and people it
+  protects, so committing it publishes exactly what it defends. It lives outside the tree
+  (`PROVENANCE_DENYLIST`), and in CI it is written from a secret.
+
+### Fixed
+
+- The gate found real provenance on its first run: a live sandbox inbox id in a published example, and three
+  addresses on a domain that is not reserved for documentation. Replaced with placeholders and `example.com`.
+
 ## [1.6.0] - 2026-09-20
 
 ### Added

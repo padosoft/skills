@@ -158,7 +158,7 @@ The Mailtrap checker uses caniemail.com data and **reports every CSS property pr
 
 **Image in a card** (the cell carries height and bgcolor, so it stays intact when images are blocked):
 ```html
-<td align="center" valign="middle" height="120" class="r9t" bgcolor="#161b27" style="font-size:0; line-height:0;"><a href="https://…" target="_blank"><img src="https://cdn.brand.com/img/x@2x.jpg" width="174" height="120" border="0" alt="Short description" class="imgm"></a></td>
+<td align="center" valign="middle" height="120" class="r9t" bgcolor="#161b27" style="font-size:0; line-height:0;"><a href="https://…" target="_blank"><img src="https://cdn.example.com/img/x@2x.jpg" width="174" height="120" border="0" alt="Short description" class="imgm"></a></td>
 ```
 
 **Columns that stack on mobile** (whole px, sum = container):

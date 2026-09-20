@@ -1,4 +1,4 @@
-.PHONY: help catalog validate test lint-email all
+.PHONY: help catalog privacy validate test lint-email all
 
 EMAIL_SKILL ?= skills/padosoft-email-html-builder
 EMAIL       ?= $(EMAIL_SKILL)/templates/reference-welcome-dark.html
@@ -9,6 +9,9 @@ help:            ## Show this help
 
 catalog:         ## Regenerate CATALOG.md, profiles.json and the catalog inside the router skill
 	python3 scripts/build_catalog.py
+
+privacy:         ## No skill may carry the provenance of the work it was learned from
+	python3 skills/padosoft-skill-creator/scripts/check_provenance.py skills/
 
 validate:        ## Validate every SKILL.md and the catalog consistency
 	@for d in skills/*/; do python3 $(EMAIL_SKILL)/scripts/validate_skill.py "$$d" || exit 1; done
@@ -21,4 +24,4 @@ test:            ## Run all the tests
 lint-email:      ## Lint an email: make lint-email EMAIL=path/to/email.html
 	python3 $(EMAIL_SKILL)/scripts/lint_email.py $(EMAIL) --subject "$(SUBJECT)"
 
-all: validate test lint-email ## All the checks (same as CI)
+all: privacy validate test lint-email ## All the checks (same as CI)

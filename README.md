@@ -60,7 +60,7 @@ _22 skills in the catalog. Section generated from the frontmatter: refresh it wi
 | [`padosoft-failure-visibility`](#failure-visibility) | core | global | 0.1.0 |
 | [`padosoft-git-commit-integrity`](#git-commit-integrity) | core | global | 0.1.0 |
 | [`padosoft-logging-discipline`](#logging-discipline) | core | global | 0.1.0 |
-| [`padosoft-skill-creator`](#skill-creator) | core | global | 0.1.0 |
+| [`padosoft-skill-creator`](#skill-creator) | core | global | 0.2.0 |
 | [`padosoft-skills-router`](#skills-router) | core | global | 0.1.0 |
 | [`padosoft-test-integrity`](#test-integrity) | core | global | 0.1.0 |
 | [`padosoft-admin-interface`](#admin-interface) | laravel | project | 0.1.0 |
@@ -140,9 +140,9 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-logg
 
 ### skill-creator
 
-**`padosoft-skill-creator`** · profiles: `core` · scope: `global` · version: 0.1.0
+**`padosoft-skill-creator`** · profiles: `core` · scope: `global` · version: 0.2.0
 
-**Triggers when** — Use this skill when creating, editing or reviewing an Agent Skill of the padosoft/skills repository, when the user wants to turn a recurring workflow, a checklist or a set of guidelines into a reusable skill, or when they ask where a skill belongs (profile, scope, package) or why the repo CI is failing on catalog, profiles or manifests: it guides the whole creation with scaffolding, the Padosoft conventions and the automated checks. Do not use it to write the technical domain content (that is the job of the skill you are creating) nor to install existing skills (padosoft-skills-router handles that).
+**Triggers when** — Use this skill when creating, editing or reviewing an Agent Skill of the padosoft/skills repository, when the user wants to turn a recurring workflow, a checklist or a set of guidelines into a reusable skill, or when they ask where a skill belongs (profile, scope, package) or why the repo CI is failing on catalog, profiles or manifests: it guides the whole creation with scaffolding, the Padosoft conventions and the automated checks. Do not use it to write the technical domain content (that is the job of the skill you are creating) nor to install existing skills (padosoft-skills-router handles that). It also keeps the provenance of the work — dates, customers, people, ids, credentials — out of anything that gets published.
 
 **Where it goes** — installed **globally** with the `core` profile: it applies to every project. Folder: [`skills/padosoft-skill-creator`](skills/padosoft-skill-creator).
 

@@ -52,7 +52,7 @@ restore secrecy.
 
 A client certificate has to be **rotatable**, and rotating something in native code needs a store release —
 whoever does not update is left with a key the server rejects, the app stops working, and that is not a
-security incident, it is a lost customer. **A remediation that ignores this constraint does not get applied.**
+security problem, it is a lost customer. **A remediation that ignores this constraint does not get applied.**
 
 What does not follow is the next step: "it must be updatable without a release" → true; "so it lives in a
 versioned source file" → no. Options, in order:

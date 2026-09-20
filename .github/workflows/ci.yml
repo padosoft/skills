@@ -27,6 +27,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # The denylist names the very parties it protects, so it lives in a secret and
+      # never in the repository. When the secret is unset the file is empty and the
+      # scanner still runs every other rule — it degrades, it does not skip.
+      - name: No skill carries provenance (dates, addresses, ids, customer terms)
+        env:
+          DENYLIST_CONTENT: ${{ secrets.PROVENANCE_DENYLIST }}
+          PROVENANCE_DENYLIST: ${{ runner.temp }}/provenance-denylist
+        run: |
+          printf '%s\n' "$DENYLIST_CONTENT" > "$PROVENANCE_DENYLIST"
+          python3 skills/padosoft-skill-creator/scripts/check_provenance.py skills/
+
       - name: Every SKILL.md follows the Agent Skills specification
         run: |
           for d in skills/*/; do

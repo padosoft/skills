@@ -1,7 +1,7 @@
 {
   "name": "padosoft-core",
   "displayName": "Padosoft Core",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Padosoft cross-project skills, always on: catalog router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs-code drift.",
   "author": {
     "name": "Padosoft",

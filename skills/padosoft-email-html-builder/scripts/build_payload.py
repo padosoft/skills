@@ -4,8 +4,8 @@ build_payload.py - Builds the JSON for the Mailtrap Sending/Sandbox API from HTM
 
 Usage:
   python3 build_payload.py --html email.html --text email.txt --subject "Subject" \
-      --from-email noreply@brand.it --from-name "Brand" --to test@brand.it \
-      --unsubscribe-url https://brand.it/unsubscribe [--unsubscribe-mailto unsubscribe@brand.it] \
+      --from-email noreply@example.com --from-name "Brand" --to test@example.com \
+      --unsubscribe-url https://example.com/unsubscribe [--unsubscribe-mailto unsubscribe@example.com] \
       [--category welcome] [--out payload.json]
 """
 from __future__ import annotations

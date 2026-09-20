@@ -1,6 +1,6 @@
 # Sends payload.json to the Mailtrap sandbox identified by $env:MAILTRAP_INBOX_ID.
 # Usage (PowerShell, from the folder where payload.json is saved too):
-#   $env:MAILTRAP_TOKEN = "your_token"; $env:MAILTRAP_INBOX_ID = "2494982"
+#   $env:MAILTRAP_TOKEN = "<your-token>"; $env:MAILTRAP_INBOX_ID = "<your-inbox-id>"
 #   .\send_mailtrap_sandbox.ps1
 $ErrorActionPreference = "Stop"
 
