@@ -13,7 +13,7 @@ compatibility: >-
   Any Laravel version. The rules are about how an application is shaped, not about framework features;
   where a version moved a file rather than changing a rule, the text says so.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   author: Padosoft
   summary: Where the logic lives and what crosses which boundary, on any framework version.
   profiles: laravel
@@ -180,6 +180,20 @@ the job runs against a row that is not there yet.
   them equal to each other. Compare strictly, and cast deliberately when a legacy value really is a string.
 - **A date parser given null returns "now"** in more than one library. That is not a crash, it is a wrong
   value that looks plausible for exactly as long as it takes to reach a customer.
+
+
+Three more that keep a package honest:
+
+- **Make the illegal state unrepresentable.** When two fields are only valid together — a blocked verdict
+  with no reason, an accepted amount with no currency — make the constructor private and expose named
+  constructors for the valid combinations. A validation rule can be forgotten; a constructor that does not
+  exist cannot be called.
+- **A misconfiguration that opens a surface fails at boot.** Warn when a feature is enabled and still
+  resolves to its no-op implementation; **throw** when something is exposed with an empty guard list. The
+  difference is whether the wrong configuration is merely useless or actively unsafe.
+- **Routes shipped by a package default to the stateless middleware group**, not the session one, which may
+  not even be registered in the host's test context. Put authentication on the privileged routes and let
+  the application add the session group where sessions exist.
 
 Changing a signature or a return type in a hierarchy is its own procedure: **`padosoft-contract-changes`**.
 Deciding a branch by environment name is another: **`padosoft-environment-gating`**.

@@ -74,6 +74,7 @@
     ],
     "ai": [
       "padosoft-agent-host-boundaries",
+      "padosoft-ai-evaluation",
       "padosoft-rag-ingestion-security",
       "padosoft-rag-knowledge-base"
     ]
@@ -82,6 +83,7 @@
     "padosoft-admin-interface": "project",
     "padosoft-agent-host-boundaries": "project",
     "padosoft-agent-instructions-sync": "global",
+    "padosoft-ai-evaluation": "project",
     "padosoft-api-security-review": "project",
     "padosoft-atomic-invariants": "global",
     "padosoft-auth-hardening": "global",

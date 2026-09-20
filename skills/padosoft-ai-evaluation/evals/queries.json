@@ -1,0 +1,20 @@
+[
+  { "query": "come faccio a sapere se il cambio di prompt ha migliorato le cose?", "should_trigger": true },
+  { "query": "build an eval harness for our assistant", "should_trigger": true },
+  { "query": "a model upgrade silently regressed the answers", "should_trigger": true },
+  { "query": "what should go in our golden dataset?", "should_trigger": true },
+  { "query": "how do I score free-form output?", "should_trigger": true },
+  { "query": "we need red-team coverage for the chatbot", "should_trigger": true },
+  { "query": "the average improved but users complain more", "should_trigger": true },
+  { "query": "review our evaluation report format", "should_trigger": true },
+  { "query": "should a refusal count as a failure?", "should_trigger": true },
+  { "query": "gate the release on an eval score", "should_trigger": true },
+  { "query": "write unit tests for this service", "should_trigger": false },
+  { "query": "which model should we use?", "should_trigger": false },
+  { "query": "improve this system prompt", "should_trigger": false },
+  { "query": "the retrieval returns the wrong documents", "should_trigger": false },
+  { "query": "set up a vector database", "should_trigger": false },
+  { "query": "the CI pipeline is red", "should_trigger": false },
+  { "query": "design the chat interface", "should_trigger": false },
+  { "query": "review this API for security", "should_trigger": false }
+]

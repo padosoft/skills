@@ -13,7 +13,7 @@ compatibility: >-
   Provider- and runtime-agnostic. The rules assume you control the host: the process that dispatches calls,
   persists their records and exposes tools.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   author: Padosoft
   summary: The host decides what an agent may do, what gets recorded, and what any of it proves.
   profiles: ai, api
@@ -63,6 +63,15 @@ Emit budget decisions to a bounded, **prompt-free** sink that the host appends t
 in that observer must never turn a governed call into an application retry, and must never carry prompt or
 provider secrets. Estimation rates and prices are **versioned deployment inputs**, not constants in the code
 — see **`padosoft-payments-reconciliation`** for settling them.
+
+
+**Meter once, at the shared boundary.** One hook on the lifecycle every provider goes through sees all of
+them; a counter added per adapter misses the next adapter. Propagate a correlation identifier from the
+orchestrator so cost attaches to a step and not only to a day.
+
+**Pricing tables go stale, and a stale price is a wrong bill.** Mirror an authoritative external source as
+the base and let a local entry override it, so a correction does not wait for an upstream release — and
+carry the catalogue's identity into the settlement record, as in **`padosoft-payments-reconciliation`**.
 
 ## 3. Trajectories are a sensitive data sink by default
 

@@ -4,6 +4,59 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.16.0] - 2026-09-20
+
+43 skills. The last pass over the remaining repositories: the AI package family, the connectors, the
+evaluation harness, and a re-check of the QA framework's two hundred and seventy-six decision records.
+
+### Added
+
+- **`padosoft-ai-evaluation`** (`ai`) - a model-backed feature has no failing test to point at: the output
+  is different every time and often plausibly wrong. So *did this change make it better?* is only
+  answerable with a measurement, and **a number without a dataset version and a run identity is not a
+  measurement**.
+
+  The dataset and the report are **versioned artifacts**: an absent version means the original one, an
+  explicit unsupported one fails at load, and the value objects validate it in their own constructors -
+  because a check that lives in the parser protects nobody who did not go through the parser. Mixed sample
+  sources are rejected at the boundary, or you get a report about a dataset that never existed.
+
+  What the run has to isolate: every sample validated **before the first invocation**, so an invalid one
+  halfway through does not abort after side effects; failures isolated per row and per metric, because a
+  harness that dies on row four hundred has measured nothing and cost everything; timeouts and retries
+  recorded, since they change the result and are therefore part of it.
+
+  Then the shapes that make metrics lie - aggregate once per metric rather than sorting the same list four
+  times, round the boundary values that become artifact contract, and keep empty buckets because an absent
+  bucket and an empty one look different to every consumer. Cohorts, where **missing is not a tag value**: a
+  literal "untagged" collides with a real dataset that uses that string, so the untagged cohort has a null
+  name and an explicit flag.
+
+  What must never reach the report: **free-form sample metadata**, which carries prompts, payloads, keys and
+  personal data. And red-team coverage treated as a dataset rather than a mood, with the categories named -
+  injection, jailbreak, exfiltration, excessive agency, forgery - and **a refusal scored as a correct
+  answer**, otherwise the harness rewards the model that answers everything.
+
+### Changed
+
+- **`padosoft-laravel-conventions`** - **make the illegal state unrepresentable**: when two fields are only
+  valid together, a private constructor plus named constructors beats a validation rule, because a rule can
+  be forgotten and a constructor that does not exist cannot be called. Plus a misconfiguration that opens a
+  surface failing at boot rather than merely warning, and package routes defaulting to the stateless
+  middleware group.
+- **`padosoft-agent-host-boundaries`** - **meter once, at the shared boundary**: one hook on the lifecycle
+  every provider goes through sees all of them, while a counter added per adapter misses the next adapter.
+  And pricing tables go stale, so mirror an authoritative source as the base and let a local entry override
+  it.
+
+### Coverage note
+
+The QA framework's two hundred and seventy-six decision records were re-read against the catalogue: their
+themes - bounded surfaces, fail-closed gates, calibration, commerce contracts, agent trajectories - are
+already carried by `padosoft-evidence-boundaries`, `padosoft-durable-effects`,
+`padosoft-payments-reconciliation`, `padosoft-agent-host-boundaries` and `padosoft-ci-workflow-gates`.
+That is a confirmation, not an omission, and it is recorded here so the next person does not re-mine them.
+
 ## [1.15.0] - 2026-09-20
 
 42 skills, and a new `ai` profile with its own package. The source is a retrieval-augmented assistant
