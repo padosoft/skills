@@ -380,6 +380,135 @@ class TestIncompleteInventory(unittest.TestCase):
         self.assertIn("cannot read secret", err.getvalue())
 
 
+def link_directory(link: Path, target: Path) -> bool:
+    """A symlink, or on Windows without the privilege a junction (which needs none). False when neither works."""
+    try:
+        link.symlink_to(target, target_is_directory=True)
+        return True
+    except (OSError, NotImplementedError):
+        pass
+    if sys.platform != "win32":
+        return False
+    done = subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)], capture_output=True)
+    return done.returncode == 0
+
+
+class TestYamlEdgeCases(unittest.TestCase):
+    def parse(self, text: str):
+        return audit_skills.parse_frontmatter(f"---\n{text}\n---\n")
+
+    def test_a_comment_is_not_judged_as_part_of_the_value(self) -> None:
+        for line, expected in (("name: demo # note: command name", "demo"),
+                               ("description: Reviews notes # Note: internal use", "Reviews notes")):
+            data, _, _, problems = self.parse(line)
+            self.assertEqual(data[line.split(":", 1)[0]], expected)
+            self.assertFalse(any(level == "ERROR" for _, level, _ in problems), problems)
+
+    def test_a_colon_in_the_value_before_any_comment_is_still_an_error(self) -> None:
+        _, _, _, problems = self.parse("description: Reviews notes: carefully")
+        self.assertTrue(any(level == "ERROR" for _, level, _ in problems))
+
+    def test_a_key_needs_a_space_after_its_colon(self) -> None:
+        with self.assertRaises(audit_skills.FrontmatterError):
+            self.parse("name:demo")
+        data, *_ = self.parse("name:\n")  # an empty value is fine
+        self.assertEqual(data["name"], "")
+
+    def test_a_comment_only_value_is_empty(self) -> None:
+        data, *_ = self.parse("metadata: # versioning\n  version: 1")
+        self.assertEqual(data["metadata"], {"version": "1"})
+
+
+class TestTypes(unittest.TestCase):
+    def audit(self, frontmatter: str) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\n{frontmatter}\n---\n\nBody.\n")
+            return report_of(str(Path(tmp) / "demo"))
+
+    def test_a_list_or_mapping_description_is_an_error(self) -> None:
+        for frontmatter in ("name: demo\ndescription:\n  - Reviews release notes when asked",
+                            "name: demo\ndescription:\n  text: Reviews release notes"):
+            code, report = self.audit(frontmatter)
+            self.assertEqual(code, 1, frontmatter)
+            self.assertIn("G-DESC-01", ids(report["skills"][0], "ERROR"), frontmatter)
+
+    def test_a_list_name_is_an_error(self) -> None:
+        code, report = self.audit(f"name:\n  - demo\n{DESC}")
+        self.assertEqual(code, 1)
+        self.assertIn("G-FM-02", ids(report["skills"][0], "ERROR"))
+
+
+class TestAliasesAndSyncedRoots(unittest.TestCase):
+    def test_a_symlinked_skill_is_judged_the_same_whatever_order_the_roots_come_in(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".agents/skills/demo/SKILL.md", f"---\ndescription: >-\n  Does demo things when asked.\nmodel: opus\n---\n\nBody.\n")
+            (root / ".claude" / "skills").mkdir(parents=True)
+            if not link_directory(root / ".claude" / "skills" / "demo", root / ".agents" / "skills" / "demo"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            first = report_of(str(root / ".claude"), str(root / ".agents"))[1]
+            second = report_of(str(root / ".agents"), str(root / ".claude"))[1]
+        self.assertEqual(len(first["skills"]), 1)
+        self.assertEqual(levels(first["skills"][0]), levels(second["skills"][0]))
+        self.assertIn(("G-FM-02", "ERROR"), levels(first["skills"][0]), "shared exposure must make a missing name blocking")
+
+    def test_synced_skills_are_found_from_a_narrowed_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/synced/u1/foo/SKILL.md", f"---\nname: foo\n{DESC}---\n\nBody.\n")
+            for narrowed in (root / ".claude" / "skills" / "synced", root / ".claude" / "skills" / "synced" / "u1",
+                             root / ".claude" / "skills"):
+                _, report = report_of(str(narrowed))
+                self.assertEqual([(s["name"], s["kind"]) for s in report["skills"]], [("foo", "synced")], str(narrowed))
+
+
+class TestCommandPaths(unittest.TestCase):
+    def audit(self, body: str, with_script: bool = False) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}")
+            if with_script:
+                put(Path(tmp), "demo/scripts/run.py", "print('ok')\n")
+            return report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+
+    def missing(self, skill_report: dict) -> list[str]:
+        return [f["message"] for f in skill_report["findings"] if f["id"] == "G-STRUCT-08" and f["level"] == "ERROR"]
+
+    def test_a_dead_script_is_caught_whatever_surrounds_it(self) -> None:
+        for body in ("Run `scripts/run.py --since TAG` first.\n",
+                     "Run `python3 scripts/run.py` first.\n",
+                     "Run `python3 \"${CLAUDE_SKILL_DIR}/scripts/run.py\" --json` first.\n",
+                     "```bash\npython3 scripts/run.py --json\n```\n",
+                     "```sh\n  bash ./scripts/run.sh\n```\n"):
+            self.assertTrue(self.missing(self.audit(body)), body)
+
+    def test_an_existing_script_is_not_flagged_and_not_an_orphan(self) -> None:
+        for body in ("Run `scripts/run.py --since TAG` first.\n", "```bash\npython3 scripts/run.py\n```\n"):
+            report = self.audit(body, with_script=True)
+            self.assertEqual(self.missing(report), [], body)
+            self.assertFalse([f for f in report["findings"] if "never mentioned" in f["message"]], body)
+
+    def test_output_blocks_and_comments_are_not_commands(self) -> None:
+        self.assertEqual(self.missing(self.audit("```text\nscripts/run.py failed\n```\n")), [])
+        self.assertEqual(self.missing(self.audit("```bash\n# scripts/run.py is optional\n```\n")), [])
+
+
+class TestUrlsAreNotStubs(unittest.TestCase):
+    def test_a_link_to_an_online_skill_is_not_a_missing_local_stub(self) -> None:
+        body = ("Read [the upstream skill](https://raw.githubusercontent.com/o/r/main/skills/x/SKILL.md) "
+                "before you start.\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}")
+            found = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+        self.assertFalse([f for f in found["findings"] if f["id"] in ("G-STRUCT-08", "G-STRUCT-09")], found["findings"])
+
+    def test_a_local_stub_next_to_a_url_is_still_checked(self) -> None:
+        body = "Read https://example.com/SKILL.md, then read .agents/skills/demo/SKILL.md in full.\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), ".claude/skills/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}")
+            found = report_of(str(Path(tmp) / ".claude" / "skills" / "demo"))[1]["skills"][0]
+        self.assertIn(("G-STRUCT-08", "ERROR"), levels(found))
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 

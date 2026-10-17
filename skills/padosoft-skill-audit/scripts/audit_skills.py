@@ -90,6 +90,13 @@ HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
 MD_LINK = re.compile(r"\[[^\]\n]*\]\(\s*([^)\s]+)(?:\s+\"[^\"]*\")?\s*\)")
 CODE_SPAN = re.compile(r"`([^`\n]+)`")
 BUNDLED_PATH = re.compile(r"^(?:\./)?((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]+)$")
+COMMAND_PATH = re.compile(
+    r"(?<![\w/.$-])(?:\$\{?CLAUDE_SKILL_DIR\}?/|\./)?"
+    r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
+    r"(?![A-Za-z0-9_/-])"
+)
+SHELL_FENCES = ("bash", "sh", "shell", "zsh", "console", "powershell", "pwsh", "cmd", "batch")
+URL_SPAN = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s)>\]]+")
 BACKSLASH_PATH = re.compile(r"^[A-Za-z0-9._-]+(?:\\[A-Za-z0-9._-]+)+$")
 SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 STUB_TARGET = re.compile(r"([\w.~/\\-]*[/\\])SKILL\.md\b")
@@ -190,6 +197,7 @@ class Skill:
     fm_ok: bool = False
     body_start: int = 0  # 0-based index of the first body line
     findings: list[Finding] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)  # other locations the same file was reached from (symlinks)
 
     @property
     def folder(self) -> Path:
@@ -288,12 +296,12 @@ def _plain_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) -
     if value[:1] in ("`", "@", "%", "*", "&"):
         problems.append((line, "ERROR", f"an unquoted value cannot start with {value[0]!r}: YAML rejects it, "
                                         "so the skill loads with no fields. Quote it or use '>-'"))
+    if " #" in value:  # a comment, which YAML drops: what it says must not be judged as part of the value
+        problems.append((line, "WARN", "the text after ' #' is a YAML comment and is dropped from the value: quote it"))
+        value = value.split(" #", 1)[0].strip()
     if re.search(r":\s", value) or value.endswith(":"):
         problems.append((line, "ERROR", "an unquoted value contains ': ', which YAML reads as a nested mapping "
                                         "and rejects: the skill then loads with no fields. Quote it or use '>-'"))
-    if " #" in value:
-        problems.append((line, "WARN", "the text after ' #' is a YAML comment and is dropped from the value: quote it"))
-        value = value.split(" #", 1)[0]
     return value.strip()
 
 
@@ -321,10 +329,13 @@ def parse_frontmatter(text: str) -> tuple[dict[str, object], dict[str, int], int
             continue
         if raw[0] in " \t":
             raise FrontmatterError(f"indented line without a parent key: {raw.strip()[:60]!r}", i + 1)
-        m = re.match(r"^([A-Za-z0-9_.-]+):(.*)$", raw)
+        m = re.match(r"^([A-Za-z0-9_.-]+):(\s.*|)$", raw)
         if not m:
-            raise FrontmatterError(f"not a 'key: value' line: {raw.strip()[:60]!r}", i + 1)
+            raise FrontmatterError(f"not a 'key: value' line (the colon needs a space after it): "
+                                   f"{raw.strip()[:60]!r}", i + 1)
         key, value = m.group(1), m.group(2).strip()
+        if value.startswith("#"):  # "key: # comment" is an empty value followed by a comment
+            value = ""
         key_lines[key] = i + 1
         block: list[str] = []
         j = i + 1
@@ -370,7 +381,7 @@ def _value(value: str, block: list[str], line: int, problems: list[tuple[int, st
 def discover(roots: list[Path], with_commands: bool) -> tuple[list[Skill], list[str]]:
     """Every skill and command under the roots, once each even when symlinked from several places."""
     found: list[Skill] = []
-    seen: set[str] = set()
+    seen: dict[str, Skill] = {}
     walk_errors: list[str] = []
 
     def add(entry: Path, root: Path, kind: str, location: str) -> None:
@@ -379,9 +390,13 @@ def discover(roots: list[Path], with_commands: bool) -> tuple[list[Skill], list[
         except OSError:
             key = os.path.normcase(str(entry))
         if key in seen:
+            # Same file through another path (a symlink): audit it once, but remember where else it is exposed,
+            # so the order the roots are given in cannot change whether it is held to the shared-skill rules.
+            seen[key].aliases.append(location)
             return
-        seen.add(key)
-        found.append(Skill(entry=entry, root=root, kind=kind, location=location))
+        skill = Skill(entry=entry, root=root, kind=kind, location=location)
+        seen[key] = skill
+        found.append(skill)
 
     for root in roots:
         if root.is_file():
@@ -415,6 +430,15 @@ def _layout_of(skill_md: Path) -> tuple[str, str]:
     return "skill", "direct"
 
 
+def _synced_depth(folder: Path) -> int | None:
+    """0 for .claude/skills/synced itself, 1 for one of its account folders, None anywhere else."""
+    here = folder.absolute()
+    for depth, synced in ((0, here), (1, here.parent)):
+        if synced.name == "synced" and synced.parent.name == "skills" and synced.parent.parent.name == ".claude":
+            return depth
+    return None
+
+
 def _skills_dir_location(skills_dir: Path, root: Path) -> str | None:
     parent = skills_dir.parent
     if parent.name == ".claude":
@@ -435,6 +459,12 @@ def _walk(root: Path, with_commands: bool, add, walk_errors: list[str]) -> None:
     for dirpath, dirnames, _ in os.walk(root, onerror=on_error):
         here = Path(dirpath)
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        synced_depth = _synced_depth(here)
+        if synced_depth is not None:  # the walk was started inside ~/.claude/skills/synced
+            for skill_md in sorted(here.glob("*/*/SKILL.md" if synced_depth == 0 else "*/SKILL.md")):
+                add(skill_md, root, "synced", "claude")
+            dirnames[:] = []
+            continue
         if here.name == "skills":
             location = _skills_dir_location(here, root)
             if location:
@@ -484,6 +514,13 @@ def check_frontmatter(skill: Skill, shared: bool) -> None:
         return
     skill.frontmatter, skill.key_lines, skill.body_start = data, key_lines, body_start
     skill.fm_ok = not any(level == "ERROR" for _, level, _ in problems)
+    for field_name, rule_id in (("name", "G-FM-02"), ("description", "G-DESC-01")):
+        value = data.get(field_name)
+        if value is not None and not isinstance(value, str):
+            kind = "a list" if isinstance(value, list) else "a mapping" if isinstance(value, dict) else type(value).__name__
+            skill.add(rule_id, "ERROR", skill.entry, key_lines.get(field_name, 1),
+                      f"'{field_name}' is {kind}: it must be a single string, or the skill is not loaded")
+            skill.fm_ok = False
     for line, level, message in problems:
         skill.add("G-FM-01", level, skill.entry, line, message)
     if skill.kind == "command":
@@ -501,7 +538,7 @@ def check_frontmatter(skill: Skill, shared: bool) -> None:
 
 
 def _is_shared(skill: Skill, shared: bool) -> bool:
-    return shared or skill.location in ("agents", "catalog")
+    return shared or any(place in ("agents", "catalog") for place in (skill.location, *skill.aliases))
 
 
 def _name(skill: Skill, shared: bool) -> None:
@@ -668,6 +705,26 @@ def iter_prose(lines: list[str], start: int = 0):
             yield index, line
 
 
+def iter_shell_lines(lines: list[str], start: int = 0):
+    """(0-based index, line) inside fenced blocks that hold shell commands, comment lines left out."""
+    fence: str | None = None
+    shell = False
+    for index in range(start, len(lines)):
+        line = lines[index]
+        m = FENCE.match(line)
+        if m:
+            marker = m.group(1)
+            if fence is None:
+                fence = marker[0] * len(marker)
+                language = line.strip()[len(marker):].strip().split(" ")[0].lower()
+                shell = language in SHELL_FENCES
+            elif marker.startswith(fence[0]) and len(marker) >= len(fence):
+                fence, shell = None, False
+            continue
+        if fence is not None and shell and not line.lstrip().startswith("#"):
+            yield index, line
+
+
 def _suppressed(lines: list[str], index: int) -> bool:
     return bool(SUPPRESS.search(lines[index]) or (index > 0 and SUPPRESS.search(lines[index - 1])))
 
@@ -677,19 +734,19 @@ def _resolves(target: str, candidates: list[Path]) -> bool:
 
 
 def _bases(skill: Skill, md_file: Path) -> list[Path]:
-    """Where a relative reference may legitimately point: next to the file, the skill root, the project."""
+    """Where a relative reference may legitimately point: next to the file, the skill root, the project.
+
+    The project is found by walking up to the folder that holds .git, whatever the scan root: a skill under
+    skills/ routinely names a script of the repository (scripts/harvest.py), which is not a dead reference.
+    """
     bases = [md_file.parent, skill.folder]
     current = skill.folder
-    root = skill.root.resolve()
     for _ in range(12):  # a project root is never further than this from one of its skills
         parent = current.parent
         if parent == current:
             break
         bases.append(parent)
-        try:
-            if parent.resolve() == root:
-                break
-        except OSError:
+        if (parent / ".git").exists():
             break
         current = parent
     return bases
@@ -715,6 +772,10 @@ def _references(skill: Skill, md_file: Path, lines: list[str], start: int) -> li
                 refs.append((index, "path", BUNDLED_PATH.match(span).group(1)))
             elif BACKSLASH_PATH.match(span) and "." in span:
                 refs.append((index, "backslash", span))
+            else:  # a command: "scripts/run.py --since TAG", "python3 scripts/run.py"
+                refs.extend((index, "path", c.group(1)) for c in COMMAND_PATH.finditer(span))
+    for index, line in iter_shell_lines(lines, start):
+        refs.extend((index, "path", c.group(1)) for c in COMMAND_PATH.finditer(line))
     return refs
 
 
@@ -781,7 +842,8 @@ def _norm(path: Path) -> Path:
 
 def _depth_and_stubs(skill: Skill, md_docs, linked_from_skill: set[Path]) -> None:
     for index, line in iter_prose(skill.lines, skill.body_start):
-        m = STUB_TARGET.search(line)
+        urls = [u.span() for u in URL_SPAN.finditer(line)]
+        m = next((c for c in STUB_TARGET.finditer(line) if not any(a <= c.start() < b for a, b in urls)), None)
         if not m or not READ_VERB.search(line) or _suppressed(skill.lines, index):
             continue
         target = m.group(0)
