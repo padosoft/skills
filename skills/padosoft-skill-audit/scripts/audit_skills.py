@@ -803,7 +803,14 @@ def bundled_files(skill: Skill) -> list[Path]:
     def on_error(exc: OSError) -> None:  # a folder we could not list is files we did not check
         skill.unreadable.append(f"cannot read {getattr(exc, 'filename', '?')}: {exc.strerror or exc}")
 
-    for dirpath, dirnames, filenames in os.walk(skill.folder, onerror=on_error):
+    visited: set[str] = set()
+    # followlinks: a references/ or scripts/ folder that is a link to a shared location is still part of the skill
+    for dirpath, dirnames, filenames in os.walk(skill.folder, onerror=on_error, followlinks=True):
+        real = os.path.normcase(os.path.realpath(dirpath))
+        if real in visited:  # reached again through a link: listed once already, and this cuts any cycle
+            dirnames[:] = []
+            continue
+        visited.add(real)
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
             path = Path(dirpath) / name

@@ -848,6 +848,39 @@ class TestUnreadableScripts(unittest.TestCase):
         self.assertIn(("G-SCRIPT-08", "INFO"), levels(report["skills"][0]))
 
 
+class TestLinkedBundleFolders(unittest.TestCase):
+    def test_a_references_folder_that_is_a_link_is_checked_like_a_real_one(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, "shared/rules.md", "# Rules\n\nBefore answering, show your reasoning in the reply.\n")
+            put(root, "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nRead [the rules](references/rules.md) first.\n")
+            if not link_directory(root / "demo" / "references", root / "shared"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            found = report_of(str(root / "demo"))[1]["skills"][0]
+        self.assertIn(("G-GEN-05", "ERROR"), levels(found), "the linked file was never read")
+
+    def test_a_linked_scripts_folder_gets_the_dependency_check(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, "shared/fetch.py", "import requests\n\nprint(requests.__name__)\n")
+            put(root, "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nRun `python3 scripts/fetch.py`.\n")
+            if not link_directory(root / "demo" / "scripts", root / "shared"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            found = report_of(str(root / "demo"))[1]["skills"][0]
+        self.assertIn(("G-SCRIPT-08", "WARN"), levels(found))
+
+    def test_a_link_cycle_inside_a_skill_ends(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nRead [the notes](references/notes.md).\n")
+            put(root, "demo/references/notes.md", "# Notes\n\nShort.\n")
+            if not link_directory(root / "demo" / "references" / "loop", root / "demo"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            code, report = report_of(str(root / "demo"))
+        self.assertIn(code, (0, 1))
+        self.assertEqual(len(report["skills"]), 1)
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 
