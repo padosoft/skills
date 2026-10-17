@@ -349,6 +349,56 @@ class TestFetcherContentType(unittest.TestCase):
         self.assertNotIn("PAGE", fetcher.flattened)
 
 
+class TestFetchFailures(unittest.TestCase):
+    """A source that cannot be read, in any way, is reported as unreachable; the others are still checked."""
+
+    @staticmethod
+    def module():
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("check_freshness_failures", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["check_freshness_failures"] = module
+        spec.loader.exec_module(module)
+        return module
+
+    def run_check(self, failure: Exception):
+        import http.client
+
+        module = self.module()
+
+        class Fetcher:
+            flattened: set = set()
+
+            def get(self, key, url, timeout=None):
+                if key == "BROKEN":
+                    raise failure
+                return "Keep the body under 500 lines for optimal performance."
+
+        data = {
+            "sources": [
+                {"key": "OK", "url": "u1", "anchors": [{"text": "under 500 lines", "rules": ["G-STRUCT-01"]}]},
+                {"key": "BROKEN", "url": "u2", "anchors": [{"text": "anything", "rules": ["G-STRUCT-02"]}]},
+            ]
+        }
+        self.assertTrue(http.client)
+        return module.check(data, Fetcher(), None, None)
+
+    def test_a_truncated_response_is_unreachable_not_a_crash(self) -> None:
+        import http.client
+
+        result = self.run_check(http.client.IncompleteRead(b"partial"))
+        self.assertEqual(result.status, "partial")
+        self.assertEqual([i.source for i in result.unreachable], ["BROKEN"])
+        self.assertEqual(result.checked, 1, "the healthy source is still checked")
+
+    def test_other_http_protocol_errors_are_unreachable_too(self) -> None:
+        import http.client
+
+        for failure in (http.client.RemoteDisconnected("closed"), http.client.BadStatusLine("x"), ConnectionResetError()):
+            self.assertEqual(self.run_check(failure).status, "partial", repr(failure))
+
+
 class TestRealManifest(unittest.TestCase):
     """The shipped manifest must point at rules that exist, so a drift report is always actionable."""
 

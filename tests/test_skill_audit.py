@@ -743,6 +743,55 @@ class TestDoubleQuotedEscapes(unittest.TestCase):
         self.assertEqual(data["description"], r"C:\path\to")
 
 
+class TestDecodedEscapes(unittest.TestCase):
+    def value(self, quoted: str) -> object:
+        data, _, _, problems = audit_skills.parse_frontmatter(f"---\nk: {quoted}\n---\n")
+        self.assertEqual(problems, [], quoted)
+        return data["k"]
+
+    def test_hex_escapes_are_decoded(self) -> None:
+        self.assertEqual(self.value(r'"d\u0065mo"'), "demo")
+        self.assertEqual(self.value(r'"\x41\x42"'), "AB")
+        self.assertEqual(self.value(r'"\U0001F600"'), "\U0001F600")
+
+    def test_the_other_escapes_are_decoded_too(self) -> None:
+        self.assertEqual(self.value(r'"a\tb\nc\\d\"e\/f"'), 'a\tb\nc\\d"e/f')
+        self.assertEqual(self.value(r'"\0\a\e"'), "\0\a\x1b")
+        self.assertEqual(self.value(r'"x\_y\Nz"'), "x\xa0y\x85z")
+
+    def test_a_code_point_past_unicode_is_an_error(self) -> None:
+        _, _, _, problems = audit_skills.parse_frontmatter('---\nk: "\\UFFFFFFFF"\n---\n')
+        self.assertTrue(any(level == "ERROR" for _, level, _ in problems))
+
+    def test_a_skill_named_with_an_escape_is_not_a_naming_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f'---\nname: "d\\u0065mo"\n{DESC}---\n\nBody.\n')
+            code, report = report_of(str(Path(tmp) / "demo"))
+        self.assertNotIn("G-FM-02", ids(report["skills"][0], "ERROR"))
+        self.assertEqual(report["skills"][0]["name"], "demo")
+
+
+class TestHomeRelativeTargets(unittest.TestCase):
+    def test_a_home_relative_stub_that_exists_resolves(self) -> None:
+        with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as tmp:
+            put(Path(home), ".agents/skills/foo/SKILL.md", f"---\nname: foo\n{DESC}---\n\nBody.\n")
+            put(Path(tmp), "demo/SKILL.md",
+                f"---\nname: demo\n{DESC}---\n\nRead ~/.agents/skills/foo/SKILL.md in full and follow it.\n")
+            env = {"HOME": home, "USERPROFILE": home}
+            with mock.patch.dict(os.environ, env):
+                found = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+        self.assertNotIn(("G-STRUCT-08", "ERROR"), levels(found))
+
+    def test_a_home_relative_stub_that_is_not_here_is_not_called_dead(self) -> None:
+        with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md",
+                f"---\nname: demo\n{DESC}---\n\nRead ~/.agents/skills/foo/SKILL.md in full and follow it.\n")
+            with mock.patch.dict(os.environ, {"HOME": home, "USERPROFILE": home}):
+                found = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+        self.assertNotIn(("G-STRUCT-08", "ERROR"), levels(found))
+        self.assertIn(("G-STRUCT-08", "INFO"), levels(found))
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 

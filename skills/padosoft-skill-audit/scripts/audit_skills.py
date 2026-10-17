@@ -252,7 +252,10 @@ class FrontmatterError(ValueError):
 
 YAML_ESCAPES = set("0abt\tnvfre \"/\\N_LPxuU")
 HEX_ESCAPES = {"x": 2, "u": 4, "U": 8}
-_ESCAPES = {"n": "\n", "t": "\t", '"': '"', "\\": "\\", "/": "/"}
+_ESCAPES = {
+    "n": "\n", "t": "\t", "r": "\r", "0": "\0", "a": "\a", "b": "\b", "v": "\v", "f": "\f", "e": "\x1b",
+    " ": " ", '"': '"', "\\": "\\", "/": "/", "N": "\x85", "_": "\xa0", "L": "\u2028", "P": "\u2029",
+}
 
 
 def _quoted_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) -> str:
@@ -267,6 +270,14 @@ def _quoted_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) 
         if quote == '"' and ch == "\\" and i + 1 < len(value):
             nxt = value[i + 1]
             digits = HEX_ESCAPES.get(nxt)
+            if digits and re.fullmatch(r"[0-9a-fA-F]{%d}" % digits, value[i + 2:i + 2 + digits]):
+                code = int(value[i + 2:i + 2 + digits], 16)
+                if code <= 0x10FFFF:
+                    out.append(chr(code))
+                    i += 2 + digits
+                    continue
+                problems.append((line, "ERROR", f"'\\{nxt}{value[i + 2:i + 2 + digits]}' is beyond the last "
+                                                "Unicode code point"))
             if nxt not in YAML_ESCAPES:
                 problems.append((line, "ERROR", f"'\\{nxt}' is not a YAML escape: a double-quoted value rejects it, so "
                                                 "the skill loads with no fields. Double the backslash or use single quotes"))
@@ -842,6 +853,11 @@ def _suppressed(lines: list[str], index: int) -> bool:
 
 
 def _resolves(target: str, candidates: list[Path]) -> bool:
+    if target.startswith("~"):
+        try:
+            return Path(target).expanduser().exists()
+        except (RuntimeError, OSError):  # no home directory to expand against
+            return False
     return any((base / target).exists() for base in candidates)
 
 
@@ -927,7 +943,10 @@ def check_links_and_paths(skill: Skill, files: list[Path]) -> None:
                           "say in the text that it is a project script")
                 continue
             if not _resolves(target, bases):
-                if kind == "path" and md_file != skill.entry:
+                if target.startswith("~"):
+                    skill.add("G-STRUCT-08", "INFO", md_file, index + 1,
+                              f"home-relative path {target} is not on this machine: cannot tell if it is dead")
+                elif kind == "path" and md_file != skill.entry:
                     # A reference file mentions paths as examples far more often than SKILL.md does.
                     skill.add("G-STRUCT-08", "INFO", md_file, index + 1,
                               f"mentioned path not found: {target} (ignore it if it is an example)")
@@ -971,8 +990,12 @@ def _depth_and_stubs(skill: Skill, md_docs, linked_from_skill: set[Path]) -> Non
             continue
         anywhere = [skill.folder, *skill.folder.parents][:14]  # the project root may be above the scan root
         if not _resolves(target, anywhere):
-            skill.add("G-STRUCT-08", "ERROR", skill.entry, index + 1,
-                      f"the SKILL.md this skill sends the reader to does not exist: {target}")
+            if target.startswith("~"):  # another machine may have it where this one does not
+                skill.add("G-STRUCT-08", "INFO", skill.entry, index + 1,
+                          f"the home-relative SKILL.md {target} is not on this machine: cannot tell if it is dead")
+            else:
+                skill.add("G-STRUCT-08", "ERROR", skill.entry, index + 1,
+                          f"the SKILL.md this skill sends the reader to does not exist: {target}")
         skill.add("G-STRUCT-09", "WARN", skill.entry, index + 1,
                   f"this skill sends the reader to another SKILL.md ({target}): one source of truth, ideally a "
                   "symlink, keeps the two descriptions from drifting and saves a reference level")

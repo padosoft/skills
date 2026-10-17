@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import http.client
 import json
 import re
 import sys
@@ -36,6 +37,8 @@ import urllib.request
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+# Every way a fetch can fail without being a bug here: no network, an HTTP error, a response cut short.
+FETCH_ERRORS = (OSError, urllib.error.URLError, http.client.HTTPException, ValueError)
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST = SKILL_DIR / "references" / "sources.json"
 DEFAULT_SKILL_MD = SKILL_DIR / "SKILL.md"
@@ -216,7 +219,7 @@ def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | 
             return pages[key]
         try:
             pages[key] = fetcher.get(key, url, timeout)
-        except (OSError, urllib.error.URLError, ValueError) as exc:
+        except FETCH_ERRORS as exc:
             pages[key] = None
             result.unreachable.append(Item("unreachable", key, f"{url}: {exc}"))
             return None
@@ -229,7 +232,7 @@ def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | 
         # Not a source of rules: a failure here (offline, or a copy not merged yet) is a note, not "unverifiable".
         try:
             remote_text = fetcher.get("upstream-skill", upstream["skill_md"])
-        except (OSError, urllib.error.URLError, ValueError) as exc:
+        except FETCH_ERRORS as exc:
             remote_text = None
             result.notes.append(f"published copy not readable, copy check skipped: {exc}")
         remote = skill_version(remote_text) if remote_text else None
@@ -389,7 +392,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.rebaseline:
         try:
             notes = rebaseline(manifest, fetcher)
-        except (OSError, urllib.error.URLError, ValueError) as exc:
+        except FETCH_ERRORS as exc:
             print(f"Rebaseline aborted, manifest untouched: {exc}", file=sys.stderr)
             return 2
         args.manifest.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
