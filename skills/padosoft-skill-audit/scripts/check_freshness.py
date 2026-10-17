@@ -129,6 +129,7 @@ def headings_of(markdown: str) -> list[str]:
 
 
 def models_in(text: str) -> set[str]:
+    text = re.sub(r"[`*_]", "", html.unescape(text))  # emphasis and code markers are not part of a name
     text = re.sub(r"\s+", " ", text)  # a soft-wrapped "Claude Opus\n6" is the same name
     names = {f"{family} {version}" for family, version in MODEL_RE.findall(text)}
     names |= {f"{family} {version}" for family, version in FAMILY_RE.findall(text) if family not in NOT_A_MODEL}

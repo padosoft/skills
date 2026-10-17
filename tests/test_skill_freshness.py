@@ -215,6 +215,14 @@ class TestFreshnessCheck(unittest.TestCase):
         self.assertIn("HTML", result.stderr)
         self.assertEqual(self.fx.manifest_path.read_text(encoding="utf-8"), before, "the manifest must be untouched")
 
+    def test_markdown_formatting_does_not_hide_a_model_name(self) -> None:
+        for text in ("Introducing Claude **Opus 6**.", "Introducing Claude Opus **6**.", "Introducing `Claude Opus 6`.",
+                     "Introducing _Claude Opus 6_.", "Introducing [Claude Opus 6](https://example.com/opus-6)."):
+            self.fx.write_pages(models=PAGE_MODELS + text)
+            code, report = self.fx.run()
+            self.assertEqual(code, 1, text)
+            self.assertIn("Opus 6", [i["detail"] for i in report["drift"] if i["kind"] == "new-model"], text)
+
     def test_html_entities_do_not_hide_a_model_name(self) -> None:
         (self.fx.pages / "models.md").unlink()
         (self.fx.pages / "models.html").write_text(
