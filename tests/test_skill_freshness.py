@@ -201,6 +201,20 @@ class TestFreshnessCheck(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("missing-anchor", self.kinds(report))
 
+    def test_rebaseline_refuses_a_source_that_has_no_structure_to_record(self) -> None:
+        (self.fx.pages / "rules.md").unlink()
+        (self.fx.pages / "rules.html").write_text("<h2>Keep it short</h2><p>text</p>", encoding="utf-8")
+        self.fx.manifest_path.write_text(json.dumps(self.fx.data), encoding="utf-8")
+        before = self.fx.manifest_path.read_text(encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--manifest", str(self.fx.manifest_path), "--offline", str(self.fx.pages),
+             "--rebaseline"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT,
+        )
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("HTML", result.stderr)
+        self.assertEqual(self.fx.manifest_path.read_text(encoding="utf-8"), before, "the manifest must be untouched")
+
     def test_a_field_table_that_cannot_be_read_is_drift_not_silence(self) -> None:
         self.fx.write_pages(fields=PAGE_FIELDS.replace("`", ""))
         code, report = self.fx.run()

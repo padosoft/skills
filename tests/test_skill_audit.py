@@ -673,6 +673,55 @@ class TestLinkedContainerExposure(unittest.TestCase):
         self.assertIn(("G-FM-02", "WARN"), levels(claude_only["skills"][0]), "alone, .claude/skills is not shared")
 
 
+class TestSyncedKindAndReads(unittest.TestCase):
+    def test_a_synced_file_is_synced_whichever_path_found_it_first(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/synced/u1/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nBody.\n")
+            (root / ".agents" / "skills").mkdir(parents=True)
+            if not link_directory(root / ".agents" / "skills" / "demo", root / ".claude" / "skills" / "synced" / "u1" / "demo"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            first = report_of(str(root / ".agents"), str(root / ".claude"))[1]
+            second = report_of(str(root / ".claude"), str(root / ".agents"))[1]
+        self.assertEqual([s["kind"] for s in first["skills"]], ["synced"])
+        self.assertEqual([s["kind"] for s in second["skills"]], ["synced"])
+
+    def test_a_linked_markdown_file_that_cannot_be_read_makes_the_audit_incomplete(self) -> None:
+        real_read = audit_skills.read_text
+
+        def read(path):
+            if Path(path).name == "rules.md":
+                raise PermissionError(13, "Permission denied", str(path))
+            return real_read(path)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nRead [the rules](references/rules.md) first.\n")
+            put(Path(tmp), "demo/references/rules.md", "# Rules\n\nBe kind.\n")
+            err, out = io.StringIO(), io.StringIO()
+            with mock.patch.object(audit_skills, "read_text", read), \
+                    contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+                code = audit_skills.main([str(Path(tmp) / "demo")])
+        self.assertEqual(code, 2)
+        self.assertIn("rules.md", err.getvalue())
+
+    def test_unrelated_text_does_not_excuse_an_undeclared_import(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md",
+                f"---\nname: demo\n{DESC}---\n\nQuestions go to someone@example.com or the @scope/package module.\n"
+                "Run `python3 scripts/fetch.py`.\n")
+            put(Path(tmp), "demo/scripts/fetch.py", "import requests\n\nprint(requests.__name__)\n")
+            found = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+        self.assertIn(("G-SCRIPT-08", "WARN"), levels(found))
+
+    def test_a_dependency_that_is_named_is_declared(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md",
+                f"---\nname: demo\n{DESC}---\n\nInstall requests first: `pip install requests`. Run `python3 scripts/fetch.py`.\n")
+            put(Path(tmp), "demo/scripts/fetch.py", "import requests\n\nprint(requests.__name__)\n")
+            found = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+        self.assertNotIn(("G-SCRIPT-08", "WARN"), levels(found))
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 

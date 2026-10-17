@@ -304,6 +304,8 @@ def rebaseline(manifest: dict, fetcher: Fetcher) -> list[str]:
         if not source.get("fetch", True):
             continue
         text = fetcher.get(source["key"], source["url"], source.get("timeout"))
+        if source.get("track_headings") and source["key"] in fetcher.flattened:
+            raise ValueError(f"{source['key']} was served as HTML, which has no headings to record: use a Markdown copy")
         if source.get("track_headings"):
             source["headings"] = headings_of(text)
             notes.append(f"{source['key']}: {len(source['headings'])} headings")
@@ -313,6 +315,8 @@ def rebaseline(manifest: dict, fetcher: Fetcher) -> list[str]:
     fields_cfg = manifest.get("claude_code_fields")
     if fields_cfg and fields_cfg.get("source") in by_key:
         text = fetcher.get(fields_cfg["source"], by_key[fields_cfg["source"]]["url"])
+        if fields_cfg["source"] in fetcher.flattened:
+            raise ValueError(f"{fields_cfg['source']} was served as HTML, which has no field table to record")
         found = cc_fields_in(text, fields_cfg.get("section", "Frontmatter reference"))
         if found:
             fields_cfg["known"] = sorted(found)

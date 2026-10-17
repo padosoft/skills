@@ -462,6 +462,8 @@ def discover(roots: list[Path], with_commands: bool) -> tuple[list[Skill], list[
             # Same file through another path (a symlink): audit it once, but remember where else it is exposed,
             # so the order the roots are given in cannot change whether it is held to the shared-skill rules.
             seen[key].aliases.append(location)
+            if kind == "synced":  # the read-only classification must not depend on which path came first
+                seen[key].kind = "synced"
             return
         skill = Skill(entry=entry, root=root, kind=kind, location=location)
         seen[key] = skill
@@ -895,6 +897,7 @@ def check_links_and_paths(skill: Skill, files: list[Path]) -> None:
             md_docs.append((md, read_text(md).split("\n"), 0))
         except OSError as exc:
             skill.add("G-STRUCT-08", "WARN", md, 1, f"cannot read: {exc}")
+            skill.unreadable.append(f"cannot read {skill.rel(md)}: {exc.strerror or exc}")
     linked_from_skill: set[Path] = set()
     for md_file, lines, start in md_docs:
         bases = _bases(skill, md_file)
@@ -1210,7 +1213,7 @@ def _python_script(skill: Skill, path: Path, mentioned: str) -> None:
                           f"interactive '{called}()': an agent shell cannot answer it. Take a flag, env var or stdin")
     if not third_party or "# /// script" in source:
         return
-    undeclared = [n for n in third_party if n.lower() not in mentioned and PIP_NAMES.get(n, "@") not in mentioned]
+    undeclared = [n for n in third_party if n.lower() not in mentioned and PIP_NAMES.get(n, n.lower()) not in mentioned]
     if undeclared:
         skill.add("G-SCRIPT-08", "WARN", path, min(third_party[n] for n in undeclared),
                   f"imports {', '.join(sorted(undeclared))} with no declared dependency: add a PEP 723 block or an "
