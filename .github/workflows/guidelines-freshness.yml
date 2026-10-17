@@ -29,15 +29,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Exit 0 aligned or partial, 1 drift, 2 nothing readable. Drift and "nothing readable" are different
-      # problems: the first needs a person to read the pages, the second is usually a network blip.
+      # One invocation: its exit code decides what happens next and its output is the report, so the two can
+      # never disagree, and the pages are fetched once. Exit 0 aligned or partial, 1 drift, 2 nothing readable.
       - name: Check
         id: check
         run: |
           set +e
-          python3 skills/padosoft-skill-audit/scripts/check_freshness.py --no-version-check --json > "$RUNNER_TEMP/freshness.json"
+          python3 skills/padosoft-skill-audit/scripts/check_freshness.py --no-version-check > "$RUNNER_TEMP/freshness.txt"
           echo "code=$?" >> "$GITHUB_OUTPUT"
-          python3 skills/padosoft-skill-audit/scripts/check_freshness.py --no-version-check | tee "$RUNNER_TEMP/freshness.txt"
+          cat "$RUNNER_TEMP/freshness.txt"
           exit 0
 
       - name: Open or update the drift issue

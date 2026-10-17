@@ -159,6 +159,13 @@ class TestFreshnessCheck(unittest.TestCase):
         self.assertIn(("new-field", "model-notes"), details)
         self.assertIn(("removed-field", "name"), details)
 
+    def test_a_field_table_that_cannot_be_read_is_drift_not_silence(self) -> None:
+        self.fx.write_pages(fields=PAGE_FIELDS.replace("`", ""))
+        code, report = self.fx.run()
+        self.assertEqual(code, 1)
+        self.assertIn("unreadable-fields", self.kinds(report))
+        self.assertIn("G-FM-04", report["rules_to_recheck"])
+
     def test_an_outdated_copy_says_how_to_update(self) -> None:
         self.fx.write_pages(upstream=skill_md("0.2.0"))
         code, report = self.fx.run()

@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import bisect
 import difflib
 import json
 import os
@@ -239,18 +240,49 @@ class FrontmatterError(ValueError):
         self.line = line
 
 
+_ESCAPES = {"n": "\n", "t": "\t", '"': '"', "\\": "\\", "/": "/"}
+
+
+def _quoted_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) -> str:
+    """A YAML quoted scalar: the text between the quotes, honouring escapes, with what follows it checked.
+
+    A value that opens a quote and never closes it is rejected by every YAML loader, so the skill would load
+    with no fields: that is reported, not tolerated. A trailing ' # comment' is legal and dropped.
+    """
+    quote, out, i = value[0], [], 1
+    while i < len(value):
+        ch = value[i]
+        if quote == '"' and ch == "\\" and i + 1 < len(value):
+            nxt = value[i + 1]
+            out.append(_ESCAPES.get(nxt, "\\" + nxt))
+            i += 2
+            continue
+        if quote == "'" and ch == "'" and value[i + 1:i + 2] == "'":
+            out.append("'")
+            i += 2
+            continue
+        if ch == quote:
+            rest = value[i + 1:].strip()
+            if rest and not rest.startswith("#"):
+                problems.append((line, "ERROR", f"text after the closing quote ({rest[:30]!r}): YAML rejects the "
+                                                "value, so the skill loads with no fields"))
+            return "".join(out)
+        out.append(ch)
+        i += 1
+    problems.append((line, "ERROR", f"the quoted value opened with {quote} is never closed: YAML rejects it, so the "
+                                    "skill loads with no fields. Close the quote or use '>-'"))
+    return "".join(out)
+
+
 def _unquote(value: str) -> str:
-    if len(value) >= 2 and value[0] == value[-1] == '"':
-        return value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
-    if len(value) >= 2 and value[0] == value[-1] == "'":
-        return value[1:-1].replace("''", "'")
-    return value
+    """Quoted list items and the like; problems with them are not worth a finding of their own."""
+    return _quoted_scalar(value, 0, []) if value[:1] in ("'", '"') else value
 
 
 def _plain_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) -> str:
     """A YAML plain scalar, with the two ways it silently breaks a real YAML parser checked."""
     if value.startswith(("'", '"')):
-        return _unquote(value)
+        return _quoted_scalar(value, line, problems)
     if value.startswith(("[", "{")):
         return value
     if value[:1] in ("`", "@", "%", "*", "&"):
@@ -325,9 +357,10 @@ def _value(value: str, block: list[str], line: int, problems: list[tuple[int, st
                 nested[k.strip()] = _plain_scalar(v.strip(), line + 1 + offset, problems) if v.strip() else ""
             return nested
         return " ".join(items)
-    if value.startswith(('"', "'")) and not (len(value) >= 2 and value[-1] == value[0]):
-        value = " ".join([value, *[t for t in texts if t]])  # a quoted scalar spanning lines
-        return _unquote(value)
+    if value.startswith(('"', "'")):
+        if texts and any(texts):
+            value = " ".join([value, *[t for t in texts if t]])  # a quoted scalar spanning lines
+        return _quoted_scalar(value, line, problems)
     if texts and any(texts):
         value = " ".join([value, *[t for t in texts if t]])  # a multi-line plain scalar
     return _plain_scalar(value, line, problems)
@@ -352,14 +385,34 @@ def discover(roots: list[Path], with_commands: bool) -> tuple[list[Skill], list[
 
     for root in roots:
         if root.is_file():
-            kind = "skill" if root.name == "SKILL.md" else "command"
-            add(root, root.parent.parent if kind == "skill" else root.parent, kind, "direct" if kind == "skill" else "command")
+            if root.name != "SKILL.md":
+                add(root, root.parent, "command", "command")
+                continue
+            kind, location = _layout_of(root)
+            add(root, root.parent.parent, kind, location)
             continue
         if (root / "SKILL.md").is_file():
-            add(root / "SKILL.md", root.parent, "skill", "direct")
+            kind, location = _layout_of(root / "SKILL.md")
+            add(root / "SKILL.md", root.parent, kind, location)
             continue
         _walk(root, with_commands, add, walk_errors)
     return found, walk_errors
+
+
+def _layout_of(skill_md: Path) -> tuple[str, str]:
+    """(kind, location) of a skill named directly on the command line, read from the folders around it.
+
+    Narrowing an audit to one skill must not change what is checked: a skill under .agents/skills is shared
+    with other agents, one under .claude/skills/synced is a claude.ai copy, whichever way it was reached.
+    """
+    folder = skill_md.absolute().parent
+    for ancestor in (folder.parent.parent, folder.parent.parent.parent):
+        if ancestor.name == "synced" and ancestor.parent.name == "skills" and ancestor.parent.parent.name == ".claude":
+            return "synced", "claude"
+    if folder.parent.name == "skills":
+        location = _skills_dir_location(folder.parent, folder.parent.parent)
+        return "skill", location or "catalog"
+    return "skill", "direct"
 
 
 def _skills_dir_location(skills_dir: Path, root: Path) -> str | None:
@@ -734,6 +787,10 @@ def _depth_and_stubs(skill: Skill, md_docs, linked_from_skill: set[Path]) -> Non
         target = m.group(0)
         if _norm(skill.folder / target) == _norm(skill.entry):
             continue
+        anywhere = [skill.folder, *skill.folder.parents][:14]  # the project root may be above the scan root
+        if not _resolves(target, anywhere):
+            skill.add("G-STRUCT-08", "ERROR", skill.entry, index + 1,
+                      f"the SKILL.md this skill sends the reader to does not exist: {target}")
         skill.add("G-STRUCT-09", "WARN", skill.entry, index + 1,
                   f"this skill sends the reader to another SKILL.md ({target}): one source of truth, ideally a "
                   "symlink, keeps the two descriptions from drifting and saves a reference level")
@@ -812,6 +869,80 @@ class _Aggregate:
             skill.add(rule_id, level, path, lines[0], f"{message} (line{'s' if len(lines) > 1 else ''} {shown}{more})")
 
 
+LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
+# A sentence that forbids the behaviour ("Never show your reasoning") is the rule being followed, not broken.
+NEGATION_BEFORE = re.compile(
+    r"(?i)\b(?:never|do\s+not|don'?t|must\s+not|should\s+not|avoid|without|not\s+to|non|mai|senza|evita|evitare|vietato)\b"
+    r"[^.!?;:\n]{0,40}$"
+)
+NEGATION_WINDOW = 60
+PHRASE_RULES = (
+    (REASONING_EXTRACTION, "G-GEN-05", "ERROR",
+     "asks the model to write out its reasoning in the response: the current Opus and Fable models may refuse "
+     "(reasoning_extraction). Ask for a short explanation or a summary instead"),
+    (THINKING_SCRIPT, "G-GEN-06", "INFO",
+     "scripts the thinking ('think step by step'): thinking depth is set by effort; usually removable"),
+    (GENERIC_VERIFY, "G-GEN-07", "INFO",
+     "generic re-check instruction: keep it only if it names an objective check (script, tests, build); on the "
+     "current Opus models it causes over-verification"),
+    (ANTI_LAZINESS, "G-GEN-11", "INFO",
+     "anti-laziness prompt written for older models: effort and concrete gates do this now"),
+    (TIME_SENSITIVE, "G-BODY-10", "WARN",
+     "time-sensitive wording: state the current method and move the legacy one under 'Old patterns'"),
+)
+
+
+def _mask(text: str) -> str:
+    """Blank out inline code and quoted examples without moving anything, so match offsets stay valid."""
+    def blank(m: re.Match) -> str:
+        return " " * len(m.group(0))
+
+    return QUOTED.sub(blank, INLINE_CODE.sub(blank, text))
+
+
+def _paragraphs(lines: list[str], start: int):
+    """Runs of soft-wrapped prose as [(line index, text)]. Blank lines, headings, bullets, tables and fences end one."""
+    current: list[tuple[int, str]] = []
+    previous = -2
+    for index, line in iter_prose(lines, start):
+        single = bool(HEADING.match(line)) or line.lstrip().startswith("|")
+        if current and (not line.strip() or single or LIST_ITEM.match(line) or index != previous + 1):
+            yield current
+            current = []
+        previous = index
+        if single:
+            yield [(index, line.strip())]
+        elif line.strip():
+            current.append((index, line.strip()))
+    if current:
+        yield current
+
+
+def _phrase_findings(agg: "_Aggregate", path: Path, lines: list[str], start: int) -> None:
+    """The phrase rules, matched across line wraps and skipped when the sentence forbids the behaviour."""
+    for paragraph in _paragraphs(lines, start):
+        joined = " ".join(text for _, text in paragraph)
+        starts, offset = [], 0
+        for _, text in paragraph:
+            starts.append(offset)
+            offset += len(text) + 1
+        prose = _mask(joined)
+        reasoning_lines: set[int] = set()
+        for pattern, rule_id, level, message in PHRASE_RULES:
+            for m in pattern.finditer(prose):
+                index = paragraph[bisect.bisect_right(starts, m.start()) - 1][0]
+                if _suppressed(lines, index):
+                    continue
+                window = prose[max(0, m.start() - NEGATION_WINDOW):m.start()]
+                if rule_id != "G-BODY-10" and NEGATION_BEFORE.search(window):
+                    continue
+                if rule_id == "G-GEN-06" and index in reasoning_lines:
+                    continue
+                if rule_id == "G-GEN-05":
+                    reasoning_lines.add(index)
+                agg.hit(rule_id, level, path, index + 1, message)
+
+
 def check_content(skill: Skill, files: list[Path]) -> None:
     docs = [(skill.entry, skill.lines, skill.body_start)]
     for md in _md_files(skill, files):
@@ -836,23 +967,6 @@ def check_content(skill: Skill, files: list[Path]) -> None:
             prose = QUOTED.sub(" ", INLINE_CODE.sub(" ", line))
             if not (line.lstrip().startswith("|") and re.search(r"\|\s*(MUST|SHOULD|MAY)\s*\|", line)):
                 caps_lines.extend([index + 1] * len(_caps_hits(line)))
-            if REASONING_EXTRACTION.search(prose):
-                agg.hit("G-GEN-05", "ERROR", path, index + 1,
-                        "asks the model to write out its reasoning in the response: the current Opus and Fable "
-                        "models may refuse (reasoning_extraction). Ask for a short explanation or a summary instead")
-            elif THINKING_SCRIPT.search(prose):
-                agg.hit("G-GEN-06", "INFO", path, index + 1,
-                        "scripts the thinking ('think step by step'): thinking depth is set by effort; usually removable")
-            if GENERIC_VERIFY.search(prose):
-                agg.hit("G-GEN-07", "INFO", path, index + 1,
-                        "generic re-check instruction: keep it only if it names an objective check (script, tests, "
-                        "build); on the current Opus models it causes over-verification")
-            if ANTI_LAZINESS.search(prose):
-                agg.hit("G-GEN-11", "INFO", path, index + 1,
-                        "anti-laziness prompt written for older models: effort and concrete gates do this now")
-            if TIME_SENSITIVE.search(prose):
-                agg.hit("G-BODY-10", "WARN", path, index + 1,
-                        "time-sensitive wording: state the current method and move the legacy one under 'Old patterns'")
             if (not in_models_file and MODEL_NAME.search(prose) and "model" not in heading.lower()
                     and skill.kind != "synced"):
                 agg.hit("G-MODEL-04", "INFO", path, index + 1,
@@ -860,6 +974,7 @@ def check_content(skill: Skill, files: list[Path]) -> None:
                         "differences to references/models/<family>.md behind a 'Model notes' section")
             if PLACEHOLDER.search(prose):
                 agg.hit("G-BODY-01", "INFO", path, index + 1, "TODO or unfilled {{placeholder}} left in the text")
+        _phrase_findings(agg, path, lines, start)
         body_lines = max(1, len(lines) - start)
         count = len(caps_lines)
         if count >= CAPS_ABSOLUTE or (count >= CAPS_DENSITY_MIN and body_lines / count <= CAPS_DENSITY_LINES):
@@ -1021,7 +1136,6 @@ def audit(roots: list[Path], with_commands: bool = True, shared: bool = False) -
     for skill in skills:
         audit_skill(skill, shared)
     library = library_checks(skills)
-    library.extend(Finding("G-STRUCT-08", "INFO", "", 0, message) for message in walk_errors)
     all_findings = [f for s in skills for f in s.findings] + library
     return {
         "roots": [r.as_posix() for r in roots],
@@ -1038,6 +1152,7 @@ def audit(roots: list[Path], with_commands: bool = True, shared: bool = False) -
             for s in sorted(skills, key=lambda s: s.rel(s.entry))
         ],
         "library_findings": [f.as_dict() for f in sorted(library, key=_order)],
+        "incomplete": walk_errors,
         "summary": {
             "skills": sum(1 for s in skills if s.kind != "command"),
             "commands": sum(1 for s in skills if s.kind == "command"),
@@ -1120,6 +1235,12 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
         print_text(report, args.min_level)
+    if report["incomplete"]:
+        # Folders that could not be read are skills that were never looked at: never report that as a pass.
+        print("error: the inventory is incomplete, so this audit cannot be trusted:", file=sys.stderr)
+        for message in report["incomplete"]:
+            print(f"  {message}", file=sys.stderr)
+        return 2
     summary = report["summary"]
     blocking = summary["errors"] + (summary["warnings"] if args.strict else 0)
     return 1 if blocking else 0

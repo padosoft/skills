@@ -247,11 +247,14 @@ def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | 
         text = pages.get(key) or page(key, by_key[key]["url"])
         if text is not None:
             found, known = cc_fields_in(text, fields_cfg.get("section", "Frontmatter reference")), set(fields_cfg.get("known", []))
-            if found:  # an empty parse means the page moved, which the anchors already report
-                for name in sorted(found - known):
-                    result.drift.append(Item("new-field", key, name, ["G-FM-03", "G-FM-04"]))
-                for name in sorted(known - found):
-                    result.drift.append(Item("removed-field", key, name, ["G-FM-03", "G-FM-04"]))
+            if not found:
+                # Not "nothing changed": the table is gone or its format changed, and no field was checked.
+                result.drift.append(Item("unreadable-fields", key, "no field names could be read from the "
+                                         f"{fields_cfg.get('section', 'Frontmatter reference')!r} table", ["G-FM-03", "G-FM-04"]))
+            for name in sorted(found - known):
+                result.drift.append(Item("new-field", key, name, ["G-FM-03", "G-FM-04"]))
+            for name in sorted(known - found if found else set()):
+                result.drift.append(Item("removed-field", key, name, ["G-FM-03", "G-FM-04"]))
 
     if not model:
         result.model = "not given"
@@ -302,6 +305,7 @@ def render(result: Result) -> str:
         "new-model": "Model not covered by the rules yet",
         "new-field": "New Claude Code frontmatter field",
         "removed-field": "Claude Code frontmatter field no longer documented",
+        "unreadable-fields": "The Claude Code frontmatter table could not be read",
         "uncovered-model": "The running model is not covered by the rules",
     }
     out: list[str] = []

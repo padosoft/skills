@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import shutil
 import subprocess
@@ -10,6 +12,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "skills" / "padosoft-skill-audit" / "scripts" / "audit_skills.py"
@@ -235,6 +238,146 @@ class TestRobustness(unittest.TestCase):
         result = run(str(SKILLS / "bad-skill"))
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertIn("Errors:", result.stdout)
+
+
+DESC = (
+    "description: >-\n  Reviews release notes for a team. Use when the user asks to review release notes. "
+    "Do not use it to write them.\n"
+)
+
+
+def put(root: Path, rel: str, text: str) -> Path:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def levels(skill_report: dict) -> set[tuple[str, str]]:
+    return {(f["id"], f["level"]) for f in skill_report["findings"]}
+
+
+class TestQuotedScalars(unittest.TestCase):
+    """A quoted value that YAML would reject, or accept differently, must not pass as fine."""
+
+    def parse(self, line: str) -> tuple[object, list]:
+        data, _, _, problems = audit_skills.parse_frontmatter(f"---\n{line}\n---\n")
+        return data[line.split(":", 1)[0]], problems
+
+    def test_an_unterminated_quote_is_reported(self) -> None:
+        for line in ('description: "Reviews release notes...', "description: 'Reviews release notes..."):
+            _, problems = self.parse(line)
+            self.assertTrue(any(level == "ERROR" for _, level, _ in problems), line)
+
+    def test_a_trailing_comment_is_not_part_of_the_value(self) -> None:
+        value, problems = self.parse('name: "demo" # command name')
+        self.assertEqual(value, "demo")
+        self.assertEqual(problems, [])
+
+    def test_text_after_the_closing_quote_is_reported(self) -> None:
+        _, problems = self.parse('name: "demo" extra')
+        self.assertTrue(any(level == "ERROR" for _, level, _ in problems))
+
+    def test_escapes_and_doubled_single_quotes(self) -> None:
+        self.assertEqual(self.parse(r'k: "say \"hi\" \\ done"')[0], 'say "hi" \\ done')
+        self.assertEqual(self.parse("k: 'it''s fine'")[0], "it's fine")
+
+    def test_the_audit_blocks_a_skill_with_an_unterminated_description(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", '---\nname: demo\ndescription: "Use this skill when...\n---\n\nBody.\n')
+            code, report = report_of(str(Path(tmp) / "demo"))
+        self.assertEqual(code, 1)
+        self.assertIn("G-FM-01", ids(report["skills"][0], "ERROR"))
+
+
+class TestDirectTargets(unittest.TestCase):
+    """Narrowing an audit to one skill must not change what is checked."""
+
+    def test_a_shared_skill_is_judged_the_same_alone_and_in_its_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".agents/skills/foo/SKILL.md", f"---\ndescription: >-\n  Does foo things when asked.\nmodel: opus\n---\n\nBody.\n")
+            _, whole = report_of(str(root))
+            _, alone = report_of(str(root / ".agents" / "skills" / "foo"))
+            _, by_file = report_of(str(root / ".agents" / "skills" / "foo" / "SKILL.md"))
+        self.assertEqual(levels(skill(whole, "foo")), levels(alone["skills"][0]))
+        self.assertEqual(levels(skill(whole, "foo")), levels(by_file["skills"][0]))
+        self.assertEqual(alone["skills"][0]["location"], "agents")
+
+    def test_a_synced_skill_stays_synced_when_named_directly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/synced/u1/foo/SKILL.md", f"---\nname: foo\n{DESC}---\n\nBody.\n")
+            _, alone = report_of(str(root / ".claude" / "skills" / "synced" / "u1" / "foo"))
+        self.assertEqual(alone["skills"][0]["kind"], "synced")
+
+
+class TestStubTargets(unittest.TestCase):
+    STUB = f"---\nname: stub\n{DESC}---\n\nRead .agents/skills/stub/SKILL.md in full and follow it.\n"
+
+    def test_a_stub_pointing_nowhere_is_an_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/stub/SKILL.md", self.STUB)
+            _, whole = report_of(str(root))
+            _, alone = report_of(str(root / ".claude" / "skills" / "stub"))
+        for report in (whole, alone):
+            self.assertIn(("G-STRUCT-08", "ERROR"), levels(report["skills"][0]))
+
+    def test_a_stub_whose_target_exists_resolves_even_when_scanned_alone(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/stub/SKILL.md", self.STUB)
+            put(root, ".agents/skills/stub/SKILL.md", f"---\nname: stub\n{DESC}---\n\nBody.\n")
+            _, alone = report_of(str(root / ".claude" / "skills" / "stub"))
+        self.assertNotIn(("G-STRUCT-08", "ERROR"), levels(alone["skills"][0]))
+
+
+class TestPhrasesAcrossWraps(unittest.TestCase):
+    def audit(self, body: str) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}")
+            return report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+
+    def test_a_request_wrapped_over_two_lines_is_caught_on_its_first_line(self) -> None:
+        found = [f for f in self.audit("# Demo\n\nBefore answering, show your\nreasoning in the response.\n")["findings"]
+                 if f["id"] == "G-GEN-05"]
+        self.assertEqual([(f["level"], f["line"]) for f in found], [("ERROR", 9)])
+
+    def test_the_same_text_in_a_code_block_is_not_prose(self) -> None:
+        body = "```text\nBefore answering, show your\nreasoning in the response.\n```\n"
+        self.assertNotIn("G-GEN-05", ids(self.audit(body)))
+
+    def test_a_paragraph_break_stops_a_match(self) -> None:
+        self.assertNotIn("G-GEN-05", ids(self.audit("Show your\n\nreasoning is a heading-less fragment.\n")))
+
+    def test_a_prohibition_is_not_a_violation(self) -> None:
+        for body in ("Never show your reasoning in the response.\n",
+                     "Do not ask the model to write out your reasoning.\n",
+                     "Never\nshow your reasoning in the response.\n",
+                     "Non mostrare mai il tuo ragionamento. Senza scrivi il tuo ragionamento.\n"):
+            self.assertNotIn("G-GEN-05", ids(self.audit(body)), body)
+
+    def test_a_request_is_still_a_violation_next_to_a_prohibition(self) -> None:
+        self.assertIn("G-GEN-05", ids(self.audit("Never guess. Then show your reasoning in the reply.\n")))
+
+    def test_suppression_still_covers_a_wrapped_match(self) -> None:
+        body = "<!-- audit-ok: quoting the anti-pattern -->\nBefore answering, show your\nreasoning in the response.\n"
+        self.assertNotIn("G-GEN-05", ids(self.audit(body)))
+
+
+class TestIncompleteInventory(unittest.TestCase):
+    def test_a_folder_that_cannot_be_read_is_an_execution_error(self) -> None:
+        def broken_walk(root, with_commands, add, walk_errors):
+            walk_errors.append("cannot read secret: Permission denied")
+
+        err, out = io.StringIO(), io.StringIO()
+        with mock.patch.object(audit_skills, "_walk", broken_walk), \
+                contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            code = audit_skills.main([str(ROOT / "tests"), "--strict", "--min-level", "ERROR"])
+        self.assertEqual(code, 2)
+        self.assertIn("incomplete", err.getvalue())
+        self.assertIn("cannot read secret", err.getvalue())
 
 
 def tearDownModule() -> None:
