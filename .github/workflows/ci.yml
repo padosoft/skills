@@ -44,6 +44,11 @@ jobs:
             python3 "$EMAIL_SKILL/scripts/validate_skill.py" "$d"
           done
 
+      # The skills of this repository follow the rulebook they ship: ERROR-level findings fail, warnings are
+      # listed in the log. Offline by design; the freshness of the rules is checked by its own weekly workflow.
+      - name: Skills pass their own audit
+        run: python3 skills/padosoft-skill-audit/scripts/audit_skills.py skills/
+
       - name: Catalog, profiles and router aligned with the frontmatter
         run: python3 scripts/build_catalog.py --check
 

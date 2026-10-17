@@ -1,0 +1,22 @@
+[
+  { "query": "our skills were written for the old models and feel bloated, can you go through the ones in .claude/skills and tell me what to cut", "should_trigger": true },
+  { "query": "sistema le skill di questo repo, mi sa che sono troppo prescrittive per Opus 5.5", "should_trigger": true },
+  { "query": "audit the SKILL.md files in this repo against Anthropic's latest guidelines and fix whatever isn't compliant", "should_trigger": true },
+  { "query": "half of our skills have MUST and NEVER in capitals everywhere and some are 900 lines long, can you clean them up?", "should_trigger": true },
+  { "query": "my skill never triggers unless I type the slash command, and another one fires on everything. Can you review all the descriptions in ~/work/acme-app/.claude/skills?", "should_trigger": true },
+  { "query": "we have a skill for haiku and another for opus that do the same thing, merge them properly", "should_trigger": true },
+  { "query": "allinea le skill alle nuove best practice di Anthropic e dimmi cosa hai cambiato", "should_trigger": true },
+  { "query": "is there anything in our .claude/commands folder that asks the model to show its reasoning? that's supposed to get refused now", "should_trigger": true },
+  { "query": "check whether the skills we wrote last year are still the right way to do it with the new Sonnet", "should_trigger": true },
+  { "query": "run the skill audit on the shared skills in .agents/skills and tell me which ones are stubs that drifted from the original", "should_trigger": true },
+  { "query": "create a new skill that explains our Laravel naming conventions", "should_trigger": false },
+  { "query": "install the Laravel skills for this project", "should_trigger": false },
+  { "query": "write a CLAUDE.md for this repository", "should_trigger": false },
+  { "query": "review this pull request for bugs and security problems", "should_trigger": false },
+  { "query": "write a system prompt for the helpdesk chatbot we are building on the Claude API", "should_trigger": false },
+  { "query": "why is my PHP script slow? the query takes 30 seconds", "should_trigger": false },
+  { "query": "make a hook that blocks git push to main", "should_trigger": false },
+  { "query": "which Claude model should I use for this agent, Opus or Haiku?", "should_trigger": false },
+  { "query": "update the dependencies in package.json and fix the lockfile", "should_trigger": false },
+  { "query": "turn this checklist and the two post-mortems into a reusable skill for the team", "should_trigger": false }
+]
