@@ -521,6 +521,22 @@ issue labelled `guidelines-drift` when something moved, so a new model or a new 
 repository even if nobody launches the audit. The fix is made once, here, and every project gets it with the
 next update of the skill — an installed copy is never edited in place.
 
+**The weekly workflow, in short**
+
+| | |
+|---|---|
+| When | Every Monday at 06:17 UTC (`cron: "17 6 * * 1"`), and on demand from the Actions tab or with `gh workflow run guidelines-freshness.yml`. GitHub runs schedules only from the default branch, so the first run is the first Monday after this lands on `main` |
+| What it runs | `check_freshness.py` and nothing else: Python standard library, plain HTTPS requests to the public documentation pages. **No LLM, no API key, no secret to configure** |
+| What it needs | The built-in `GITHUB_TOKEN` with `contents: read` and `issues: write` (declared in the workflow), and Issues enabled on the repository |
+| Aligned | Exit 0: nothing happens, the run is green |
+| Drift | Exit 1: opens one issue labelled `guidelines-drift` (created on first use) with the list of changed pages and the rule IDs to re-check, or adds a comment to the one already open. Following [`refresh-procedure.md`](skills/padosoft-skill-audit/references/refresh-procedure.md), update `guidelines.md` and `sources.json`, run `--rebaseline`, then close the issue |
+| Pages unreadable | Exit 2: no issue, a warning in the run log. A single week of network trouble does not raise a false alarm |
+
+The check only *notices*: it never edits a rule. Deciding what a new model or a reworded page means for the
+rules is the maintainer's job, in a pull request, with the skill's help if wanted. One caveat of GitHub itself:
+scheduled workflows are switched off after 60 days without activity in the repository; if that ever happens,
+re-enable the workflow from the Actions tab.
+
 ## Contributing
 
 Issues and pull requests are welcome: a new skill, a fix to an existing one, or a profile for a stack that is
