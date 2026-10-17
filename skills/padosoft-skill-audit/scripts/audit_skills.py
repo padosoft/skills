@@ -250,6 +250,8 @@ class FrontmatterError(ValueError):
         self.line = line
 
 
+YAML_ESCAPES = set("0abt\tnvfre \"/\\N_LPxuU")
+HEX_ESCAPES = {"x": 2, "u": 4, "U": 8}
 _ESCAPES = {"n": "\n", "t": "\t", '"': '"', "\\": "\\", "/": "/"}
 
 
@@ -264,6 +266,12 @@ def _quoted_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) 
         ch = value[i]
         if quote == '"' and ch == "\\" and i + 1 < len(value):
             nxt = value[i + 1]
+            digits = HEX_ESCAPES.get(nxt)
+            if nxt not in YAML_ESCAPES:
+                problems.append((line, "ERROR", f"'\\{nxt}' is not a YAML escape: a double-quoted value rejects it, so "
+                                                "the skill loads with no fields. Double the backslash or use single quotes"))
+            elif digits and not re.fullmatch(r"[0-9a-fA-F]{%d}" % digits, value[i + 2:i + 2 + digits]):
+                problems.append((line, "ERROR", f"'\\{nxt}' needs {digits} hex digits in a YAML double-quoted value"))
             out.append(_ESCAPES.get(nxt, "\\" + nxt))
             i += 2
             continue

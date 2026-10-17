@@ -722,6 +722,27 @@ class TestSyncedKindAndReads(unittest.TestCase):
         self.assertNotIn(("G-SCRIPT-08", "WARN"), levels(found))
 
 
+class TestDoubleQuotedEscapes(unittest.TestCase):
+    def parse(self, line: str):
+        return audit_skills.parse_frontmatter(f"---\n{line}\n---\n")
+
+    def test_an_escape_yaml_does_not_know_is_an_error(self) -> None:
+        for value in (r'"C:\path\to"', r'"a \q b"', r'"\x4"', r'"\u12"'):
+            _, _, _, problems = self.parse(f"description: {value}")
+            self.assertTrue(any(level == "ERROR" for _, level, _ in problems), value)
+
+    def test_the_escapes_yaml_defines_are_fine(self) -> None:
+        for value in (r'"tab\there"', r'"line\nbreak"', r'"quote \" and \\ backslash"', r'"\x41 \u00e9 \U0001F600"',
+                      r'"nul \0 bell \a esc \e"', r'"a \/ b"', r'"nbsp \_ and \N"'):
+            _, _, _, problems = self.parse(f"description: {value}")
+            self.assertEqual(problems, [], value)
+
+    def test_single_quotes_have_no_backslash_escapes(self) -> None:
+        data, _, _, problems = self.parse(r"description: 'C:\path\to'")
+        self.assertEqual(problems, [])
+        self.assertEqual(data["description"], r"C:\path\to")
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 

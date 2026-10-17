@@ -93,7 +93,7 @@ def normalize(text: str) -> str:
 
 def html_to_text(raw: str) -> str:
     raw = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", raw)
-    return re.sub(r"(?s)<[^>]+>", " ", raw)
+    return html.unescape(re.sub(r"(?s)<[^>]+>", " ", raw))
 
 
 FENCE_RE = re.compile(r"^\s{0,3}(`{3,}|~{3,})(.*)$")
@@ -200,7 +200,7 @@ class Fetcher:
         with urllib.request.urlopen(request, timeout=timeout or self.timeout) as response:  # noqa: S310 - fixed https URLs
             body = response.read().decode("utf-8", errors="replace")
             content_type = response.headers.get("Content-Type", "")
-        if "html" in content_type and not url.endswith(".md"):
+        if "html" in content_type:
             self.flattened.add(key)
             return html_to_text(body)
         return body

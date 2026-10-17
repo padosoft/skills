@@ -215,6 +215,16 @@ class TestFreshnessCheck(unittest.TestCase):
         self.assertIn("HTML", result.stderr)
         self.assertEqual(self.fx.manifest_path.read_text(encoding="utf-8"), before, "the manifest must be untouched")
 
+    def test_html_entities_do_not_hide_a_model_name(self) -> None:
+        (self.fx.pages / "models.md").unlink()
+        (self.fx.pages / "models.html").write_text(
+            "<p>Current models: Claude&nbsp;Opus&nbsp;5.5 and Claude Sonnet 5.5. Introducing Claude&nbsp;Opus&#32;6.</p>",
+            encoding="utf-8",
+        )
+        code, report = self.fx.run()
+        self.assertEqual(code, 1)
+        self.assertEqual([i["detail"] for i in report["drift"] if i["kind"] == "new-model"], ["Opus 6"])
+
     def test_a_field_table_that_cannot_be_read_is_drift_not_silence(self) -> None:
         self.fx.write_pages(fields=PAGE_FIELDS.replace("`", ""))
         code, report = self.fx.run()
@@ -287,6 +297,56 @@ class TestFreshnessCheck(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 2)
         self.assertIn("--manifest", result.stderr)
+
+
+class TestFetcherContentType(unittest.TestCase):
+    """What the server says it sent decides how a page is read, whatever the address ended in."""
+
+    @staticmethod
+    def fetcher_module():
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("check_freshness_under_test", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["check_freshness_under_test"] = module
+        spec.loader.exec_module(module)
+        return module
+
+    @staticmethod
+    def response(body: str, content_type: str):
+        class Response:
+            headers = {"Content-Type": content_type}
+
+            def read(self) -> bytes:
+                return body.encode("utf-8")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc) -> bool:
+                return False
+
+        return Response()
+
+    def get(self, url: str, body: str, content_type: str):
+        from unittest import mock
+
+        module = self.fetcher_module()
+        fetcher = module.Fetcher(None, 5)
+        with mock.patch.object(module.urllib.request, "urlopen", return_value=self.response(body, content_type)):
+            return fetcher.get("PAGE", url), fetcher
+
+    def test_a_md_address_that_answers_html_is_converted_and_flagged(self) -> None:
+        text, fetcher = self.get("https://example.com/page.md", "<h2>Title</h2><p>Claude&nbsp;Opus&nbsp;6</p>",
+                                 "text/html; charset=utf-8")
+        self.assertNotIn("<h2>", text)
+        self.assertIn("Opus 6", self.fetcher_module().models_in(text))
+        self.assertIn("PAGE", fetcher.flattened)
+
+    def test_markdown_is_left_alone(self) -> None:
+        text, fetcher = self.get("https://example.com/page.md", "## Title\n\nBody\n", "text/markdown; charset=utf-8")
+        self.assertEqual(text, "## Title\n\nBody\n")
+        self.assertNotIn("PAGE", fetcher.flattened)
 
 
 class TestRealManifest(unittest.TestCase):
