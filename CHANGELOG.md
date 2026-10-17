@@ -4,6 +4,58 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.19.0] - 2026-10-17
+
+45 skills. The catalogue now carries the rulebook for writing skills for the current Claude models, and a
+way to bring a project's existing skills up to it.
+
+### Added
+
+- **`padosoft-skill-audit`** (`core`, global) - audits, and on request updates, the Agent Skills a project
+  already has: `.claude/skills`, `.agents/skills`, `.claude/commands`, plugin skills. It goes in phases and
+  states what it did not verify:
+  1. checks that the rules are still in line with the official pages they come from;
+  2. runs a deterministic, read-only checker;
+  3. reviews each skill for what a script cannot judge - does it pull its weight, is the description the
+     user's words with boundaries, is each step at the right freedom, which rule that must always hold
+     belongs in a hook;
+  4. reports by rule ID and, only on request, applies the approved edits to each skill's source of truth.
+- **`references/guidelines.md`** - the rulebook, with a stable ID per rule (`G-GEN-02`), a level and its
+  source. It condenses Anthropic's skill-authoring guidance, the prompting guides of the current models, the
+  Claude Code skills reference and the Agent Skills standard, and records which widespread claims they
+  confirm and which they qualify. The key change of this generation: skills written for earlier models are
+  often too prescriptive - capitals as emphasis, generic "double-check" lines, scripted thinking and
+  instructions to write out the reasoning (now refused on some models) are out; reasons, gotchas, objective
+  validators, and hooks for what must always hold are in.
+- **One skill, many models.** The rulebook settles how differences between Opus, Sonnet and Haiku are
+  handled: never a skill or a document per model; a base that works on all of them; `model:`/`effort:` in
+  Claude Code where a skill needs a given one; and, only for a gap an evaluation has measured, an appendix
+  under `references/models/<family>.md`, routed from the first lines of the skill. The audit reports a skill
+  duplicated per model.
+- **`scripts/audit_skills.py`** - the deterministic checker: frontmatter and names, description limits and
+  point of view, size and table-of-contents rules, nested references, dead links, paths, emphasis density,
+  reasoning-extraction phrasing, generic verification lines, script dependencies and prompts, duplicate and
+  mirrored skills. Standard library only, `--json`, `--strict`, exit codes 0/1/2.
+- **`scripts/check_freshness.py`** and **`references/sources.json`** - the rules do not go stale silently.
+  The manifest maps every official page to the rules that depend on it and to the sentences they rest on; the
+  check reports a missing sentence, a new or removed section, a model the rules do not cover, a new Claude
+  Code frontmatter field, and whether the installed copy is older than the published one. It reads the
+  pages that changed, not all of them, and exits 1 on drift so the audit asks before relying on the rules.
+- **`.github/workflows/guidelines-freshness.yml`** - a weekly run that opens, or updates, one issue labelled
+  `guidelines-drift` when the sources moved, so a new model or a reworded best practice is noticed here even
+  if nobody launches the audit.
+- **`assets/audit-prompt.md`** - a short prompt to paste where the skill is not installed; it installs the
+  skill and follows it, so the workflow lives in one place.
+- `make audit-skills` and `make freshness`; tests for the checker and the freshness check, with the latter
+  run offline against fixture pages.
+
+### Changed
+
+- **README** - a section on keeping existing skills current (what the audit does, the three ways to run it,
+  how model differences are handled, how the rulebook stays fresh), the new skill in the `core` list and in
+  the full index, and a stale skill count removed from the structure tree.
+- `padosoft-core` package: 0.14.0.
+
 ## [1.18.0] - 2026-09-20
 
 ### Added

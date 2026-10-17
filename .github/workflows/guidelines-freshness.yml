@@ -1,0 +1,71 @@
+name: Guidelines freshness
+
+# The skill-authoring rules in padosoft-skill-audit rest on official pages that change. Weekly, compare
+# them with the live pages and keep one open issue when they drift, so a new model or a reworded best
+# practice is noticed even if nobody runs the audit.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: guidelines-freshness
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Compare the rules with their sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # One invocation: its exit code decides what happens next and its output is the report, so the two can
+      # never disagree, and the pages are fetched once. Exit 0 aligned or partial, 1 drift, 2 nothing readable.
+      - name: Check
+        id: check
+        run: |
+          set +e
+          python3 skills/padosoft-skill-audit/scripts/check_freshness.py --no-version-check > "$RUNNER_TEMP/freshness.txt"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/freshness.txt"
+          exit 0
+
+      - name: Open or update the drift issue
+        if: steps.check.outputs.code == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "The official pages the skill-authoring rules rest on no longer match \`references/sources.json\`."
+            echo
+            echo "What to do: \`skills/padosoft-skill-audit/references/refresh-procedure.md\` — read only the pages listed below,"
+            echo "update \`guidelines.md\` and \`sources.json\`, then run \`check_freshness.py --rebaseline\`."
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/freshness.txt"
+            echo '```'
+          } > "$RUNNER_TEMP/body.md"
+
+          gh label create guidelines-drift --color FBCA04 --description "Skill-authoring rules out of line with their sources" 2>/dev/null || true
+          existing=$(gh issue list --label guidelines-drift --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh issue create --title "Skill-authoring rules: sources changed" --label guidelines-drift --body-file "$RUNNER_TEMP/body.md"
+          fi
+
+      - name: Nothing could be read
+        if: steps.check.outputs.code == '2'
+        run: |
+          echo "::warning::No source page was readable this week; the check could not run."
+          cat "$RUNNER_TEMP/freshness.txt"

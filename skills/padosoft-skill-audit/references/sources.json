@@ -1,0 +1,1116 @@
+{
+  "schema": 1,
+  "about": "What the rules in guidelines.md rest on. check_freshness.py compares it with the live pages; --rebaseline rewrites headings, covered_models and claude_code_fields.known after a reviewed update. Anchors are curated by hand: one sentence per rule it supports, short enough to survive rewording around it.",
+  "upstream": {
+    "skill_md": "https://raw.githubusercontent.com/padosoft/skills/main/skills/padosoft-skill-audit/SKILL.md",
+    "install": "npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-skill-audit"
+  },
+  "covered_models": [
+    "Fable 5",
+    "Fable 5.1",
+    "Haiku 4.5",
+    "Haiku 5.5",
+    "Mythos 5",
+    "Mythos 5.1",
+    "Opus 4.5",
+    "Opus 4.6",
+    "Opus 4.7",
+    "Opus 4.8",
+    "Opus 5",
+    "Opus 5.5",
+    "Sonnet 4.5",
+    "Sonnet 4.6",
+    "Sonnet 5",
+    "Sonnet 5.5"
+  ],
+  "model_pages": [
+    "PROMPT",
+    "MODELS"
+  ],
+  "claude_code_fields": {
+    "source": "CC",
+    "section": "Frontmatter reference",
+    "known": [
+      "agent",
+      "allowed-tools",
+      "argument-hint",
+      "arguments",
+      "background",
+      "compatibility",
+      "context",
+      "description",
+      "disable-model-invocation",
+      "disallowed-tools",
+      "effort",
+      "hooks",
+      "license",
+      "metadata",
+      "model",
+      "name",
+      "paths",
+      "shell",
+      "user-invocable",
+      "when_to_use"
+    ]
+  },
+  "sources": [
+    {
+      "key": "BP",
+      "title": "Skill authoring best practices",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md",
+      "track_headings": true,
+      "rules": [
+        "G-BODY-01",
+        "G-FREE-01",
+        "G-DESC-02",
+        "G-STRUCT-01",
+        "G-STRUCT-02",
+        "G-STRUCT-03",
+        "G-FLOW-02",
+        "G-FLOW-04",
+        "G-EVAL-01"
+      ],
+      "anchors": [
+        {
+          "text": "Claude is already very smart",
+          "rules": [
+            "G-BODY-01"
+          ]
+        },
+        {
+          "text": "Match the level of specificity to the task's fragility and variability",
+          "rules": [
+            "G-FREE-01"
+          ]
+        },
+        {
+          "text": "Test your Skill with all the models you plan to use it with",
+          "rules": [
+            "G-EVAL-06",
+            "G-MODEL-06"
+          ]
+        },
+        {
+          "text": "aim for instructions that work well with all of them",
+          "rules": [
+            "G-MODEL-01",
+            "G-MODEL-02"
+          ]
+        },
+        {
+          "text": "Cannot contain reserved words",
+          "rules": [
+            "G-FM-02"
+          ]
+        },
+        {
+          "text": "Maximum 1,024 characters",
+          "rules": [
+            "G-DESC-01"
+          ]
+        },
+        {
+          "text": "Always write in third person",
+          "rules": [
+            "G-DESC-02"
+          ]
+        },
+        {
+          "text": "Keep SKILL.md body under 500 lines for optimal performance",
+          "rules": [
+            "G-STRUCT-01"
+          ]
+        },
+        {
+          "text": "Keep references one level deep from SKILL.md",
+          "rules": [
+            "G-STRUCT-02"
+          ]
+        },
+        {
+          "text": "For reference files longer than 100 lines, include a table of contents at the top",
+          "rules": [
+            "G-STRUCT-03"
+          ]
+        },
+        {
+          "text": "provide a checklist that Claude can copy into its response",
+          "rules": [
+            "G-FLOW-02"
+          ]
+        },
+        {
+          "text": "If verification fails, return to Step 2",
+          "rules": [
+            "G-FLOW-03"
+          ]
+        },
+        {
+          "text": "Run validator → fix errors → repeat",
+          "rules": [
+            "G-FLOW-04"
+          ]
+        },
+        {
+          "text": "Don't include information that will become outdated",
+          "rules": [
+            "G-BODY-10"
+          ]
+        },
+        {
+          "text": "Create evaluations BEFORE writing extensive documentation",
+          "rules": [
+            "G-EVAL-01"
+          ]
+        },
+        {
+          "text": "Handle error conditions rather than deferring to Claude",
+          "rules": [
+            "G-SCRIPT-01"
+          ]
+        },
+        {
+          "text": "Make clear in your instructions whether Claude should",
+          "rules": [
+            "G-STRUCT-07"
+          ]
+        },
+        {
+          "text": "Always use forward slashes in file paths",
+          "rules": [
+            "G-STRUCT-06"
+          ]
+        },
+        {
+          "text": "always use fully qualified tool names",
+          "rules": [
+            "G-PORT-04"
+          ]
+        }
+      ],
+      "headings": [
+        "core principles",
+        "concise is key",
+        "set appropriate degrees of freedom",
+        "test with all models you plan to use",
+        "skill structure",
+        "naming conventions",
+        "writing effective descriptions",
+        "progressive disclosure patterns",
+        "avoid deeply nested references",
+        "structure longer reference files with table of contents",
+        "workflows and feedback loops",
+        "use workflows for complex tasks",
+        "implement feedback loops",
+        "content guidelines",
+        "avoid time-sensitive information",
+        "use consistent terminology",
+        "common patterns",
+        "template pattern",
+        "examples pattern",
+        "conditional workflow pattern",
+        "evaluation and iteration",
+        "build evaluations first",
+        "develop skills iteratively with claude",
+        "observe how claude navigates skills",
+        "anti-patterns to avoid",
+        "avoid windows-style paths",
+        "avoid offering too many options",
+        "advanced: skills with executable code",
+        "solve, don't defer",
+        "provide utility scripts",
+        "use visual analysis",
+        "create verifiable intermediate outputs",
+        "package dependencies",
+        "runtime environment",
+        "mcp tool references",
+        "avoid assuming tools are installed",
+        "technical notes",
+        "yaml frontmatter requirements",
+        "token budgets",
+        "checklist for effective skills",
+        "core quality",
+        "code and scripts",
+        "testing",
+        "next steps"
+      ]
+    },
+    {
+      "key": "CC",
+      "title": "Claude Code: skills",
+      "url": "https://code.claude.com/docs/en/skills.md",
+      "track_headings": true,
+      "rules": [
+        "G-FM-03",
+        "G-FM-04",
+        "G-DESC-01",
+        "G-DESC-08",
+        "G-BODY-02",
+        "G-BODY-03",
+        "G-FREE-02",
+        "G-SAFE-01",
+        "G-SAFE-02",
+        "G-SAFE-03",
+        "G-MODEL-03"
+      ],
+      "anchors": [
+        {
+          "text": "truncated at 1,536 characters",
+          "rules": [
+            "G-DESC-01"
+          ]
+        },
+        {
+          "text": "The budget scales at 1% of the model's context window",
+          "rules": [
+            "G-DESC-08"
+          ]
+        },
+        {
+          "text": "keeping the first 5,000 tokens of each",
+          "rules": [
+            "G-BODY-02"
+          ]
+        },
+        {
+          "text": "combined budget of 25,000 tokens",
+          "rules": [
+            "G-BODY-02"
+          ]
+        },
+        {
+          "text": "put the most important instructions near the top of SKILL.md",
+          "rules": [
+            "G-BODY-02"
+          ]
+        },
+        {
+          "text": "does not re-read the skill file on later turns",
+          "rules": [
+            "G-BODY-03"
+          ]
+        },
+        {
+          "text": "move the rule into a",
+          "rules": [
+            "G-FREE-02"
+          ]
+        },
+        {
+          "text": "Set to true to prevent Claude from automatically loading this skill",
+          "rules": [
+            "G-SAFE-01",
+            "G-FREE-03"
+          ]
+        },
+        {
+          "text": "Tools Claude can use without asking permission during the turn that invokes this skill",
+          "rules": [
+            "G-SAFE-02"
+          ]
+        },
+        {
+          "text": "only makes sense for skills with explicit instructions",
+          "rules": [
+            "G-SAFE-03"
+          ]
+        },
+        {
+          "text": "Keep SKILL.md under 500 lines",
+          "rules": [
+            "G-STRUCT-01"
+          ]
+        },
+        {
+          "text": "CLAUDE_EFFORT",
+          "rules": [
+            "G-MODEL-03"
+          ]
+        },
+        {
+          "text": "CLAUDE_SKILL_DIR",
+          "rules": [
+            "G-STRUCT-06",
+            "G-PORT-05"
+          ]
+        },
+        {
+          "text": "ultrathink",
+          "rules": [
+            "G-GEN-06"
+          ]
+        },
+        {
+          "text": "Run /skill-doctor",
+          "rules": [
+            "G-LIB-04"
+          ]
+        }
+      ],
+      "headings": [
+        "bundled skills",
+        "check your setup with /doctor",
+        "run and verify your app",
+        "run your checks before each commit",
+        "work on claude api projects",
+        "getting started",
+        "create your first skill",
+        "resolve skills that share a name",
+        "remove a skill",
+        "configure skills",
+        "types of skill content",
+        "frontmatter reference",
+        "add supporting files",
+        "control who invokes a skill",
+        "skill content lifecycle",
+        "pre-approve tools for a skill",
+        "pass arguments to skills",
+        "advanced patterns",
+        "inject dynamic context",
+        "run skills in a subagent",
+        "restrict claude's skill access",
+        "override skill visibility from settings",
+        "find unused skills",
+        "evaluate and iterate on a skill",
+        "run evals with skill-creator",
+        "share skills",
+        "generate visual output",
+        "troubleshooting",
+        "skill not triggering",
+        "skill triggers too often",
+        "claude stops following a skill",
+        "skill descriptions are cut short",
+        "personal skills disappeared",
+        "related resources"
+      ]
+    },
+    {
+      "key": "PROMPT",
+      "title": "Prompting best practices",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices.md",
+      "track_headings": false,
+      "rules": [
+        "G-GEN-02",
+        "G-GEN-03",
+        "G-GEN-04",
+        "G-GEN-06",
+        "G-GEN-09"
+      ],
+      "anchors": [
+        {
+          "text": "dial back any aggressive language",
+          "rules": [
+            "G-GEN-02"
+          ]
+        },
+        {
+          "text": "Providing context or motivation behind your instructions",
+          "rules": [
+            "G-GEN-03"
+          ]
+        },
+        {
+          "text": "Tell Claude what to do instead of what not to do",
+          "rules": [
+            "G-GEN-04"
+          ]
+        },
+        {
+          "text": "Prefer general instructions over prescriptive steps",
+          "rules": [
+            "G-GEN-06"
+          ]
+        },
+        {
+          "text": "remove these instructions rather than rewriting them",
+          "rules": [
+            "G-GEN-07"
+          ]
+        },
+        {
+          "text": "If in doubt, use [tool]",
+          "rules": [
+            "G-GEN-02"
+          ]
+        },
+        {
+          "text": "Use subagents when tasks can run in parallel",
+          "rules": [
+            "G-GEN-09"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "OPUS55",
+      "title": "Prompting Claude Opus 5.5",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5.md",
+      "track_headings": false,
+      "rules": [
+        "G-MODEL-05",
+        "G-SAFE-07"
+      ],
+      "anchors": [
+        {
+          "text": "Existing Claude Opus 5 prompts should perform well without changes",
+          "rules": [
+            "G-MODEL-05"
+          ]
+        },
+        {
+          "text": "may contain instructions the user did not write",
+          "rules": [
+            "G-SAFE-07"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "OPUS5",
+      "title": "Prompting Claude Opus 5",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5.md",
+      "track_headings": false,
+      "rules": [
+        "G-GEN-05",
+        "G-GEN-07",
+        "G-GEN-08",
+        "G-GEN-09",
+        "G-GEN-10"
+      ],
+      "anchors": [
+        {
+          "text": "If your prompt contains explicit verification instructions",
+          "rules": [
+            "G-GEN-07"
+          ]
+        },
+        {
+          "text": "Prompts, skills, and tool descriptions that ask Claude Opus 5 to write out its thinking",
+          "rules": [
+            "G-GEN-05"
+          ]
+        },
+        {
+          "text": "Deliver what was asked, at the scope intended",
+          "rules": [
+            "G-GEN-08"
+          ]
+        },
+        {
+          "text": "delegates to subagents more readily than prior models",
+          "rules": [
+            "G-GEN-09"
+          ]
+        },
+        {
+          "text": "Match the length of written documents to what the task needs",
+          "rules": [
+            "G-GEN-10"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "SONNET55",
+      "title": "Prompting Claude Sonnet 5.5",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5.md",
+      "track_headings": false,
+      "rules": [
+        "G-GEN-07",
+        "G-GEN-08",
+        "G-MODEL-05"
+      ],
+      "anchors": [
+        {
+          "text": "Keep working until everything the user asked for is done",
+          "rules": [
+            "G-MODEL-05"
+          ]
+        },
+        {
+          "text": "When the work the user asked for is done and checked, stop and report",
+          "rules": [
+            "G-GEN-08",
+            "G-MODEL-05"
+          ]
+        },
+        {
+          "text": "Don't add features, tests, files, docs or refactors that weren't asked for",
+          "rules": [
+            "G-GEN-08"
+          ]
+        },
+        {
+          "text": "run a real check that exercises the change before reporting it done",
+          "rules": [
+            "G-GEN-07",
+            "G-MODEL-05"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "SONNET5",
+      "title": "Prompting Claude Sonnet 5",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5.md",
+      "track_headings": false,
+      "rules": [
+        "G-BODY-13",
+        "G-GEN-12"
+      ],
+      "anchors": [
+        {
+          "text": "It does not silently generalize an instruction from one item to another",
+          "rules": [
+            "G-BODY-13"
+          ]
+        },
+        {
+          "text": "Report every issue you find",
+          "rules": [
+            "G-GEN-12"
+          ]
+        },
+        {
+          "text": "If you've added scaffolding to force interim status messages",
+          "rules": [
+            "G-GEN-11"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "HAIKU55",
+      "title": "Prompting Claude Haiku 5.5",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-haiku-5-5.md",
+      "track_headings": false,
+      "rules": [
+        "G-MODEL-05"
+      ],
+      "anchors": [
+        {
+          "text": "it sometimes stops early and hands the task back to the user",
+          "rules": [
+            "G-MODEL-05"
+          ]
+        },
+        {
+          "text": "sometimes reports a code change as done without running a check",
+          "rules": [
+            "G-MODEL-05"
+          ]
+        },
+        {
+          "text": "give it today's date",
+          "rules": [
+            "G-MODEL-05"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "FABLE5",
+      "title": "Prompting Claude Fable 5",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5.md",
+      "track_headings": false,
+      "rules": [
+        "G-GEN-01",
+        "G-GEN-05",
+        "G-FLOW-06"
+      ],
+      "anchors": [
+        {
+          "text": "Skills developed for prior models are often too prescriptive",
+          "rules": [
+            "G-GEN-01"
+          ]
+        },
+        {
+          "text": "Audit existing skills and system prompts for reflection or show-your-thinking instructions",
+          "rules": [
+            "G-GEN-05"
+          ]
+        },
+        {
+          "text": "Before reporting progress, audit each claim against a tool result",
+          "rules": [
+            "G-FLOW-06"
+          ]
+        },
+        {
+          "text": "Avoid surfacing explicit context-budget counts",
+          "rules": [
+            "G-GEN-11"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "FABLE51",
+      "title": "Prompting Claude Fable 5.1",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1.md",
+      "track_headings": false,
+      "rules": [
+        "G-GEN-08",
+        "G-GEN-11"
+      ],
+      "anchors": [
+        {
+          "text": "If your prompt contains anti-formatting language",
+          "rules": [
+            "G-GEN-04"
+          ]
+        },
+        {
+          "text": "hold all findings for the final response",
+          "rules": [
+            "G-GEN-11"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "MODELS",
+      "title": "Models overview",
+      "url": "https://platform.claude.com/docs/en/about-claude/models/overview.md",
+      "track_headings": false,
+      "rules": [
+        "G-MODEL-07"
+      ],
+      "anchors": []
+    },
+    {
+      "key": "AS-SPEC",
+      "title": "Agent Skills specification",
+      "url": "https://agentskills.io/specification.md",
+      "track_headings": true,
+      "rules": [
+        "G-FM-02",
+        "G-FM-03",
+        "G-DESC-01",
+        "G-STRUCT-01",
+        "G-STRUCT-02"
+      ],
+      "anchors": [
+        {
+          "text": "Must match the parent directory name",
+          "rules": [
+            "G-FM-02"
+          ]
+        },
+        {
+          "text": "Must be 1-1024 characters",
+          "rules": [
+            "G-DESC-01"
+          ]
+        },
+        {
+          "text": "Must be 1-500 characters if provided",
+          "rules": [
+            "G-FM-03"
+          ]
+        },
+        {
+          "text": "5000 tokens recommended",
+          "rules": [
+            "G-STRUCT-01"
+          ]
+        },
+        {
+          "text": "Keep your main SKILL.md under 500 lines",
+          "rules": [
+            "G-STRUCT-01"
+          ]
+        },
+        {
+          "text": "Keep file references one level deep from SKILL.md",
+          "rules": [
+            "G-STRUCT-02"
+          ]
+        }
+      ],
+      "headings": [
+        "directory structure",
+        "skill.md format",
+        "frontmatter",
+        "body content",
+        "optional directories",
+        "scripts/",
+        "references/",
+        "assets/",
+        "progressive disclosure",
+        "file references",
+        "validation"
+      ]
+    },
+    {
+      "key": "AS-BP",
+      "title": "Best practices for skill creators",
+      "url": "https://agentskills.io/skill-creation/best-practices.md",
+      "track_headings": true,
+      "rules": [
+        "G-BODY-01",
+        "G-BODY-04",
+        "G-BODY-05",
+        "G-BODY-06",
+        "G-FREE-01",
+        "G-LIB-01",
+        "G-STRUCT-04"
+      ],
+      "anchors": [
+        {
+          "text": "Would the agent get this wrong without this instruction?",
+          "rules": [
+            "G-BODY-01"
+          ]
+        },
+        {
+          "text": "The highest-value content in many skills is a list of gotchas",
+          "rules": [
+            "G-BODY-04"
+          ]
+        },
+        {
+          "text": "Provide defaults, not menus",
+          "rules": [
+            "G-BODY-05"
+          ]
+        },
+        {
+          "text": "Favor procedures over declarations",
+          "rules": [
+            "G-BODY-06"
+          ]
+        },
+        {
+          "text": "Match specificity to fragility",
+          "rules": [
+            "G-FREE-01"
+          ]
+        },
+        {
+          "text": "Design coherent units",
+          "rules": [
+            "G-LIB-01"
+          ]
+        },
+        {
+          "text": "telling the agent when to load each file",
+          "rules": [
+            "G-STRUCT-04"
+          ]
+        }
+      ],
+      "headings": [
+        "start from real expertise",
+        "extract from a hands-on task",
+        "synthesize from existing project artifacts",
+        "refine with real execution",
+        "spending context wisely",
+        "add what the agent lacks, omit what it knows",
+        "design coherent units",
+        "aim for moderate detail",
+        "structure large skills with progressive disclosure",
+        "calibrating control",
+        "match specificity to fragility",
+        "provide defaults, not menus",
+        "favor procedures over declarations",
+        "patterns for effective instructions",
+        "gotchas sections",
+        "templates for output format",
+        "checklists for multi-step workflows",
+        "validation loops",
+        "plan-validate-execute",
+        "bundling reusable scripts",
+        "next steps"
+      ]
+    },
+    {
+      "key": "AS-DESC",
+      "title": "Optimizing skill descriptions",
+      "url": "https://agentskills.io/skill-creation/optimizing-descriptions.md",
+      "track_headings": true,
+      "rules": [
+        "G-DESC-02",
+        "G-DESC-04",
+        "G-DESC-06",
+        "G-EVAL-03"
+      ],
+      "anchors": [
+        {
+          "text": "Use imperative phrasing",
+          "rules": [
+            "G-DESC-02"
+          ]
+        },
+        {
+          "text": "Err on the side of being pushy",
+          "rules": [
+            "G-DESC-04"
+          ]
+        },
+        {
+          "text": "Avoid adding specific keywords from failed queries",
+          "rules": [
+            "G-DESC-06"
+          ]
+        },
+        {
+          "text": "Aim for about 20 queries",
+          "rules": [
+            "G-EVAL-03"
+          ]
+        },
+        {
+          "text": "Run each query multiple times (3 is a reasonable starting point)",
+          "rules": [
+            "G-EVAL-03"
+          ]
+        },
+        {
+          "text": "Train set (~60%)",
+          "rules": [
+            "G-EVAL-03"
+          ]
+        }
+      ],
+      "headings": [
+        "how skill triggering works",
+        "writing effective descriptions",
+        "designing trigger eval queries",
+        "should-trigger queries",
+        "should-not-trigger queries",
+        "tips for realism",
+        "testing whether a description triggers",
+        "running multiple times",
+        "avoiding overfitting with train/validation splits",
+        "the optimization loop",
+        "applying the result",
+        "next steps"
+      ]
+    },
+    {
+      "key": "AS-EVAL",
+      "title": "Evaluating skill output quality",
+      "url": "https://agentskills.io/skill-creation/evaluating-skills.md",
+      "track_headings": true,
+      "rules": [
+        "G-EVAL-02",
+        "G-EVAL-04",
+        "G-EVAL-07",
+        "G-GEN-03"
+      ],
+      "anchors": [
+        {
+          "text": "once with the skill and once without it",
+          "rules": [
+            "G-EVAL-02"
+          ]
+        },
+        {
+          "text": "Each eval run should start with a clean context",
+          "rules": [
+            "G-EVAL-04"
+          ]
+        },
+        {
+          "text": "Keep the skill lean",
+          "rules": [
+            "G-EVAL-07"
+          ]
+        },
+        {
+          "text": "Explain the why",
+          "rules": [
+            "G-GEN-03"
+          ]
+        }
+      ],
+      "headings": [
+        "designing test cases",
+        "running evals",
+        "workspace structure",
+        "spawning runs",
+        "capturing timing data",
+        "writing assertions",
+        "grading outputs",
+        "grading principles",
+        "aggregating results",
+        "analyzing patterns",
+        "reviewing results with a human",
+        "iterating on the skill",
+        "the loop"
+      ]
+    },
+    {
+      "key": "AS-SCRIPTS",
+      "title": "Using scripts in skills",
+      "url": "https://agentskills.io/skill-creation/using-scripts.md",
+      "track_headings": true,
+      "rules": [
+        "G-SCRIPT-03",
+        "G-SCRIPT-04",
+        "G-SCRIPT-05",
+        "G-SCRIPT-07"
+      ],
+      "anchors": [
+        {
+          "text": "Avoid interactive prompts",
+          "rules": [
+            "G-SCRIPT-03"
+          ]
+        },
+        {
+          "text": "Document usage with --help",
+          "rules": [
+            "G-SCRIPT-04"
+          ]
+        },
+        {
+          "text": "Use structured output",
+          "rules": [
+            "G-SCRIPT-05"
+          ]
+        },
+        {
+          "text": "Separate data from diagnostics",
+          "rules": [
+            "G-SCRIPT-05"
+          ]
+        },
+        {
+          "text": "Dry-run support",
+          "rules": [
+            "G-SCRIPT-07"
+          ]
+        }
+      ],
+      "headings": [
+        "one-off commands",
+        "referencing scripts from skill.md",
+        "self-contained scripts",
+        "designing scripts for agentic use",
+        "avoid interactive prompts",
+        "document usage with --help",
+        "write helpful error messages",
+        "use structured output",
+        "further considerations"
+      ]
+    },
+    {
+      "key": "SC",
+      "title": "anthropics/skills: skill-creator",
+      "url": "https://raw.githubusercontent.com/anthropics/skills/main/skills/skill-creator/SKILL.md",
+      "track_headings": true,
+      "rules": [
+        "G-DESC-04",
+        "G-GEN-02",
+        "G-SAFE-05",
+        "G-EVAL-07"
+      ],
+      "anchors": [
+        {
+          "text": "pushy",
+          "rules": [
+            "G-DESC-04"
+          ]
+        },
+        {
+          "text": "yellow flag",
+          "rules": [
+            "G-GEN-02"
+          ]
+        },
+        {
+          "text": "Principle of Lack of Surprise",
+          "rules": [
+            "G-SAFE-05"
+          ]
+        },
+        {
+          "text": "Remove things that aren't pulling their weight",
+          "rules": [
+            "G-EVAL-07"
+          ]
+        }
+      ],
+      "headings": [
+        "communicating with the user",
+        "creating a skill",
+        "capture intent",
+        "interview and research",
+        "write the skill.md",
+        "skill writing guide",
+        "writing style",
+        "test cases",
+        "running and evaluating test cases",
+        "step 1: spawn all runs (with-skill and baseline) in the same turn",
+        "step 2: while runs are in progress, draft assertions",
+        "step 3: as runs complete, capture timing data",
+        "step 4: grade, aggregate, and launch the viewer",
+        "what the user sees in the viewer",
+        "step 5: read the feedback",
+        "improving the skill",
+        "how to think about improvements",
+        "the iteration loop",
+        "advanced: blind comparison",
+        "description optimization",
+        "step 1: generate trigger eval queries",
+        "step 2: review with user",
+        "step 3: run the optimization loop",
+        "how skill triggering works",
+        "step 4: apply the result",
+        "package and present (only if presentfiles tool is available)",
+        "claude.ai-specific instructions",
+        "cowork-specific instructions",
+        "reference files"
+      ]
+    },
+    {
+      "key": "BLOG-SC",
+      "title": "Improving skill-creator: test, measure, and refine Agent Skills",
+      "url": "https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills",
+      "track_headings": false,
+      "rules": [
+        "G-LIB-04",
+        "G-MODEL-07"
+      ],
+      "anchors": [
+        {
+          "text": "Capability uplift",
+          "rules": [
+            "G-LIB-04"
+          ]
+        },
+        {
+          "text": "Encoded preference",
+          "rules": [
+            "G-LIB-04"
+          ]
+        },
+        {
+          "text": "Evals tell you when that's happened",
+          "rules": [
+            "G-MODEL-07"
+          ]
+        }
+      ],
+      "timeout": 60,
+      "note": "A heavy page that can take tens of seconds to serve; its own timeout keeps the others fast."
+    },
+    {
+      "key": "GUIDE",
+      "title": "The Complete Guide to Building Skills for Claude (PDF)",
+      "url": "https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf",
+      "fetch": false,
+      "note": "A PDF the standard library cannot read: re-check by hand when the other sources drift.",
+      "rules": [
+        "G-FM-05",
+        "G-DESC-05",
+        "G-LIB-02",
+        "G-LIB-05"
+      ],
+      "anchors": []
+    }
+  ]
+}
