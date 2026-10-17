@@ -25,7 +25,7 @@ validate:        ## Validate every SKILL.md and the catalog consistency
 	python3 scripts/validate_plugins.py
 
 audit-skills:    ## Audit the skills of this repository (or: make audit-skills ROOT=path/to/a/project)
-	python3 skills/padosoft-skill-audit/scripts/audit_skills.py $(or $(ROOT),skills/)
+	python3 skills/padosoft-skill-audit/scripts/audit_skills.py "$(or $(ROOT),skills/)"
 
 freshness:       ## Are the skill-authoring rules still in line with their official sources? (needs network)
 	python3 skills/padosoft-skill-audit/scripts/check_freshness.py

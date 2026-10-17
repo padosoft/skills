@@ -6,6 +6,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -507,6 +508,104 @@ class TestUrlsAreNotStubs(unittest.TestCase):
             put(Path(tmp), ".claude/skills/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}")
             found = report_of(str(Path(tmp) / ".claude" / "skills" / "demo"))[1]["skills"][0]
         self.assertIn(("G-STRUCT-08", "ERROR"), levels(found))
+
+
+class TestFlowCollections(unittest.TestCase):
+    def parse(self, text: str):
+        return audit_skills.parse_frontmatter(f"---\n{text}\n---\n")
+
+    def test_flow_collections_keep_their_type(self) -> None:
+        data, _, _, problems = self.parse("allowed-tools: [Read, Grep]\nmetadata: {version: 1, scope: global}")
+        self.assertEqual(data["allowed-tools"], ["Read", "Grep"])
+        self.assertEqual(data["metadata"], {"version": "1", "scope": "global"})
+        self.assertEqual(problems, [])
+
+    def test_commas_inside_quotes_or_nesting_do_not_split(self) -> None:
+        data, *_ = self.parse('tools: ["a, b", c, [d, e]]')
+        self.assertEqual(data["tools"], ["a, b", "c", "[d, e]"])
+
+    def test_an_unclosed_collection_is_an_error(self) -> None:
+        _, _, _, problems = self.parse("description: [Reviews release notes")
+        self.assertTrue(any(level == "ERROR" for _, level, _ in problems))
+
+    def test_a_flow_list_description_is_not_a_string(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md",
+                "---\nname: demo\ndescription: [Reviews release notes when requested. Do not use for commits.]\n---\n\nBody.\n")
+            code, report = report_of(str(Path(tmp) / "demo"))
+        self.assertEqual(code, 1)
+        self.assertIn("G-DESC-01", ids(report["skills"][0], "ERROR"))
+
+
+class TestProjectScriptsAreNotBundledOnes(unittest.TestCase):
+    BODY = "Run `python3 scripts/run.py --json` first.\n"
+
+    def audit(self, project_script: bool, bundled_script: bool) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".git").mkdir()
+            put(root, "skills/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{self.BODY}")
+            if project_script:
+                put(root, "scripts/run.py", "print('project')\n")
+            if bundled_script:
+                put(root, "skills/demo/scripts/run.py", "print('bundled')\n")
+            return report_of(str(root / "skills" / "demo"))[1]["skills"][0]
+
+    def test_a_project_file_with_the_same_name_does_not_hide_a_missing_bundled_one(self) -> None:
+        found = self.audit(project_script=True, bundled_script=False)
+        self.assertNotIn(("G-STRUCT-08", "ERROR"), levels(found))
+        self.assertIn(("G-STRUCT-08", "INFO"), levels(found), "it must say the file is the project's, not the skill's")
+
+    def test_nothing_anywhere_is_an_error(self) -> None:
+        self.assertIn(("G-STRUCT-08", "ERROR"), levels(self.audit(project_script=False, bundled_script=False)))
+
+    def test_a_bundled_script_is_found_quietly(self) -> None:
+        found = self.audit(project_script=True, bundled_script=True)
+        self.assertEqual([f for f in found["findings"] if f["id"] == "G-STRUCT-08"], [])
+
+
+class TestIncompleteBundles(unittest.TestCase):
+    def test_a_bundled_folder_that_cannot_be_listed_is_an_execution_error(self) -> None:
+        real_walk = os.walk
+
+        def denying_walk(top, onerror=None, **kwargs):
+            if Path(top).name == "demo" and onerror is not None:
+                onerror(PermissionError(13, "Permission denied", str(Path(top) / "references")))
+            return real_walk(top, onerror=onerror, **kwargs)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nBody.\n")
+            err, out = io.StringIO(), io.StringIO()
+            with mock.patch.object(audit_skills.os, "walk", denying_walk), \
+                    contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+                code = audit_skills.main([str(Path(tmp) / "demo")])
+        self.assertEqual(code, 2)
+        self.assertIn("incomplete", err.getvalue())
+        self.assertIn("references", err.getvalue())
+
+
+class TestLinkedContainers(unittest.TestCase):
+    def test_a_skills_folder_that_is_a_link_is_found_by_a_project_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, "shared/skills/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nBody.\n")
+            (root / "project" / ".claude").mkdir(parents=True)
+            if not link_directory(root / "project" / ".claude" / "skills", root / "shared" / "skills"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            whole = report_of(str(root / "project"))[1]
+            narrowed = report_of(str(root / "project" / ".claude" / "skills"))[1]
+        self.assertEqual([s["name"] for s in whole["skills"]], ["demo"])
+        self.assertEqual([s["name"] for s in narrowed["skills"]], ["demo"])
+
+    def test_a_link_cycle_ends(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nBody.\n")
+            if not link_directory(root / ".claude" / "skills" / "loop", root / ".claude" / "skills"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            code, report = report_of(str(root))
+        self.assertIn(code, (0, 1))
+        self.assertEqual([s["name"] for s in report["skills"]], ["demo"])
 
 
 def tearDownModule() -> None:

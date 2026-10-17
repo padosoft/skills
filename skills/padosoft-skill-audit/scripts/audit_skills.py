@@ -95,6 +95,7 @@ COMMAND_PATH = re.compile(
     r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
     r"(?![A-Za-z0-9_/-])"
 )
+SKILL_CONTAINERS = {".claude", ".agents", "skills", "commands", "synced"}
 SHELL_FENCES = ("bash", "sh", "shell", "zsh", "console", "powershell", "pwsh", "cmd", "batch")
 URL_SPAN = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s)>\]]+")
 BACKSLASH_PATH = re.compile(r"^[A-Za-z0-9._-]+(?:\\[A-Za-z0-9._-]+)+$")
@@ -197,6 +198,7 @@ class Skill:
     fm_ok: bool = False
     body_start: int = 0  # 0-based index of the first body line
     findings: list[Finding] = field(default_factory=list)
+    unreadable: list[str] = field(default_factory=list)  # bundled folders that could not be listed
     aliases: list[str] = field(default_factory=list)  # other locations the same file was reached from (symlinks)
 
     @property
@@ -287,12 +289,59 @@ def _unquote(value: str) -> str:
     return _quoted_scalar(value, 0, []) if value[:1] in ("'", '"') else value
 
 
+def _split_flow(inner: str) -> list[str]:
+    """Top-level comma-separated items of a flow collection body, quotes and nesting respected."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth, quote = 0, ""
+    for ch in inner:
+        if quote:
+            current.append(ch)
+            quote = "" if ch == quote else quote
+            continue
+        if ch in ("'", '"'):
+            quote = ch
+        elif ch in "[{":
+            depth += 1
+        elif ch in "]}":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+            continue
+        current.append(ch)
+    parts.append("".join(current).strip())
+    return [part for part in parts if part]
+
+
+def _flow_collection(value: str, line: int, problems: list[tuple[int, str, str]]) -> object:
+    """'[a, b]' is a list and '{a: b}' a mapping in YAML, whatever the field: keep the type so it can be checked."""
+    closing = "]" if value[0] == "[" else "}"
+    body = value.split(" #", 1)[0].strip()
+    if not body.endswith(closing):
+        problems.append((line, "ERROR", f"the collection opened with {value[0]} is never closed with {closing}: YAML "
+                                        "rejects it, so the skill loads with no fields"))
+        return value
+
+    def scalar(text: str) -> str:
+        return _unquote(text) if text[:1] in ("'", '"') else text
+
+    items = _split_flow(body[1:-1])
+    if closing == "]":
+        return [scalar(item) for item in items]
+    mapping: dict[str, object] = {}
+    for item in items:
+        key, _, rest = item.partition(":")
+        mapping[scalar(key.strip())] = scalar(rest.strip())
+    return mapping
+
+
 def _plain_scalar(value: str, line: int, problems: list[tuple[int, str, str]]) -> str:
     """A YAML plain scalar, with the two ways it silently breaks a real YAML parser checked."""
     if value.startswith(("'", '"')):
         return _quoted_scalar(value, line, problems)
     if value.startswith(("[", "{")):
-        return value
+        return _flow_collection(value, line, problems)
     if value[:1] in ("`", "@", "%", "*", "&"):
         problems.append((line, "ERROR", f"an unquoted value cannot start with {value[0]!r}: YAML rejects it, "
                                         "so the skill loads with no fields. Quote it or use '>-'"))
@@ -456,8 +505,25 @@ def _walk(root: Path, with_commands: bool, add, walk_errors: list[str]) -> None:
     def on_error(exc: OSError) -> None:  # an unreadable folder is reported, never skipped in silence
         walk_errors.append(f"cannot read {getattr(exc, 'filename', '?')}: {exc.strerror or exc}")
 
-    for dirpath, dirnames, _ in os.walk(root, onerror=on_error):
+    visited: set[str] = set()
+    pending = [root]
+    while pending:
+        _walk_one(pending.pop(0), root, with_commands, add, on_error, visited, pending)
+
+
+def _walk_one(top: Path, root: Path, with_commands: bool, add, on_error, visited: set[str], pending: list[Path]) -> None:
+    for dirpath, dirnames, _ in os.walk(top, onerror=on_error):
         here = Path(dirpath)
+        real = os.path.normcase(os.path.realpath(dirpath))
+        if real in visited:  # reached before through another link: never walk a cycle twice
+            dirnames[:] = []
+            continue
+        visited.add(real)
+        # os.walk lists a symlinked directory but does not enter it. The folders that hold skills are often
+        # links to a shared location, so those are followed (once each, cycles cut by `visited`).
+        for name in dirnames:
+            if name in SKILL_CONTAINERS and (here / name).is_symlink():
+                pending.append(here / name)
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         synced_depth = _synced_depth(here)
         if synced_depth is not None:  # the walk was started inside ~/.claude/skills/synced
@@ -674,7 +740,11 @@ def bundled_files(skill: Skill) -> list[Path]:
     if skill.kind == "command":
         return []
     files: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(skill.folder):
+
+    def on_error(exc: OSError) -> None:  # a folder we could not list is files we did not check
+        skill.unreadable.append(f"cannot read {getattr(exc, 'filename', '?')}: {exc.strerror or exc}")
+
+    for dirpath, dirnames, filenames in os.walk(skill.folder, onerror=on_error):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
             path = Path(dirpath) / name
@@ -805,6 +875,13 @@ def check_links_and_paths(skill: Skill, files: list[Path]) -> None:
                 continue
             target = _clean_target(raw_target)
             if target is None:
+                continue
+            if kind == "path" and not _resolves(target, bases[:2]) and _resolves(target, bases):
+                # Next to the skill is where a bundled file lives. A project file with the same name must not
+                # hide a bundled script that is missing: say what it resolved to and let the author decide.
+                skill.add("G-STRUCT-08", "INFO", md_file, index + 1,
+                          f"{target} is not in this skill but exists in the project: bundle it with the skill, or "
+                          "say in the text that it is a project script")
                 continue
             if not _resolves(target, bases):
                 if kind == "path" and md_file != skill.entry:
@@ -1197,6 +1274,7 @@ def audit(roots: list[Path], with_commands: bool = True, shared: bool = False) -
     skills, walk_errors = discover(roots, with_commands)
     for skill in skills:
         audit_skill(skill, shared)
+        walk_errors.extend(skill.unreadable)
     library = library_checks(skills)
     all_findings = [f for s in skills for f in s.findings] + library
     return {

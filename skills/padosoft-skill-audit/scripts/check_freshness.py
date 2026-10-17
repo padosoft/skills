@@ -96,15 +96,28 @@ def html_to_text(raw: str) -> str:
     return re.sub(r"(?s)<[^>]+>", " ", raw)
 
 
+FENCE_RE = re.compile(r"^\s{0,3}(`{3,}|~{3,})(.*)$")
+
+
 def headings_of(markdown: str) -> list[str]:
-    """H2/H3 headings outside fenced code: examples inside fences contain headings that are not the page's."""
+    """H2/H3 headings outside fenced code: examples inside fences contain headings that are not the page's.
+
+    A fence closes only on a delimiter of the same character, at least as long as the opening one, with
+    nothing after it: a four-backtick example may hold a three-backtick block without ending early.
+    """
     found: list[str] = []
-    in_fence = False
+    opened = ""
     for line in markdown.splitlines():
-        if line.lstrip().startswith(("```", "~~~")):
-            in_fence = not in_fence
+        fence = FENCE_RE.match(line)
+        if fence:
+            marker, rest = fence.group(1), fence.group(2)
+            if not opened:
+                opened = marker
+                continue
+            if marker[0] == opened[0] and len(marker) >= len(opened) and not rest.strip():
+                opened = ""
             continue
-        if in_fence:
+        if opened:
             continue
         match = HEADING_RE.match(line)
         if match:

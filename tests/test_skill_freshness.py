@@ -159,6 +159,22 @@ class TestFreshnessCheck(unittest.TestCase):
         self.assertIn(("new-field", "model-notes"), details)
         self.assertIn(("removed-field", "name"), details)
 
+    def test_a_longer_fence_may_hold_a_shorter_one(self) -> None:
+        """A four-backtick example with a three-backtick block inside must not expose its ## lines as sections."""
+        example = ["````markdown", "Example:", "```", "code", "```", "## Not a section of the page", "````"]
+        self.fx.write_pages(rules="\n".join([PAGE_RULES, *example, ""]))
+        code, report = self.fx.run()
+        self.assertEqual(code, 0, report)
+        self.assertNotIn("new-section", self.kinds(report))
+
+    def test_a_fence_closes_only_on_a_matching_delimiter(self) -> None:
+        lines = ["```markdown", "~~~", "## Still inside", "```", "", "## A real new section"]
+        self.fx.write_pages(rules="\n".join([PAGE_RULES, *lines, ""]))
+        code, report = self.fx.run()
+        self.assertEqual(code, 1)
+        details = [i["detail"] for i in report["drift"] if i["kind"] == "new-section"]
+        self.assertEqual(details, ["a real new section"])
+
     def test_a_field_table_that_cannot_be_read_is_drift_not_silence(self) -> None:
         self.fx.write_pages(fields=PAGE_FIELDS.replace("`", ""))
         code, report = self.fx.run()
