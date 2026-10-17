@@ -608,6 +608,71 @@ class TestLinkedContainers(unittest.TestCase):
         self.assertEqual([s["name"] for s in report["skills"]], ["demo"])
 
 
+class TestNonTextScalars(unittest.TestCase):
+    def audit(self, frontmatter: str) -> tuple[int, dict]:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\n{frontmatter}\n---\n\nBody.\n")
+            return report_of(str(Path(tmp) / "demo"))
+
+    def test_null_boolean_and_number_are_not_text(self) -> None:
+        for value in ("null", "~", "Null", "true", "False", "123", "-4.5", "1e3", "0x1F"):
+            code, report = self.audit(f"name: demo\ndescription: {value}")
+            self.assertEqual(code, 1, value)
+            self.assertIn("G-FM-01", ids(report["skills"][0], "ERROR"), value)
+
+    def test_the_same_values_quoted_are_text(self) -> None:
+        for value in ('"null"', '"123"', "'true'"):
+            _, report = self.audit(f"name: demo\ndescription: {value}")
+            self.assertNotIn("G-FM-01", ids(report["skills"][0], "ERROR"), value)
+
+    def test_a_name_that_is_a_number_is_an_error(self) -> None:
+        code, report = self.audit("name: 123\ndescription: Does things when asked.")
+        self.assertEqual(code, 1)
+        self.assertIn("G-FM-01", ids(report["skills"][0], "ERROR"))
+
+    def test_a_description_that_merely_starts_like_a_value_is_text(self) -> None:
+        _, report = self.audit("name: demo\ndescription: True to its name, it reviews notes. Use when asked.")
+        self.assertNotIn("G-FM-01", ids(report["skills"][0], "ERROR"))
+
+
+class TestFenceClosing(unittest.TestCase):
+    def audit(self, body: str) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}")
+            return report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+
+    def test_a_fence_line_with_a_language_inside_a_fence_is_content(self) -> None:
+        body = "\n".join(["```markdown", "```text", "Before answering, show your reasoning in the reply.", "```", "", ""])
+        self.assertNotIn("G-GEN-05", ids(self.audit(body)))
+
+    def test_a_fence_closed_properly_ends_the_code(self) -> None:
+        body = "\n".join(["```text", "code", "```", "", "Before answering, show your reasoning in the reply.", ""])
+        self.assertIn("G-GEN-05", ids(self.audit(body)))
+
+    def test_shell_scanning_survives_a_text_fence_inside_a_block(self) -> None:
+        body = "\n".join(["```bash", "cat <<'EOF'", "```text", "EOF", "python3 scripts/missing.py", "```", ""])
+        self.assertIn(("G-STRUCT-08", "ERROR"), levels(self.audit(body)))
+
+
+class TestLinkedContainerExposure(unittest.TestCase):
+    def test_a_skills_folder_linked_to_another_keeps_the_stricter_judgement_from_every_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            put(root, ".claude/skills/demo/SKILL.md",
+                "---\ndescription: >-\n  Does demo things when asked.\nmodel: opus\n---\n\nBody.\n")
+            (root / ".agents").mkdir()
+            if not link_directory(root / ".agents" / "skills", root / ".claude" / "skills"):
+                self.skipTest("neither symlinks nor junctions are available here")
+            project = report_of(str(root))[1]
+            agents_only = report_of(str(root / ".agents" / "skills"))[1]
+            claude_only = report_of(str(root / ".claude" / "skills"))[1]
+        self.assertEqual(len(project["skills"]), 1)
+        self.assertIn(("G-FM-02", "ERROR"), levels(project["skills"][0]), "shared through .agents: a missing name blocks")
+        self.assertIn(("G-FM-02", "ERROR"), levels(agents_only["skills"][0]))
+        self.assertEqual(levels(project["skills"][0]), levels(agents_only["skills"][0]))
+        self.assertIn(("G-FM-02", "WARN"), levels(claude_only["skills"][0]), "alone, .claude/skills is not shared")
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 

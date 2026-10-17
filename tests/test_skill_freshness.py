@@ -175,6 +175,32 @@ class TestFreshnessCheck(unittest.TestCase):
         details = [i["detail"] for i in report["drift"] if i["kind"] == "new-section"]
         self.assertEqual(details, ["a real new section"])
 
+    def test_a_model_name_wrapped_over_two_lines_is_still_found(self) -> None:
+        self.fx.write_pages(models=PAGE_MODELS + "Introducing Claude Opus\n6, our newest model.\n")
+        code, report = self.fx.run()
+        self.assertEqual(code, 1)
+        self.assertIn("Opus 6", [i["detail"] for i in report["drift"] if i["kind"] == "new-model"])
+
+    def test_an_html_copy_is_compared_on_what_it_keeps_and_says_what_it_cannot(self) -> None:
+        """Converting HTML to text drops headings and tables: that must be a note, never invented drift."""
+        (self.fx.pages / "rules.md").unlink()
+        (self.fx.pages / "rules.html").write_text(
+            "<h2>Keep it short</h2><p>Keep the body “under 500 lines” for optimal performance.</p>"
+            "<h2>Use forward slashes</h2><p>Always use forward slashes in file paths.</p>",
+            encoding="utf-8",
+        )
+        code, report = self.fx.run()
+        self.assertEqual(code, 0, report)
+        self.assertNotIn("removed-section", self.kinds(report))
+        self.assertTrue(any("HTML" in note for note in report["notes"]), report["notes"])
+
+    def test_an_html_copy_still_catches_a_missing_anchor(self) -> None:
+        (self.fx.pages / "rules.md").unlink()
+        (self.fx.pages / "rules.html").write_text("<h2>Keep it short</h2><p>Nothing useful here.</p>", encoding="utf-8")
+        code, report = self.fx.run()
+        self.assertEqual(code, 1)
+        self.assertIn("missing-anchor", self.kinds(report))
+
     def test_a_field_table_that_cannot_be_read_is_drift_not_silence(self) -> None:
         self.fx.write_pages(fields=PAGE_FIELDS.replace("`", ""))
         code, report = self.fx.run()

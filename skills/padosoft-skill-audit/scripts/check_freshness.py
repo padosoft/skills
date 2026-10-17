@@ -126,6 +126,7 @@ def headings_of(markdown: str) -> list[str]:
 
 
 def models_in(text: str) -> set[str]:
+    text = re.sub(r"\s+", " ", text)  # a soft-wrapped "Claude Opus\n6" is the same name
     names = {f"{family} {version}" for family, version in MODEL_RE.findall(text)}
     names |= {f"{family} {version}" for family, version in FAMILY_RE.findall(text) if family not in NOT_A_MODEL}
     return names
@@ -182,6 +183,7 @@ class Fetcher:
     def __init__(self, offline: Path | None, timeout: int) -> None:
         self.offline = offline
         self.timeout = timeout
+        self.flattened: set[str] = set()  # keys served as HTML: converted to text, headings and tables are gone
 
     def get(self, key: str, url: str, timeout: int | None = None) -> str:
         if self.offline is not None:
@@ -189,13 +191,19 @@ class Fetcher:
                 candidate = self.offline / f"{key.lower()}{suffix}"
                 if candidate.is_file():
                     text = candidate.read_text(encoding="utf-8", errors="replace")
-                    return html_to_text(text) if suffix == ".html" else text
+                    if suffix == ".html":
+                        self.flattened.add(key)
+                        return html_to_text(text)
+                    return text
             raise OSError(f"no offline copy for {key} in {self.offline}")
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(request, timeout=timeout or self.timeout) as response:  # noqa: S310 - fixed https URLs
             body = response.read().decode("utf-8", errors="replace")
             content_type = response.headers.get("Content-Type", "")
-        return html_to_text(body) if "html" in content_type and not url.endswith(".md") else body
+        if "html" in content_type and not url.endswith(".md"):
+            self.flattened.add(key)
+            return html_to_text(body)
+        return body
 
 
 def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | None) -> Result:
@@ -239,7 +247,9 @@ def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | 
         for anchor in source.get("anchors", []):
             if normalize(anchor["text"]) not in flat:
                 result.drift.append(Item("missing-anchor", source["key"], anchor["text"], anchor.get("rules", [])))
-        if source.get("track_headings") and "headings" in source:
+        if source.get("track_headings") and source["key"] in fetcher.flattened:
+            result.notes.append(f"{source['key']}: served as HTML, so section headings were not compared")
+        elif source.get("track_headings") and "headings" in source:
             current, baseline = set(headings_of(text)), set(source["headings"])
             for heading in sorted(current - baseline):
                 result.drift.append(Item("new-section", source["key"], heading, source.get("rules", [])))
@@ -258,7 +268,9 @@ def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | 
     if fields_cfg and fields_cfg.get("source") in by_key:
         key = fields_cfg["source"]
         text = pages.get(key) or page(key, by_key[key]["url"])
-        if text is not None:
+        if text is not None and key in fetcher.flattened:
+            result.notes.append(f"{key}: served as HTML, so the frontmatter field table was not compared")
+        elif text is not None:
             found, known = cc_fields_in(text, fields_cfg.get("section", "Frontmatter reference")), set(fields_cfg.get("known", []))
             if not found:
                 # Not "nothing changed": the table is gone or its format changed, and no field was checked.

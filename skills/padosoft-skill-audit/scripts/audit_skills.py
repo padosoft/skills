@@ -289,6 +289,21 @@ def _unquote(value: str) -> str:
     return _quoted_scalar(value, 0, []) if value[:1] in ("'", '"') else value
 
 
+NON_TEXT_SCALAR = re.compile(
+        r"(?P<null>null|Null|NULL|~)|(?P<bool>true|True|TRUE|false|False|FALSE)"
+        r"|(?P<number>[-+]?(?:\d[\d_]*)(?:\.\d*)?(?:[eE][-+]?\d+)?|0x[0-9a-fA-F]+|0o[0-7]+|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))"
+)
+
+
+def _non_text_scalar(raw: str) -> str | None:
+    """'null', 'a boolean' or 'a number' when a plain (unquoted) scalar is not text to a YAML loader."""
+    value = raw.split(" #", 1)[0].strip()
+    m = NON_TEXT_SCALAR.fullmatch(value) if value else None
+    if not m:
+        return None
+    return {"null": "null", "bool": "a boolean", "number": "a number"}[m.lastgroup]
+
+
 def _split_flow(inner: str) -> list[str]:
     """Top-level comma-separated items of a flow collection body, quotes and nesting respected."""
     parts: list[str] = []
@@ -394,6 +409,11 @@ def parse_frontmatter(text: str) -> tuple[dict[str, object], dict[str, int], int
         while block and not block[-1].strip():
             block.pop()
         data[key] = _value(value, block, i + 1, problems)
+        if key in ("name", "description") and not block:
+            kind = _non_text_scalar(value)
+            if kind:
+                problems.append((i + 1, "ERROR", f"'{key}: {value}' is read by YAML as {kind}, not as text: quote it, "
+                                                 "or the skill is not loaded"))
         i = j
     return data, key_lines, end + 1, problems
 
@@ -515,7 +535,14 @@ def _walk_one(top: Path, root: Path, with_commands: bool, add, on_error, visited
     for dirpath, dirnames, _ in os.walk(top, onerror=on_error):
         here = Path(dirpath)
         real = os.path.normcase(os.path.realpath(dirpath))
-        if real in visited:  # reached before through another link: never walk a cycle twice
+        if real in visited:
+            # Reached before through another path (a link): never walk it twice, but the skills in it are also
+            # exposed here, and that exposure decides how strictly they are judged.
+            location = _skills_dir_location(here, root) if here.name == "skills" else None
+            if location:
+                for child in sorted(dirnames):
+                    if (here / child / "SKILL.md").is_file():
+                        add(here / child / "SKILL.md", root, "skill", location)
             dirnames[:] = []
             continue
         visited.add(real)
@@ -758,6 +785,11 @@ def _md_files(skill: Skill, files: list[Path]) -> list[Path]:
     return [f for f in files if f.suffix.lower() == ".md" and "evals" not in f.relative_to(skill.folder).parts]
 
 
+def _closes(fence: str, marker: str, line: str) -> bool:
+    """A line ends an open fence only with the same character, at least as long, and nothing after it."""
+    return marker[0] == fence[0] and len(marker) >= len(fence) and not line.strip()[len(marker):].strip()
+
+
 def iter_prose(lines: list[str], start: int = 0):
     """(0-based index, line) outside fenced code blocks."""
     fence: str | None = None
@@ -768,7 +800,7 @@ def iter_prose(lines: list[str], start: int = 0):
             marker = m.group(1)
             if fence is None:
                 fence = marker[0] * len(marker)
-            elif marker.startswith(fence[0]) and len(marker) >= len(fence):
+            elif _closes(fence, marker, line):
                 fence = None
             continue
         if fence is None:
@@ -788,7 +820,7 @@ def iter_shell_lines(lines: list[str], start: int = 0):
                 fence = marker[0] * len(marker)
                 language = line.strip()[len(marker):].strip().split(" ")[0].lower()
                 shell = language in SHELL_FENCES
-            elif marker.startswith(fence[0]) and len(marker) >= len(fence):
+            elif _closes(fence, marker, line):
                 fence, shell = None, False
             continue
         if fence is not None and shell and not line.lstrip().startswith("#"):
