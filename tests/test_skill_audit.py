@@ -792,6 +792,62 @@ class TestHomeRelativeTargets(unittest.TestCase):
         self.assertIn(("G-STRUCT-08", "INFO"), levels(found))
 
 
+class TestSyncedThroughALink(unittest.TestCase):
+    def build(self, root: Path) -> bool:
+        put(root, ".claude/skills/synced/u1/demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nBody.\n")
+        (root / ".agents" / "skills").mkdir(parents=True)
+        return link_directory(root / ".agents" / "skills" / "demo", root / ".claude" / "skills" / "synced" / "u1" / "demo")
+
+    def test_a_narrowed_audit_of_the_link_still_knows_the_target_is_synced(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            if not self.build(root):
+                self.skipTest("neither symlinks nor junctions are available here")
+            folder = report_of(str(root / ".agents" / "skills" / "demo"))[1]
+            by_file = report_of(str(root / ".agents" / "skills" / "demo" / "SKILL.md"))[1]
+            container = report_of(str(root / ".agents" / "skills"))[1]
+        for report in (folder, by_file, container):
+            self.assertEqual([s["kind"] for s in report["skills"]], ["synced"])
+        self.assertEqual(folder["skills"][0]["location"], "agents", "the alias's exposure is kept")
+
+
+class TestUnreadableScripts(unittest.TestCase):
+    def run_with_unreadable(self, script: str, code_text: str) -> tuple[int, str]:
+        real_read = audit_skills.read_text
+
+        def read(path):
+            if Path(path).name == script:
+                raise PermissionError(13, "Permission denied", str(path))
+            return real_read(path)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nRun `{script}`.\n")
+            put(Path(tmp), f"demo/scripts/{script}", code_text)
+            err, out = io.StringIO(), io.StringIO()
+            with mock.patch.object(audit_skills, "read_text", read), \
+                    contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+                code = audit_skills.main([str(Path(tmp) / "demo"), "--strict"])
+        return code, err.getvalue()
+
+    def test_an_unreadable_python_script_makes_the_audit_incomplete(self) -> None:
+        code, err = self.run_with_unreadable("fetch.py", "import requests\n")
+        self.assertEqual(code, 2)
+        self.assertIn("fetch.py", err)
+
+    def test_an_unreadable_shell_script_makes_the_audit_incomplete(self) -> None:
+        code, err = self.run_with_unreadable("fetch.sh", "read -p 'go? ' x\n")
+        self.assertEqual(code, 2)
+        self.assertIn("fetch.sh", err)
+
+    def test_a_script_that_does_not_parse_is_only_a_note(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\nBody.\n")
+            put(Path(tmp), "demo/scripts/broken.py", "def (:\n")
+            code, report = report_of(str(Path(tmp) / "demo"))
+        self.assertEqual(code, 0)
+        self.assertIn(("G-SCRIPT-08", "INFO"), levels(report["skills"][0]))
+
+
 def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 

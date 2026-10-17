@@ -474,9 +474,12 @@ def discover(roots: list[Path], with_commands: bool) -> tuple[list[Skill], list[
 
     def add(entry: Path, root: Path, kind: str, location: str) -> None:
         try:
-            key = os.path.normcase(str(entry.resolve()))
+            resolved = entry.resolve()
         except OSError:
-            key = os.path.normcase(str(entry))
+            resolved = entry
+        key = os.path.normcase(str(resolved))
+        if kind == "skill" and _under_synced(resolved):
+            kind = "synced"  # reached through a link, but a claude.ai copy all the same: the next sync overwrites it
         if key in seen:
             # Same file through another path (a symlink): audit it once, but remember where else it is exposed,
             # so the order the roots are given in cannot change whether it is held to the shared-skill rules.
@@ -518,6 +521,14 @@ def _layout_of(skill_md: Path) -> tuple[str, str]:
         location = _skills_dir_location(folder.parent, folder.parent.parent)
         return "skill", location or "catalog"
     return "skill", "direct"
+
+
+def _under_synced(skill_md: Path) -> bool:
+    """True for a SKILL.md inside .claude/skills/synced/<account>/<skill>/, wherever the link to it lives."""
+    for ancestor in (skill_md.parent.parent.parent, skill_md.parent.parent):
+        if ancestor.name == "synced" and ancestor.parent.name == "skills" and ancestor.parent.parent.name == ".claude":
+            return True
+    return False
 
 
 def _synced_depth(folder: Path) -> int | None:
@@ -1210,7 +1221,8 @@ def check_scripts(skill: Skill, files: list[Path]) -> None:
         elif path.suffix == ".sh":
             try:
                 lines = read_text(path).split("\n")
-            except OSError:
+            except OSError as exc:
+                skill.unreadable.append(f"cannot read {skill.rel(path)}: {exc.strerror or exc}")
                 continue
             for index, line in enumerate(lines):
                 if re.match(r"^\s*read\b[^#\n]*\s-[a-zA-Z]*p\b", line):
@@ -1221,8 +1233,12 @@ def check_scripts(skill: Skill, files: list[Path]) -> None:
 def _python_script(skill: Skill, path: Path, mentioned: str) -> None:
     try:
         source = read_text(path)
+    except OSError as exc:
+        skill.unreadable.append(f"cannot read {skill.rel(path)}: {exc.strerror or exc}")
+        return
+    try:
         tree = ast.parse(source)
-    except (OSError, SyntaxError, ValueError) as exc:
+    except (SyntaxError, ValueError) as exc:  # a limit of this check, not an unreadable file
         skill.add("G-SCRIPT-08", "INFO", path, 1, f"could not parse the script ({exc.__class__.__name__}): not checked")
         return
     local = {p.stem for p in path.parent.glob("*.py")} | {p.name for p in path.parent.iterdir() if p.is_dir()}
