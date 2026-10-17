@@ -129,7 +129,8 @@ def headings_of(markdown: str) -> list[str]:
 
 
 def models_in(text: str) -> set[str]:
-    text = re.sub(r"[`*_]", "", html.unescape(text))  # emphasis and code markers are not part of a name
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", html.unescape(text))  # a link is its visible label
+    text = re.sub(r"[`*_]", "", text)  # emphasis and code markers are not part of a name
     text = re.sub(r"\s+", " ", text)  # a soft-wrapped "Claude Opus\n6" is the same name
     names = {f"{family} {version}" for family, version in MODEL_RE.findall(text)}
     names |= {f"{family} {version}" for family, version in FAMILY_RE.findall(text) if family not in NOT_A_MODEL}
@@ -265,7 +266,12 @@ def check(manifest: dict, fetcher: Fetcher, skill_md: Path | None, model: str | 
         text = pages.get(key) or (page(key, by_key[key]["url"]) if key in by_key else None)
         if text is None:
             continue
-        for name in sorted(models_in(text) - covered):
+        found = models_in(text)
+        if not found:
+            # A maintenance page, a changed naming format: nothing to compare is not "nothing changed".
+            result.drift.append(Item("unreadable-models", key, "no model name could be read from the page",
+                                     ["G-GEN-01", "G-MODEL-05", "G-MODEL-07"]))
+        for name in sorted(found - covered):
             result.drift.append(Item("new-model", key, name, ["G-GEN-01", "G-MODEL-05", "G-MODEL-07"]))
 
     fields_cfg = manifest.get("claude_code_fields")
@@ -322,9 +328,11 @@ def rebaseline(manifest: dict, fetcher: Fetcher) -> list[str]:
         if fields_cfg["source"] in fetcher.flattened:
             raise ValueError(f"{fields_cfg['source']} was served as HTML, which has no field table to record")
         found = cc_fields_in(text, fields_cfg.get("section", "Frontmatter reference"))
-        if found:
-            fields_cfg["known"] = sorted(found)
-            notes.append(f"Claude Code fields: {len(found)}")
+        if not found:
+            raise ValueError(f"no field names could be read from the {fields_cfg.get('section', 'Frontmatter reference')!r} "
+                             "table, so there is no baseline to record")
+        fields_cfg["known"] = sorted(found)
+        notes.append(f"Claude Code fields: {len(found)}")
     notes.append(f"covered models: {len(manifest['covered_models'])}")
     return notes
 
@@ -340,6 +348,7 @@ def render(result: Result) -> str:
         "removed-field": "Claude Code frontmatter field no longer documented",
         "unreadable-fields": "The Claude Code frontmatter table could not be read",
         "uncovered-model": "The running model is not covered by the rules",
+        "unreadable-models": "A model page yielded no model name",
     }
     out: list[str] = []
     for item in result.drift:

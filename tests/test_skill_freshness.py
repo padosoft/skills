@@ -223,6 +223,33 @@ class TestFreshnessCheck(unittest.TestCase):
             self.assertEqual(code, 1, text)
             self.assertIn("Opus 6", [i["detail"] for i in report["drift"] if i["kind"] == "new-model"], text)
 
+    def test_a_link_around_part_of_a_model_name_does_not_hide_it(self) -> None:
+        for text in ("Introducing Claude [Opus 6](https://example.com/opus-6).", "Introducing [Claude](https://a.example) Opus 6.",
+                     "Introducing Claude Opus [6](https://example.com/6)."):
+            self.fx.write_pages(models=PAGE_MODELS + text)
+            code, report = self.fx.run()
+            self.assertEqual(code, 1, text)
+            self.assertIn("Opus 6", [i["detail"] for i in report["drift"] if i["kind"] == "new-model"], text)
+
+    def test_a_model_page_with_no_model_name_is_drift_not_silence(self) -> None:
+        self.fx.write_pages(models="Scheduled maintenance. Please try again later.")
+        code, report = self.fx.run()
+        self.assertEqual(code, 1)
+        self.assertIn("unreadable-models", self.kinds(report))
+
+    def test_rebaseline_refuses_a_field_table_it_cannot_read(self) -> None:
+        self.fx.write_pages(fields=PAGE_FIELDS.replace("`", ""))
+        self.fx.manifest_path.write_text(json.dumps(self.fx.data), encoding="utf-8")
+        before = self.fx.manifest_path.read_text(encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--manifest", str(self.fx.manifest_path), "--offline", str(self.fx.pages),
+             "--rebaseline"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT,
+        )
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("no baseline", result.stderr)
+        self.assertEqual(self.fx.manifest_path.read_text(encoding="utf-8"), before, "the manifest must be untouched")
+
     def test_html_entities_do_not_hide_a_model_name(self) -> None:
         (self.fx.pages / "models.md").unlink()
         (self.fx.pages / "models.html").write_text(
