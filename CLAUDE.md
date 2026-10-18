@@ -17,6 +17,7 @@ Never edit a generated file by hand: `CATALOG.md`, `profiles.json`, the catalogu
 - **A CHANGELOG entry is not a release.** After the merge, tag `main` with an annotated `vX.Y.Z` and publish the GitHub release with the entry as its notes. An entry with no tag is unfinished work.
 - **Every command a skill quotes was run once** in a read-only form, and its output holds the fields the next step reads (G-FLOW-09).
 - **Scripts are standard-library Python**, non-interactive, with `--help` and exit codes 0, 1 and 2.
+- **A workflow that reads repository content and a workflow that writes (issues, comments, pushes) are different jobs**, the first with a read-only token, no persisted credentials and no copy of the checker taken from the checkout.
 
 ## After every pull request or session
 
