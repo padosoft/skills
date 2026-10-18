@@ -35,12 +35,14 @@ import argparse
 import ast
 import bisect
 import difflib
+import html
 import json
 import os
 import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import unquote
 
 # --- Limits, each with the source that sets it --------------------------------------------------------
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")  # agentskills.io spec: no edge or double hyphens
@@ -84,6 +86,15 @@ STDLIB = set(getattr(sys, "stdlib_module_names", ())) | {"__future__"}
 
 SUPPRESS = re.compile(r"audit-ok:\s*\S.{2,}")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+IN_FILE_LINK = re.compile(r"(?<!\\)(?:\\\\)*\[[^\]\n]*\]\(\s*#([^)\s]+)(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)")
+HEADING_LINK = re.compile(r"\[([^\]\n]*)\]\([^)\n]*\)")
+HTML_TAG = re.compile(r"<[^>]+>")
+ANY_CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
+EMPHASIS_PAIR = re.compile(r"(?<!\w)(_{1,2})(?=\S)(.+?)(?<=\S)\1(?!\w)")  # _x_ and __x__; my_var and _private are not
+CLOSING_HASHES = re.compile(r"\s+#+\s*$")  # the optional closing sequence of an ATX heading
+ID_ATTRIBUTE = re.compile(r"""<[A-Za-z][^>]*?\sid\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""")
+NAME_ATTRIBUTE = re.compile(r"""<a(?=\s)[^>]*?\sname\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""", re.IGNORECASE)
+SETEXT_UNDERLINE = re.compile(r"^\s{0,3}(?:=+|-+)\s*$")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
 QUOTED = re.compile(r'"[^"\n]*"|“[^”\n]*”|«[^»\n]*»')
 HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
@@ -634,6 +645,7 @@ def audit_skill(skill: Skill, shared: bool) -> None:
     check_size(skill)
     files = bundled_files(skill)
     check_links_and_paths(skill, files)
+    check_anchors(skill, files)
     check_content(skill, files)
     check_scripts(skill, files)
 
@@ -1192,6 +1204,90 @@ def _phrase_findings(agg: "_Aggregate", path: Path, lines: list[str], start: int
                 if rule_id == "G-GEN-05":
                     reasoning_lines.add(index)
                 agg.hit(rule_id, level, path, index + 1, message)
+
+
+def github_anchor(heading: str) -> str:
+    """The anchor GitHub gives a heading: of the rendered text, lowercase, punctuation dropped, `_` and `-` kept."""
+    protected: list[str] = []
+
+    def keep(span: re.Match) -> str:
+        # a code span is text whatever it holds (`<style>`, `[x](y)`): set it aside while the markup around it goes
+        protected.append(span.group(2).strip())
+        return f"\x00{len(protected) - 1}\x00"
+
+    text = _plain(ANY_CODE_SPAN.sub(keep, heading))
+    text = re.sub(r"\x00(\d+)\x00", lambda m: protected[int(m.group(1))], text).strip().lower()
+    return re.sub(r"[^\w\- ]", "", text).replace(" ", "-")
+
+
+def _plain(markdown: str) -> str:
+    """Markup outside code spans: links, tags and emphasis delimiters go and their text stays."""
+    text = HEADING_LINK.sub(r"\1", markdown)
+    text = HTML_TAG.sub("", text)
+    text = text.replace("*", "")
+    text = text.replace("\\_", "\x01")  # an escaped underscore is a literal one
+    text = EMPHASIS_PAIR.sub(r"\2", text)
+    text = text.replace("\x01", "_")
+    return html.unescape(text)  # last: &lt; and &#95; are literal characters, not markup
+
+
+def _headings_of(lines: list[str], start: int) -> list[str]:
+    """Heading texts outside fenced code: ATX (`## x`) and Setext (a line underlined with === or ---)."""
+    prose = list(iter_prose(lines, start))
+    found: list[str] = []
+    for position, (index, line) in enumerate(prose):
+        atx = HEADING.match(line)
+        if atx:
+            found.append(CLOSING_HASHES.sub("", atx.group(2).strip()))
+            continue
+        following = prose[position + 1] if position + 1 < len(prose) else None
+        if (following and following[0] == index + 1 and SETEXT_UNDERLINE.match(following[1])
+                and line.strip() and not re.match(r"^\s*(?:[-*+>|]|\d+[.)])", line)):
+            found.append(line.strip())
+    return found
+
+
+def _explicit_ids(lines: list[str], start: int) -> set[str]:
+    """`id` (any tag) and `name` (an <a>) attributes of real HTML outside fenced code and code spans."""
+    ids: set[str] = set()
+    for _, line in iter_prose(lines, start):
+        scrubbed = ANY_CODE_SPAN.sub(" ", line)
+        for pattern in (ID_ATTRIBUTE, NAME_ATTRIBUTE):
+            for m in pattern.finditer(scrubbed):
+                ids.add(next(g for g in m.groups() if g is not None))
+    return ids
+
+
+def check_anchors(skill: Skill, files: list[Path]) -> None:
+    """A link to #something inside a file must land on a heading or an explicit anchor of that file."""
+    docs = [(skill.entry, skill.lines, skill.body_start)]
+    for md in _md_files(skill, files):
+        try:
+            docs.append((md, read_text(md).split("\n"), 0))
+        except OSError:
+            continue  # already reported by the link check
+    for path, lines, start in docs:
+        used: set[str] = set()
+        suffix: dict[str, int] = {}
+        for title in _headings_of(lines, start):
+            base = github_anchor(title)
+            candidate, n = base, suffix.get(base, 0)
+            while candidate in used:  # GitHub numbers a repeated slug until it is unused, suffixed headings included
+                n += 1
+                candidate = f"{base}-{n}"
+            suffix[base] = n
+            used.add(candidate)
+        explicit = _explicit_ids(lines, start)
+        for index, line in iter_prose(lines, start):
+            # an indented line is an indented code block as often as a nested list: say nothing rather than guess
+            if _suppressed(lines, index) or line.startswith(("    ", "\t")):
+                continue
+            for m in IN_FILE_LINK.finditer(ANY_CODE_SPAN.sub(" ", line)):
+                fragment = unquote(m.group(1))
+                if fragment and fragment not in explicit and fragment.lower() not in used:
+                    skill.add("G-STRUCT-08", "WARN", path, index + 1,
+                              f"the link to #{fragment} matches no heading of this file: GitHub keeps underscores and "
+                              "drops punctuation, and a repeated heading gets -1, -2")
 
 
 def check_content(skill: Skill, files: list[Path]) -> None:

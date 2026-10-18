@@ -13,7 +13,7 @@ Never edit a generated file by hand: `CATALOG.md`, `profiles.json`, the catalogu
 ## Rules that exist because they were broken
 
 - **A plugin and its marketplace entry carry the same version.** Bump `plugins/<name>/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` together whenever a skill in that package changes. `scripts/validate_plugins.py` fails when they differ; the listing had drifted unnoticed before that check existed.
-- **A reference file over 100 lines opens with a contents list, and no description contains `<` or `>`** (claude.ai and the Skills API reject them). CI runs the repository's own audit with `--strict`, so a warning fails the build.
+- **A reference file over 100 lines opens with a contents list whose links land on a heading (GitHub's anchors keep underscores), and no description contains `<` or `>`** (claude.ai and the Skills API reject them). CI runs the repository's own audit with `--strict`, so a warning fails the build.
 - **A CHANGELOG entry is not a release.** After the merge, tag `main` with an annotated `vX.Y.Z` and publish the GitHub release with the entry as its notes. An entry with no tag is unfinished work.
 - **Every command a skill quotes was run once** in a read-only form, and its output holds the fields the next step reads (G-FLOW-09).
 - **Scripts are standard-library Python**, non-interactive, with `--help` and exit codes 0, 1 and 2.

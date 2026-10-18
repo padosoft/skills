@@ -15,7 +15,7 @@ compatibility: >-
   Requires Python 3.10+ (standard library only). The freshness check needs HTTPS access to the
   documentation sites; without it the audit still runs and says the rules were not re-verified.
 metadata:
-  version: 0.2.0
+  version: 0.2.1
   author: Padosoft
   summary: Bring a project's skills up to the current rules, after checking the rules are still current.
   profiles: core

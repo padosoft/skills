@@ -4,6 +4,27 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.19.1] - 2026-10-18
+
+The audit now checks that the links of a contents list land on a heading.
+
+### Added
+
+- **The audit reports an in-file link that matches no heading** (`G-STRUCT-08`, WARN). The anchor of a heading
+  is computed the way GitHub does it: lowercase, markup and punctuation dropped, underscores and hyphens kept,
+  a repeated heading numbered `-1`, `-2`; a tag-looking text inside backticks is heading text; an explicit
+  `id` or `name` anchor in the file counts. Links inside code are left alone. Why: contents lists written by
+  hand or by script went out with anchors that dropped the underscores of `snake_case` headings, and nothing
+  noticed until a reviewer clicked them. `G-STRUCT-03` says the links must land. It is a heuristic over
+  Markdown, not a renderer: known limits are balanced parentheses inside a link destination, headings inside
+  a blockquote or a list item, and a code span that crosses lines; a false warning is silenced with an
+  `audit-ok: reason` comment, like any other finding.
+
+### Changed
+
+- `CLAUDE.md` of this repository states the rule next to the contents-list and description rules.
+- Package `padosoft-core` 0.15.1; `padosoft-skill-audit` 0.2.1.
+
 ## [1.19.0] - 2026-10-18
 
 45 skills. The catalogue now carries the rulebook for writing skills for the current Claude models, and a
