@@ -86,7 +86,7 @@ STDLIB = set(getattr(sys, "stdlib_module_names", ())) | {"__future__"}
 
 SUPPRESS = re.compile(r"audit-ok:\s*\S.{2,}")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
-IN_FILE_LINK = re.compile(r"\]\(\s*#([^)\s]+)(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)")
+IN_FILE_LINK = re.compile(r"(?<!\\)(?:\\\\)*\[[^\]\n]*\]\(\s*#([^)\s]+)(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)")
 HEADING_LINK = re.compile(r"\[([^\]\n]*)\]\([^)\n]*\)")
 HTML_TAG = re.compile(r"<[^>]+>")
 ANY_CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
@@ -1207,24 +1207,25 @@ def _phrase_findings(agg: "_Aggregate", path: Path, lines: list[str], start: int
 
 def github_anchor(heading: str) -> str:
     """The anchor GitHub gives a heading: of the rendered text, lowercase, punctuation dropped, `_` and `-` kept."""
-    kept: list[str] = []
-    position = 0
-    for span in ANY_CODE_SPAN.finditer(heading):
-        kept.append(_plain(heading[position:span.start()]))
-        kept.append(span.group(2).strip())  # inside backticks everything is text, a tag-looking `<style>` included
-        position = span.end()
-    kept.append(_plain(heading[position:]))
-    text = "".join(kept).strip().lower()
+    protected: list[str] = []
+
+    def keep(span: re.Match) -> str:
+        # a code span is text whatever it holds (`<style>`, `[x](y)`): set it aside while the markup around it goes
+        protected.append(span.group(2).strip())
+        return f"\x00{len(protected) - 1}\x00"
+
+    text = _plain(ANY_CODE_SPAN.sub(keep, heading))
+    text = re.sub(r"\x00(\d+)\x00", lambda m: protected[int(m.group(1))], text).strip().lower()
     return re.sub(r"[^\w\- ]", "", text).replace(" ", "-")
 
 
 def _plain(markdown: str) -> str:
-    """Markup outside code spans: character references, links, tags and emphasis delimiters go, their text stays."""
-    text = html.unescape(markdown)
-    text = HEADING_LINK.sub(r"\1", text)
+    """Markup outside code spans: links, tags and emphasis delimiters go and their text stays."""
+    text = HEADING_LINK.sub(r"\1", markdown)
     text = HTML_TAG.sub("", text)
     text = text.replace("*", "")
-    return EMPHASIS_UNDERSCORE.sub("", text)
+    text = EMPHASIS_UNDERSCORE.sub("", text)
+    return html.unescape(text)  # last: &lt; and &#95; are literal characters, not markup
 
 
 def _headings_of(lines: list[str], start: int) -> list[str]:

@@ -1015,6 +1015,20 @@ class TestInFileAnchors(unittest.TestCase):
                 '```html\n<a id="ghost"></a>\n```\n')
         self.assertEqual(self.dead(body), ["ghost", "missing", "mixed"])
 
+    def test_a_link_label_with_code_keeps_the_code_and_drops_the_destination(self) -> None:
+        body = ("- [a](#test_bug)\n- [b](#run-setup)\n- [c](#xy)\n\n"
+                "## [`test_bug`](target)\n\n## [Run `setup`](guide.md)\n\n## `[x](y)`\n")
+        self.assertEqual(self.dead(body), [])
+
+    def test_a_character_reference_is_literal_text_not_markup(self) -> None:
+        body = "- [a](#use-style-now)\n- [b](#_setup_)\n\n## Use &lt;style&gt; now\n\n## &#95;Setup&#95;\n"
+        self.assertEqual(self.dead(body), [])
+
+    def test_an_escaped_opening_bracket_is_not_a_link(self) -> None:
+        # one backslash escapes the bracket; two are an escaped backslash and then a real link
+        body = "\\[Example](#ghost)\n\n\\\\[Real](#ghost2)\n\n## Setup\n"
+        self.assertEqual(self.dead(body), ["ghost2"])
+
     def test_indented_lines_and_double_backtick_spans_are_left_alone(self) -> None:
         body = "Text.\n\n    [Go](#ghost)\n\n``[Go](#ghost)`` and `[Go](#ghost)`\n"
         self.assertEqual(self.dead(body), [])
