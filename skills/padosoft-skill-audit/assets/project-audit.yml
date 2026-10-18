@@ -106,6 +106,14 @@ jobs:
             gh issue close "$existing" --comment "The checker reports no findings."
           fi
 
+      # The report step swallows the exit code so the issue steps can read it. Any code other than 0, 1 or 2
+      # (a kill, an out-of-memory 137, a crash of the interpreter) means the audit did not finish: say so loudly.
+      - name: Fail when the checker ended in an unexpected way
+        if: github.event_name != 'pull_request' && steps.report.outputs.code != '0' && steps.report.outputs.code != '1' && steps.report.outputs.code != '2'
+        run: |
+          echo "::error::The checker exited with an unexpected code (${{ steps.report.outputs.code }}); the audit is incomplete."
+          exit 1
+
       - name: Nothing could be checked
         if: github.event_name != 'pull_request' && steps.report.outputs.code == '2'
         run: |
