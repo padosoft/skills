@@ -933,7 +933,9 @@ class TestPositionalPlaceholders(unittest.TestCase):
     def test_a_shell_variable_named_like_a_declared_argument_is_noted(self) -> None:
         body = "```bash\ntarget=$(pwd)\necho \"$target\"\n```"
         for declaration in ("arguments: [target, mode]", "arguments: target mode",
-                            "arguments:" + chr(10) + "  - target" + chr(10) + "  - mode"):
+                            "arguments:" + chr(10) + "  - target" + chr(10) + "  - mode",
+                            "arguments: [{name: target, description: where}]",
+                            "arguments:" + chr(10) + "  - name: target" + chr(10) + "    description: where"):
             self.assertIn(("G-PORT-06", "INFO"), self.with_arguments(declaration, body), declaration)
 
     def test_using_a_declared_argument_on_purpose_is_not_noted(self) -> None:

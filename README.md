@@ -536,7 +536,7 @@ is specific to the project — stays in a session with a person.
 
 | Trigger | What happens |
 |---|---|
-| A pull request that touches `.claude/skills`, `.claude/commands` or `.agents/skills` | The checker runs offline; an **ERROR**-level finding (a description an upload rejects, a `SKILL.md` that does not parse) fails the check |
+| Every pull request | The checker runs offline (a few seconds, and clean when the repository has no skills); an **ERROR**-level finding (a description an upload rejects, a `SKILL.md` that does not parse) fails the check. There is no path filter on purpose: a filtered workflow leaves a *required* check waiting forever on the pull requests it skips |
 | Every Monday at 06:23 UTC, or *Run workflow* by hand | The checker runs with `--strict`. Findings: one issue labelled `skills-audit` is opened, or a comment is added to the one already open. Clean: the open issue is closed. Part of the repository unreadable: a warning in the log |
 
 **When the issue is open.** In a session in the project, ask *"audit the skills of this repo and apply the

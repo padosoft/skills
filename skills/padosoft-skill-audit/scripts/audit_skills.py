@@ -94,6 +94,8 @@ BUNDLED_PATH = re.compile(r"^(?:\./)?((?:scripts|references|reference|assets|tem
 # positional parameter looks the same
 POSITIONAL = re.compile(r"(?<![\\$])\$[0-9]+(?!\w)")
 ARGUMENT_NAME = re.compile(r"[A-Za-z_]\w*")
+# the parser returns a mapping entry as text: "{name: target, ...}" or, in a block list, "name: target"
+MAPPING_ARGUMENT = re.compile(r"\{?\s*name\s*:\s*([A-Za-z_]\w*)")
 COMMAND_PATH = re.compile(
     r"(?<![\w/.$-])(?:\$\{?CLAUDE_SKILL_DIR\}?/|\./)?"
     r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
@@ -854,7 +856,10 @@ def declared_arguments(skill: Skill) -> set[str]:
     """Names from the `arguments` frontmatter field: a space-separated string, or a list of names or of {name: ...}."""
     value = skill.frontmatter.get("arguments")
     items = value.split() if isinstance(value, str) else value if isinstance(value, list) else []
-    names = (item.get("name") if isinstance(item, dict) else item for item in items)
+    names = []
+    for item in items:
+        mapping = MAPPING_ARGUMENT.match(item) if isinstance(item, str) else None
+        names.append(item.get("name") if isinstance(item, dict) else mapping.group(1) if mapping else item)
     return {n for n in names if isinstance(n, str) and ARGUMENT_NAME.fullmatch(n)}
 
 

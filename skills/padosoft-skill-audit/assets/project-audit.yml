@@ -5,7 +5,8 @@ name: Skills audit
 #
 # It runs the deterministic checker of padosoft-skill-audit: offline, Python standard library only, no secret,
 # no model. It REPORTS and never edits:
-#   - on a pull request that touches a skill, an ERROR-level finding fails the check;
+#   - on every pull request, an ERROR-level finding fails the check (it is quick, and a workflow with a path
+#     filter would leave a required check waiting forever on the pull requests it skips);
 #   - every week it keeps ONE open issue labelled "skills-audit" with the full report (warnings included) and
 #     closes it when the report is clean.
 # Fixing is a judgement job: open a session in the repository and ask the skill to apply the report.
@@ -15,10 +16,6 @@ name: Skills audit
 
 on:
   pull_request:
-    paths:
-      - ".claude/skills/**"
-      - ".claude/commands/**"
-      - ".agents/skills/**"
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:
