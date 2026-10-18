@@ -935,8 +935,15 @@ class TestPositionalPlaceholders(unittest.TestCase):
         for declaration in ("arguments: [target, mode]", "arguments: target mode",
                             "arguments:" + chr(10) + "  - target" + chr(10) + "  - mode",
                             "arguments: [{name: target, description: where}]",
+                            "arguments: [{description: directory, name: target}]",
+                            "arguments: [{name: " + chr(34) + "target" + chr(34) + ", description: directory}]",
                             "arguments:" + chr(10) + "  - name: target" + chr(10) + "    description: where"):
             self.assertIn(("G-PORT-06", "INFO"), self.with_arguments(declaration, body), declaration)
+
+    def test_the_other_keys_of_a_mapping_are_not_argument_names(self) -> None:
+        body = "```bash" + chr(10) + "directory=$(pwd)" + chr(10) + "echo " + chr(34) + "$directory" + chr(34) + chr(10) + "```"
+        declaration = "arguments:" + chr(10) + "  - name: target" + chr(10) + "    description: directory"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.with_arguments(declaration, body))
 
     def test_using_a_declared_argument_on_purpose_is_not_noted(self) -> None:
         body = "```bash\ngit switch \"$target\"\n```"

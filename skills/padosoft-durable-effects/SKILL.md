@@ -137,8 +137,11 @@ The jobs of the abandoned attempt are still in the queue when the new attempt st
 
 - **Every job carries a run marker** and no-ops if it differs from the batch's current one: no processing,
   no finalising, no enqueuing the next job. Otherwise a stale job races the resumed run.
-- **The move to the error state is a compare-and-set on the observed state.** A late failure handler that
-  writes unconditionally overwrites a run that was resumed in the meantime.
+- **The move to the error state is one conditional update on the run marker and the observed state
+  together.** A late failure handler that writes unconditionally overwrites a run that was resumed in the
+  meantime, and one that compares only the state can still win: the old handler saw `running`, the resumed
+  run is `running` again under a new marker, and the update succeeds. Checking the marker beforehand leaves
+  the same race, so both conditions belong in the same atomic update.
 - **A stalled-run sweeper declares a run dead only on evidence.** Use a heartbeat and a threshold above the
   longest job timeout; require that no job is waiting or delayed; touch nothing if the queue cannot be read
   (unknown is not dead); run it on a different queue from the work it watches, or a stuck queue stops its own
@@ -195,7 +198,7 @@ visible bootstrap fallback, never the production answer.
 - [ ] Retry policy bounded, with a named destination for exhausted work
 - [ ] The durable store is what persists the message; notifications are not the queue
 - [ ] Bootstrap serialised under a transaction-scoped lock
-- [ ] Resumable runs: run marker on every job, compare-and-set into the error state, a sweeper on its own queue
+- [ ] Resumable runs: run marker on every job, compare-and-set (marker and state together) into the error state, a sweeper on its own queue
 - [ ] Replay: persist before publish, subscribe before replay, explicit missing-cursor signal
 - [ ] Webhooks verified on the raw body, with a clock tolerance
 - [ ] Worker identity required at boot; tenant scope enforced at dequeue and at ack

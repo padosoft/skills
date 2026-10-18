@@ -158,8 +158,10 @@ prefer a branch on the tree that is already there.
 
 With squash merges or cherry-picks between two long-lived branches, the same change lives on both under
 different hashes. A branch cut from the wrong one carries commits the target lacks, and a symbol that exists
-on one side throws at first render on the other. Before opening the pull request, check that each new symbol
-exists on the base, and that the branch's fork point from the other long-lived branch is already in the base:
+on one side throws at first render on the other. Before opening the pull request, check that every symbol the
+change references is defined on the base or by the pull request itself (a dependency that only the other
+branch supplies is the finding), and that the branch's fork point from the other long-lived branch is
+already in the base:
 
 ```bash
 git merge-base --is-ancestor "$(git merge-base HEAD <other-branch>)" <base> && echo "fork point is in the base"
@@ -187,7 +189,7 @@ other branch, whenever that branch already contains the base.
 - [ ] Lock files handled the way the repository actually decided, consistently
 - [ ] No parallel working tree created without being asked
 - [ ] No direct push to the release branch and no force push
-- [ ] With two long-lived branches: the fork point from the other one is already in the base, and every new symbol exists on the base
+- [ ] With two long-lived branches: the fork point from the other one is already in the base, and every referenced symbol is defined on the base or by the pull request
 - [ ] `git show --stat HEAD` run, file count matching the expected list
 - [ ] Any missing file diagnosed with `git check-ignore -v`, fixed with a negation and not with `-f`
 - [ ] `git ls-files --eol | grep -E '^i/(crlf|mixed)'` empty, or the repository has an open decision about it

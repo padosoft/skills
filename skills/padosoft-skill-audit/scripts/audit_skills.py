@@ -94,8 +94,9 @@ BUNDLED_PATH = re.compile(r"^(?:\./)?((?:scripts|references|reference|assets|tem
 # positional parameter looks the same
 POSITIONAL = re.compile(r"(?<![\\$])\$[0-9]+(?!\w)")
 ARGUMENT_NAME = re.compile(r"[A-Za-z_]\w*")
-# the parser returns a mapping entry as text: "{name: target, ...}" or, in a block list, "name: target"
-MAPPING_ARGUMENT = re.compile(r"\{?\s*name\s*:\s*([A-Za-z_]\w*)")
+# the parser returns a mapping entry as text: "{name: target, ...}", "{description: x, name: target}" or, in a
+# block list, "name: target" and "description: x" as separate items; only the name key gives a name
+MAPPING_ARGUMENT = re.compile(r"(?:^|[{,\s])name\s*:\s*[\x22\x27]?([A-Za-z_]\w*)")
 COMMAND_PATH = re.compile(
     r"(?<![\w/.$-])(?:\$\{?CLAUDE_SKILL_DIR\}?/|\./)?"
     r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
@@ -852,14 +853,24 @@ def iter_prose(lines: list[str], start: int = 0):
             yield index, line
 
 
+def _argument_names_in(text: str) -> list[str]:
+    """Names in one piece of the declaration: "a b", "{name: a, description: x}" or "- name: a description: x"."""
+    found = [m.group(1) for m in MAPPING_ARGUMENT.finditer(text)]
+    if found or ":" in text or "{" in text:  # a mapping: only its `name` keys are names, "description: x" is not
+        return found
+    return text.split()
+
+
 def declared_arguments(skill: Skill) -> set[str]:
-    """Names from the `arguments` frontmatter field: a space-separated string, or a list of names or of {name: ...}."""
+    """Names from the `arguments` frontmatter field: a string, a list of names, or a list of mappings with `name`."""
     value = skill.frontmatter.get("arguments")
-    items = value.split() if isinstance(value, str) else value if isinstance(value, list) else []
-    names = []
+    items = value if isinstance(value, list) else [value] if isinstance(value, str) else []
+    names: list[object] = []
     for item in items:
-        mapping = MAPPING_ARGUMENT.match(item) if isinstance(item, str) else None
-        names.append(item.get("name") if isinstance(item, dict) else mapping.group(1) if mapping else item)
+        if isinstance(item, dict):
+            names.append(item.get("name"))
+        elif isinstance(item, str):
+            names.extend(_argument_names_in(item))
     return {n for n in names if isinstance(n, str) and ARGUMENT_NAME.fullmatch(n)}
 
 
