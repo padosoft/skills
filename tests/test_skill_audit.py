@@ -1029,6 +1029,15 @@ class TestInFileAnchors(unittest.TestCase):
         body = "\\[Example](#ghost)\n\n\\\\[Real](#ghost2)\n\n## Setup\n"
         self.assertEqual(self.dead(body), ["ghost2"])
 
+    def test_literal_and_escaped_underscores_stay_and_paired_emphasis_goes(self) -> None:
+        body = ("- [a](#_private)\n- [b](#test_bug)\n- [c](#setup)\n- [d](#strong)\n\n"
+                "## _private\n\n## test\\_bug\n\n## _Setup_\n\n## __Strong__\n")
+        self.assertEqual(self.dead(body), [])
+
+    def test_closing_hashes_and_trailing_spaces_are_not_part_of_the_heading(self) -> None:
+        body = "- [a](#setup)\n- [b](#c)\n\n## Setup ###   \n\n## C#\n"
+        self.assertEqual(self.dead(body), [])
+
     def test_indented_lines_and_double_backtick_spans_are_left_alone(self) -> None:
         body = "Text.\n\n    [Go](#ghost)\n\n``[Go](#ghost)`` and `[Go](#ghost)`\n"
         self.assertEqual(self.dead(body), [])

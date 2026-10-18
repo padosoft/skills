@@ -15,7 +15,10 @@ The audit now checks that the links of a contents list land on a heading.
   a repeated heading numbered `-1`, `-2`; a tag-looking text inside backticks is heading text; an explicit
   `id` or `name` anchor in the file counts. Links inside code are left alone. Why: contents lists written by
   hand or by script went out with anchors that dropped the underscores of `snake_case` headings, and nothing
-  noticed until a reviewer clicked them. `G-STRUCT-03` says the links must land.
+  noticed until a reviewer clicked them. `G-STRUCT-03` says the links must land. It is a heuristic over
+  Markdown, not a renderer: known limits are balanced parentheses inside a link destination, headings inside
+  a blockquote or a list item, and a code span that crosses lines; a false warning is silenced with an
+  `audit-ok: reason` comment, like any other finding.
 
 ### Changed
 

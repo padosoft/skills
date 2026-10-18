@@ -245,7 +245,9 @@ Until the skill loads, the description is the only thing the model reads about i
 - **G-STRUCT-03** (required) — **A table of contents at the top of any file over 100 lines**, so a partial
   read still shows the full scope and the agent can jump to the right section. `[BP]` Its links must land:
   an anchor is the heading lowercased, punctuation dropped, underscores and hyphens kept, a repeated heading
-  numbered `-1`, `-2`; the audit reports a link to a heading that is not there.
+  numbered `-1`, `-2`; the audit reports a link to a heading that is not there. It reads the common forms
+  (ATX and Setext headings, titled links, explicit `id` anchors) and not every corner of Markdown, so a
+  false warning is silenced with an `audit-ok: <reason>` comment on the line or the line above.
 - **G-STRUCT-04** (recommended) — **Say when to read each file**: "read `references/api-errors.md` if the
   API returns a 4xx" is useful, "see references/ for details" is not. `[AS-BP]` `[SC]`
 - **G-STRUCT-05** (recommended) — Organise by domain or variant (`references/finance.md`,

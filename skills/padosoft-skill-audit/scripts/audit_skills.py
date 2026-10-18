@@ -90,7 +90,8 @@ IN_FILE_LINK = re.compile(r"(?<!\\)(?:\\\\)*\[[^\]\n]*\]\(\s*#([^)\s]+)(?:\s+(?:
 HEADING_LINK = re.compile(r"\[([^\]\n]*)\]\([^)\n]*\)")
 HTML_TAG = re.compile(r"<[^>]+>")
 ANY_CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
-EMPHASIS_UNDERSCORE = re.compile(r"(?<!\w)_+|_+(?!\w)")  # the delimiters of _emphasis_, not the underscores inside a word
+EMPHASIS_PAIR = re.compile(r"(?<!\w)(_{1,2})(?=\S)(.+?)(?<=\S)\1(?!\w)")  # _x_ and __x__; my_var and _private are not
+CLOSING_HASHES = re.compile(r"\s+#+\s*$")  # the optional closing sequence of an ATX heading
 ID_ATTRIBUTE = re.compile(r"""<[A-Za-z][^>]*?\sid\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""")
 NAME_ATTRIBUTE = re.compile(r"""<a(?=\s)[^>]*?\sname\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""", re.IGNORECASE)
 SETEXT_UNDERLINE = re.compile(r"^\s{0,3}(?:=+|-+)\s*$")
@@ -1224,7 +1225,9 @@ def _plain(markdown: str) -> str:
     text = HEADING_LINK.sub(r"\1", markdown)
     text = HTML_TAG.sub("", text)
     text = text.replace("*", "")
-    text = EMPHASIS_UNDERSCORE.sub("", text)
+    text = text.replace("\\_", "\x01")  # an escaped underscore is a literal one
+    text = EMPHASIS_PAIR.sub(r"\2", text)
+    text = text.replace("\x01", "_")
     return html.unescape(text)  # last: &lt; and &#95; are literal characters, not markup
 
 
@@ -1235,7 +1238,7 @@ def _headings_of(lines: list[str], start: int) -> list[str]:
     for position, (index, line) in enumerate(prose):
         atx = HEADING.match(line)
         if atx:
-            found.append(atx.group(2).rstrip("#").strip())
+            found.append(CLOSING_HASHES.sub("", atx.group(2).strip()))
             continue
         following = prose[position + 1] if position + 1 < len(prose) else None
         if (following and following[0] == index + 1 and SETEXT_UNDERLINE.match(following[1])
