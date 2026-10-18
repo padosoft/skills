@@ -15,7 +15,7 @@ compatibility: >-
   Requires Python 3.10+ (standard library only). The freshness check needs HTTPS access to the
   documentation sites; without it the audit still runs and says the rules were not re-verified.
 metadata:
-  version: 0.2.1
+  version: 0.2.2
   author: Padosoft
   summary: Bring a project's skills up to the current rules, after checking the rules are still current.
   profiles: core
@@ -46,7 +46,7 @@ every model.**
 | `scripts/check_freshness.py` | Phase 0: are the rules still in line with their sources, and is this copy current? |
 | `scripts/audit_skills.py` | Phases 1 and 5: inventory and deterministic checks, read-only |
 | `assets/audit-prompt.md` | The prompt to paste in agents or projects where this skill is not installed |
-| `assets/project-audit.yml` | A GitHub Actions workflow a project copies: a pull-request gate and a weekly report issue, no secret |
+| `assets/project-audit.yml` | A GitHub Actions workflow a project copies: a pull-request gate and a weekly report issue, no secret; two jobs (read-only audit, issues-only report) and a pinned checker |
 
 Run the scripts from this skill's folder: `python3 "${CLAUDE_SKILL_DIR}/scripts/audit_skills.py" <root>`.
 Claude Code fills in `${CLAUDE_SKILL_DIR}` only when the skill is loaded; if the text reaches you unsubstituted,

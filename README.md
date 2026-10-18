@@ -524,14 +524,21 @@ is specific to the project — stays in a session with a person.
 
 **Once per project**
 
-1. **Make the skill available.** `npx skills add padosoft/skills --skill padosoft-skill-audit` inside the
-   project (commit the result, and the workflow below uses that copy), or install the `core` profile globally
-   on each machine (`bash scripts/install-profile.sh core --global`, or
-   `claude plugin install padosoft-core@padosoft`). Without a committed copy the workflow downloads the
-   checker of a pinned release instead.
+1. **Make the skill available to whoever will fix the findings.** Install the `core` profile globally on each
+   machine (`bash scripts/install-profile.sh core --global`, or
+   `claude plugin install padosoft-core@padosoft`), or `npx skills add padosoft/skills --skill
+   padosoft-skill-audit` inside the project. The workflow does not depend on it: it always downloads the
+   checker of the release pinned in `SKILLS_REF`, never a copy found in the checkout, because a pull request
+   could replace that one.
 2. **Copy the workflow** [`project-audit.yml`](skills/padosoft-skill-audit/assets/project-audit.yml) to
    `.github/workflows/skills-audit.yml` in the project, set `SKILLS_REF` to the release of `padosoft/skills`
-   you installed, commit and push. Issues must be enabled on the repository. No secret is needed.
+   you installed (a project that pins its actions by commit pins this too: the full 40-character commit of the
+   release, `git rev-parse vX.Y.Z^{commit}`, with the tag in a comment), commit and push. Issues must be
+   enabled on the repository. No secret is needed.
+
+The workflow has two jobs so that the one that reads the repository cannot write issues: `audit` has a
+read-only token and no persisted credentials, and `report` has the `issues` permission and never checks the
+repository out.
 
 **What the workflow does**
 
@@ -1172,7 +1179,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-secu
 
 **Bring a project's skills up to the current rules, after checking the rules are still current.**
 
-`padosoft-skill-audit` · profiles: `core` · scope: `global` · version: 0.2.1
+`padosoft-skill-audit` · profiles: `core` · scope: `global` · version: 0.2.2
 
 **Triggers when** — Use this skill when the user wants to review, audit, modernise or bulk-update the Agent Skills a project already has (.claude/skills, .agents/skills, .claude/commands, plugin skills) against the current authoring rules for Claude models: skills that feel too prescriptive, shout rules in capitals, run past 500 lines, never trigger or trigger on everything, ask the model to show its reasoning, or exist in one copy per model. Also when they ask "are our skills still right for the new models?", "sistema le skill del repo", "allinea le skill alle nuove linee guida". It first checks the rules are still current, then runs a deterministic checker, reviews each skill, reports, and applies the approved fixes. Do not use it to write a new skill from scratch (padosoft-skill-creator), to install skills (padosoft-skills-router), or to review application code.
 

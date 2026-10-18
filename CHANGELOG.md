@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
+## [1.19.2] - 2026-10-18
+
+The workflow a project copies runs with least privilege and a pinned checker.
+
+### Changed
+
+- **`project-audit.yml` is split into two jobs.** `audit` reads the repository with `contents: read` and no
+  persisted credentials; `report` holds `issues: write`, never checks the repository out and receives the
+  report as a job output (written with a random delimiter, so repository text cannot forge another output).
+  The workflow-level permissions are empty. A security review of the first version flagged the single job that
+  both executed repository-derived input and could write issues.
+- **The checker is always the pinned release**, downloaded from `SKILLS_REF`; the workflow no longer prefers a
+  copy found in the checkout, which a pull request could replace to pass its own gate. A project that pins its
+  actions by commit pins `SKILLS_REF` to the release's full commit too (the README says how).
+- Package `padosoft-core` 0.15.2; `padosoft-skill-audit` 0.2.2.
+
 ## [1.19.1] - 2026-10-18
 
 The audit now checks that the links of a contents list land on a heading.

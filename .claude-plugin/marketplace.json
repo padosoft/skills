@@ -14,7 +14,7 @@
       "source": "./plugins/padosoft-core",
       "displayName": "Padosoft Core",
       "description": "Cross-project skills, always on: router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs drift.",
-      "version": "0.15.1",
+      "version": "0.15.2",
       "author": {
         "name": "Padosoft"
       },

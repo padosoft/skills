@@ -11,6 +11,10 @@ name: Skills audit
 #     closes it when the report is clean.
 # Fixing is a judgement job: open a session in the repository and ask the skill to apply the report.
 #
+# Two jobs, so that the one that reads the repository cannot write issues. "audit" has a read-only token and no
+# persisted credentials; "report" has the issues permission and never checks the repository out. The checker is
+# always the pinned release downloaded below, never a copy found in the checkout: a pull request could replace it.
+#
 # Whether the RULES are still current is checked centrally in padosoft/skills. A project does not need to check
 # that: it gets new rules by updating the skill, and then bumps SKILLS_REF below to the release it installed.
 
@@ -20,71 +24,103 @@ on:
     - cron: "23 6 * * 1"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  issues: write
+permissions: {}
 
 concurrency:
   group: skills-audit-${{ github.ref }}
   cancel-in-progress: false
 
 env:
-  # The padosoft/skills release the checker comes from when the skill is not installed in this repository.
-  # Pin a release: a script fetched from a moving branch is code you did not review.
-  SKILLS_REF: v1.19.0
+  # The padosoft/skills release the checker comes from. A tag is fine; a project that pins its actions by commit
+  # should pin this too, with the full 40-character commit of the release (git rev-parse vX.Y.Z^{commit}) and the
+  # tag in a comment. A script fetched from a moving ref is code you did not review.
+  SKILLS_REF: v1.19.1
 
 jobs:
   audit:
     name: Audit the skills of this repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.report.outputs.code }}
+      report: ${{ steps.report.outputs.report }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # Prefer the copy installed in the repository, so the checker is the version of the skill you installed.
-      - name: Find the checker
+      - name: Fetch the pinned checker
         run: |
-          script=$(find . -name node_modules -prune -o -path '*/padosoft-skill-audit/scripts/audit_skills.py' -print | head -1)
-          if [ -z "$script" ]; then
-            curl -fsSL "https://raw.githubusercontent.com/padosoft/skills/${SKILLS_REF}/skills/padosoft-skill-audit/scripts/audit_skills.py" \
-              -o "$RUNNER_TEMP/audit_skills.py"
-            script="$RUNNER_TEMP/audit_skills.py"
-          fi
-          echo "Checker: $script"
-          echo "SCRIPT=$script" >> "$GITHUB_ENV"
+          curl -fsSL "https://raw.githubusercontent.com/padosoft/skills/${SKILLS_REF}/skills/padosoft-skill-audit/scripts/audit_skills.py" \
+            -o "$RUNNER_TEMP/audit_skills.py"
 
       # Exit 0 clean, 1 findings (ERROR; with --strict also WARN), 2 something could not be read.
       - name: Gate a pull request (errors only)
         if: github.event_name == 'pull_request'
-        run: python3 "$SCRIPT" .
+        run: python3 "$RUNNER_TEMP/audit_skills.py" .
 
       - name: Weekly report (errors and warnings)
         id: report
         if: github.event_name != 'pull_request'
         run: |
           set +e
-          python3 "$SCRIPT" . --strict > "$RUNNER_TEMP/audit.txt"
-          echo "code=$?" >> "$GITHUB_OUTPUT"
+          python3 "$RUNNER_TEMP/audit_skills.py" . --strict > "$RUNNER_TEMP/audit.txt"
+          code=$?
           cat "$RUNNER_TEMP/audit.txt"
+          # The report is repository-derived text: a random delimiter keeps it from forging another output.
+          delimiter="REPORT_$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+          {
+            echo "code=$code"
+            echo "report<<$delimiter"
+            head -c 60000 "$RUNNER_TEMP/audit.txt"
+            echo
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
           exit 0
 
+      # The report step swallows the exit code so the next job can read it. Any code other than 0, 1 or 2
+      # (a kill, an out-of-memory 137, a crash of the interpreter) means the audit did not finish: say so loudly.
+      - name: Fail when the checker ended in an unexpected way
+        if: github.event_name != 'pull_request' && steps.report.outputs.code != '0' && steps.report.outputs.code != '1' && steps.report.outputs.code != '2'
+        run: |
+          echo "::error::The checker exited with an unexpected code (${{ steps.report.outputs.code }}); the audit is incomplete."
+          exit 1
+
+      - name: Nothing could be checked
+        if: github.event_name != 'pull_request' && steps.report.outputs.code == '2'
+        run: echo "::warning::The checker could not read part of the repository; see the report above."
+
+  report:
+    name: Keep the report issue
+    needs: audit
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      CODE: ${{ needs.audit.outputs.code }}
+      REPORT: ${{ needs.audit.outputs.report }}
+    steps:
       - name: Open or update the report issue
-        if: github.event_name != 'pull_request' && steps.report.outputs.code == '1'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: env.CODE == '1'
         run: |
           {
             echo "The skills of this repository do not pass the \`padosoft-skill-audit\` checker."
             echo
             echo "To fix them: open a session in this repository and ask \"audit the skills of this repo and apply the report\"."
-            echo "The skill reviews each one before it edits, keeps what is specific to the project, and re-runs the checker."
+            echo "The skill reviews each skill before it edits, keeps what is specific to the project, and re-runs the checker."
             echo
             echo '```'
-            head -c 60000 "$RUNNER_TEMP/audit.txt"
+            printf '%s\n' "$REPORT"
             echo '```'
           } > "$RUNNER_TEMP/body.md"
 
@@ -97,25 +133,9 @@ jobs:
           fi
 
       - name: Close the report issue when the skills are clean
-        if: github.event_name != 'pull_request' && steps.report.outputs.code == '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: env.CODE == '0'
         run: |
           existing=$(gh issue list --label skills-audit --state open --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue close "$existing" --comment "The checker reports no findings."
           fi
-
-      # The report step swallows the exit code so the issue steps can read it. Any code other than 0, 1 or 2
-      # (a kill, an out-of-memory 137, a crash of the interpreter) means the audit did not finish: say so loudly.
-      - name: Fail when the checker ended in an unexpected way
-        if: github.event_name != 'pull_request' && steps.report.outputs.code != '0' && steps.report.outputs.code != '1' && steps.report.outputs.code != '2'
-        run: |
-          echo "::error::The checker exited with an unexpected code (${{ steps.report.outputs.code }}); the audit is incomplete."
-          exit 1
-
-      - name: Nothing could be checked
-        if: github.event_name != 'pull_request' && steps.report.outputs.code == '2'
-        run: |
-          echo "::warning::The checker could not read part of the repository; see the report above."
-          cat "$RUNNER_TEMP/audit.txt"
