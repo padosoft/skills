@@ -12,7 +12,7 @@ license: MIT
 compatibility: >-
   Any git repository. The commands are plain git, no extra tooling.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: What git recorded is not always what you changed.
   profiles: core
@@ -154,6 +154,20 @@ prefer a branch on the tree that is already there.
   in it, and keep it consistent with the title of the change: a branch that does not say where it came from
   is one somebody will rebase onto the wrong thing.
 
+## 7. Branch ancestry across two long-lived branches
+
+With squash merges or cherry-picks between two long-lived branches, the same change lives on both under
+different hashes. A branch cut from the wrong one carries commits the target lacks, and a symbol that exists
+on one side throws at first render on the other. Before opening the pull request, check that each new symbol
+exists on the base, and that the branch's fork point from the other long-lived branch is already in the base:
+
+```bash
+git merge-base --is-ancestor "$(git merge-base HEAD <other-branch>)" <base> && echo "fork point is in the base"
+```
+
+`git merge-base --is-ancestor <base> HEAD` alone is not enough: it is also true for a branch cut from the
+other branch, whenever that branch already contains the base.
+
 ## Gotchas
 
 - **A green local build proves nothing about the commit.** Both failures above leave the working tree working
@@ -173,6 +187,7 @@ prefer a branch on the tree that is already there.
 - [ ] Lock files handled the way the repository actually decided, consistently
 - [ ] No parallel working tree created without being asked
 - [ ] No direct push to the release branch and no force push
+- [ ] With two long-lived branches: the fork point from the other one is already in the base, and every new symbol exists on the base
 - [ ] `git show --stat HEAD` run, file count matching the expected list
 - [ ] Any missing file diagnosed with `git check-ignore -v`, fixed with a negation and not with `-f`
 - [ ] `git ls-files --eol | grep -E '^i/(crlf|mixed)'` empty, or the repository has an open decision about it

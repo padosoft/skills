@@ -570,7 +570,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-admi
 
 **The host decides what an agent may do, what gets recorded, and what any of it proves.**
 
-`padosoft-agent-host-boundaries` · profiles: `ai`, `api` · scope: `project` · version: 0.4.0
+`padosoft-agent-host-boundaries` · profiles: `ai`, `api` · scope: `project` · version: 0.5.0
 
 **Triggers when** — Use this skill when building or reviewing something that calls a model or hosts an agent — an LLM adapter, a tool-calling loop, an MCP server, a prompt-driven feature, a spend budget, a trajectory or replay store, a similarity or scoring threshold, an agent-generated artifact that a human is meant to approve. Also when the user reports a runaway bill, prompts or customer data ending up in logs or traces, an agent doing more than intended, a "confidence score" being treated as a decision, or generated output being accepted as evidence. Do not use it for prompt wording and model choice, for training or fine-tuning, or for building the skills themselves (padosoft-skill-creator covers that).
 
@@ -598,7 +598,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-agen
 
 **A number without a dataset version and a run identity is not a measurement.**
 
-`padosoft-ai-evaluation` · profiles: `ai` · scope: `project` · version: 0.1.0
+`padosoft-ai-evaluation` · profiles: `ai` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill when measuring whether a model-backed feature works — building or changing an evaluation harness, a golden dataset, a metric, a scoring report, a regression gate on prompt or model changes. Also when the user asks how to know a prompt change made things better, how to stop a model upgrade silently regressing, what to put in a test set, how to score free-form output, or wants red-team coverage. It covers datasets and reports as versioned artifacts, the isolation an evaluation run needs, cohorts, and what must never leak into a report. Do not use it to write application tests (padosoft-test-integrity), to choose a model, or to design prompts.
 
@@ -626,7 +626,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-api-
 
 **Either the invariant is recorded in the same atomic step that checked it, or it does not exist.**
 
-`padosoft-atomic-invariants` · profiles: `core` · scope: `global` · version: 0.1.0
+`padosoft-atomic-invariants` · profiles: `core` · scope: `global` · version: 0.2.0
 
 **Triggers when** — Use this skill whenever code enforces something that must hold only once or only so many times — a single-use code or coupon, a nonce, a rate or quota limit, "the first one wins", a stock reservation, an idempotency key, a state transition that must happen once — and whenever the user reports that two requests both succeeded where one should have failed, a coupon was redeemed twice, a job ran twice, or a counter drifted under load. It checks that the read and the write of the invariant live in one atomic step and that a constraint backs the rule where it matters. Do not use it for general transaction design, for retry policy, or for distributed consensus.
 
@@ -654,7 +654,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-auth
 
 **The failed step says where the run stopped, not why — collect everything before diagnosing.**
 
-`padosoft-ci-failure-triage` · profiles: `devops` · scope: `project` · version: 0.1.0
+`padosoft-ci-failure-triage` · profiles: `devops` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill when a test or a job is red in CI and somebody wants to know why — "the pipeline is red", "test X fails only in CI", "it passes locally", "the browser test is flaky", "fix the failing check on the PR". It is the procedure for collecting the complete evidence before forming a hypothesis: the full run log rather than the failed-step extract, every artifact, the application logs from the same window, and the correlation between them, ending in a classification — test defect, application defect, environment defect, or genuinely flaky — and a fix that names a file and a line. Do not use it to design the workflow (padosoft-ci-workflow-gates), to write the tests (padosoft-test-integrity), or to debug something failing in front of you locally.
 
@@ -668,7 +668,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-ci-f
 
 **A gate that cannot fail is not a gate.**
 
-`padosoft-ci-workflow-gates` · profiles: `devops` · scope: `project` · version: 0.3.0
+`padosoft-ci-workflow-gates` · profiles: `devops` · scope: `project` · version: 0.4.0
 
 **Triggers when** — Use this skill when writing or reviewing a CI workflow or a gate that guards a merge — a GitHub Actions file, a required check, a validator script, a secret scan, a branch or tag ruleset — and whenever the user says a check went green without checking anything, a workflow did not start, a label does not trigger the run, CI minutes are being burned on every push, a required check cannot run before merge, or a rule can be bypassed. It covers what actually makes a gate a gate, the trigger and permission semantics that silently replace your defaults, and the cost tiering. Do not use it to design deployment pipelines, to pick a CI provider, or to debug a failing application test.
 
@@ -682,7 +682,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-ci-w
 
 **Changing a signature is editing everything that agreed to it.**
 
-`padosoft-contract-changes` · profiles: `core` · scope: `global` · version: 0.3.0
+`padosoft-contract-changes` · profiles: `core` · scope: `global` · version: 0.4.0
 
 **Triggers when** — Use this skill when something other code depends on is about to change shape — a method or function signature, a parameter added, removed, reordered or retyped, a return type, an overridden method, an interface, an event payload, a schema, a response contract, a default value. Also when the user reports a signature-incompatibility error, a caller broken after a refactor, a child class that no longer matches its parent, a fixture failing after a schema was tightened, or asks how to change an API without breaking consumers. It gives the search that finds every dependent, the classification that says what is breaking, and the rule that the whole change lands together. Do not use it for designing an API from scratch, for versioning a public package, or for database migrations (padosoft-database-design covers those).
 
@@ -696,7 +696,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-cont
 
 **Never write a claim stronger than the evidence you actually have.**
 
-`padosoft-crash-triage` · profiles: `core` · scope: `global` · version: 0.1.0
+`padosoft-crash-triage` · profiles: `core` · scope: `global` · version: 0.2.0
 
 **Triggers when** — Use this skill when a crash, a freeze or an error from real users has to be turned into a fix — a report from a crash reporter, an application-not-responding event with a thread dump, a stack trace from a minified or bundled artifact, an exception group in an error tracker. Also when the user says an issue is back, asks which release introduced it, wants a stack symbolicated, or asks what to write in the fix when nothing could be reproduced. It gives the order of collection, how to attribute a frame honestly, how to classify from the code rather than the message, and the grade of proof every sentence in the diagnosis has to carry. Do not use it for a failing test or a red pipeline (padosoft-ci-failure-triage) or for a bug you can reproduce in front of you.
 
@@ -724,7 +724,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-cros
 
 **The index, the key and the partition are part of the table's design, not a later fix.**
 
-`padosoft-database-design` · profiles: `data`, `laravel` · scope: `project` · version: 0.1.0
+`padosoft-database-design` · profiles: `data`, `laravel` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill when writing or reviewing a migration or a table design — adding a table or a column, choosing indexes, deciding a primary key, partitioning a large table, adding a JSON column, planning for growth. Also when the user reports a slow query blamed on a missing index, a migration that fails because a table or column already exists (or does not), an index that is never used, a table too big to purge, or asks how to index a query they are about to write. It covers index selection and redundancy, the composite-prefix rule, covered indexes, partitioning constraints, JSON columns, and the guard clauses a migration needs to be re-runnable. Do not use it for writing the queries themselves (padosoft-query-performance), for ORM conventions, or for choosing a database engine.
 
@@ -752,7 +752,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-docs
 
 **A queue moves work, not effects — claim the effect atomically before performing it.**
 
-`padosoft-durable-effects` · profiles: `api`, `data` · scope: `project` · version: 0.2.0
+`padosoft-durable-effects` · profiles: `api`, `data` · scope: `project` · version: 0.3.0
 
 **Triggers when** — Use this skill when work leaves the request and happens later — a background job, a queue, a worker, a webhook consumer, a scheduled task, a retry — and whenever the user reports that something ran twice, that a job was processed by two workers, that a retry charged or sent a second time, that a cancelled job still reported success, that a worker hung or exited with a late error, or that a job vanished. It covers lease and fencing semantics, exactly-once effects, terminal states, cancellation, and what a durable queue needs that an in-memory one does not. Do not use it to choose a queue technology, to tune throughput or worker counts, or for request-scoped transactions (padosoft-atomic-invariants covers those).
 
@@ -822,7 +822,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-evid
 
 **The caller must be able to tell success from failure, and a check that does not decide is not a check.**
 
-`padosoft-failure-visibility` · profiles: `core` · scope: `global` · version: 0.3.0
+`padosoft-failure-visibility` · profiles: `core` · scope: `global` · version: 0.4.0
 
 **Triggers when** — Use this skill whenever code can fail and the caller has to find out — a write to disk or storage, an external call, a catch block, an endpoint that returns a body, a fetcher, a renderer, a chart that reduces an array — and whenever the user says something "silently did nothing", data disappeared without an error, a request returned 200 but the page is empty, a job later died on something that was reported as accepted, or a retry loop never fires. It covers the two halves of the same bug: an ignored return value, and a success status served over a failure. It also covers the decision trace, for when nobody can reconstruct why a user got the outcome they got. Do not use it for what goes inside a log line (padosoft-logging-discipline) or for retry and timeout policy.
 
@@ -850,7 +850,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-fron
 
 **What git recorded is not always what you changed.**
 
-`padosoft-git-commit-integrity` · profiles: `core` · scope: `global` · version: 0.2.0
+`padosoft-git-commit-integrity` · profiles: `core` · scope: `global` · version: 0.3.0
 
 **Triggers when** — Use this skill right after committing, and whenever something that works locally is missing or wrong everywhere else: a file you are certain you added is not in the repository, CI cannot find a module that exists on your machine, a colleague gets a whole-file diff from a one-line change, a review shows changes nobody made, or a generated file keeps coming back modified. It verifies what git actually recorded — `git add -A` skips ignored files in silence, and without a .gitattributes the line endings of whoever committed end up in the index — and gives the correct fix for each, which is never `git add -f`. Do not use it for merge conflicts, rebasing, branch strategy, or writing commit messages.
 
@@ -906,7 +906,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-know
 
 **Where the logic lives and what crosses which boundary, on any framework version.**
 
-`padosoft-laravel-conventions` · profiles: `laravel` · scope: `project` · version: 0.4.0
+`padosoft-laravel-conventions` · profiles: `laravel` · scope: `project` · version: 0.5.0
 
 **Triggers when** — Use this skill when writing or reviewing Laravel/PHP code — a controller, a FormRequest, a service, a job, a migration, an Eloquent query, a model event, a queued or bulk operation — and whenever a symptom shows up: a controller that grew into the business logic, an N+1 found in the logs, a bulk command that runs out of memory, a job that retries something it should not, a soft-deleted row reappearing in a count, a model event that fires on a mass update and does not. It applies to any Laravel version: the rules are about the shape of the application. Do not use it for a security review (padosoft-laravel-security-review), for what goes in a log (padosoft-logging-discipline), or for infrastructure and deployment.
 
@@ -948,7 +948,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-lara
 
 **Keep the diagnosis, drop the data — and the log is not the only way data gets out.**
 
-`padosoft-logging-discipline` · profiles: `core` · scope: `global` · version: 0.3.0
+`padosoft-logging-discipline` · profiles: `core` · scope: `global` · version: 0.4.0
 
 **Triggers when** — Use this skill whenever code writes to a log or builds an error message for a user — a catch block, an exception handler, a logger call, telemetry, a debug line added while hunting a bug — and whenever the user says a log is noisy or useless, an error message shows SQL or a stack trace, a support ticket contains data it should not, or asks what is safe to log. It gives what must never reach a log or a screen, what to keep so the log stays diagnosable, and where the redaction goes in each stack, which is not the same place. Do not use it to choose a logging library or to configure log shipping, retention or dashboards.
 
@@ -962,7 +962,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-logg
 
 **The bundle ships to every device and can be decompiled — everything follows from that.**
 
-`padosoft-mobile-security-review` · profiles: `react-native` · scope: `project` · version: 0.1.0
+`padosoft-mobile-security-review` · profiles: `react-native` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill before committing or reviewing a change to a React Native / Expo app that touches secrets or API keys, token storage, a WebView, a deep link or an external URL, TLS and certificate pinning, a dev/mock/debug surface, or an AI/LLM call — and whenever the user asks whether something can go in the bundle, in an EXPO_PUBLIC_ variable or in MMKV, or asks for a mobile security review or an audit. It runs the checks with their pre-screens and, for a finding whose enforcement lives outside the repository, states the severity conditionally instead of guessing. Do not use it for API-side security (padosoft-api-security-review), store review rejections, or MDM and device fleet policy.
 
@@ -1018,7 +1018,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-pr-r
 
 **The code was written against the volume that existed then, and the volume moved.**
 
-`padosoft-query-performance` · profiles: `data`, `laravel` · scope: `project` · version: 0.1.0
+`padosoft-query-performance` · profiles: `data`, `laravel` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill when writing or reviewing code that reads or writes the database in volume — a listing, an export, a report, a cron or queued job that walks a table, a recalculation of a denormalised table, an endpoint that got slow as the data grew. Also when the user reports N+1 queries, a job exhausting memory, a paginated page that gets slower the deeper it goes, a timeout on a large table, or asks how to process a few hundred thousand rows. It covers access patterns, the volume thresholds that change the technique, keyset pagination, existence checks, and recalculating without leaving a window of emptiness. Do not use it for index and table design (padosoft-database-design) or for tuning the server itself.
 
@@ -1060,7 +1060,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-rag-
 
 **The rules that survived independently in two production apps.**
 
-`padosoft-react-native-conventions` · profiles: `react-native` · scope: `project` · version: 0.1.0
+`padosoft-react-native-conventions` · profiles: `react-native` · scope: `project` · version: 0.2.0
 
 **Triggers when** — Use this skill when writing or reviewing React Native / Expo code — a screen, a component, a Zustand store, a React Query hook, a FlashList, a Reanimated animation, a navigation change, a tablet layout — and whenever a symptom like these shows up: "Maximum update depth exceeded", a list that jumps or overlaps while scrolling, an animation that starts but leaves the state wrong, a value that is stale right after being set, a colour that is unreadable in dark mode, a translation missing in one language only. It applies the conventions and the recurring mistakes distilled from two production apps. Do not use it for mobile security (padosoft-mobile-security-review), for what goes in a log (padosoft-logging-discipline), or for native module and build configuration.
 
@@ -1102,7 +1102,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-secu
 
 **Bring a project's skills up to the current rules, after checking the rules are still current.**
 
-`padosoft-skill-audit` · profiles: `core` · scope: `global` · version: 0.1.0
+`padosoft-skill-audit` · profiles: `core` · scope: `global` · version: 0.2.0
 
 **Triggers when** — Use this skill when the user wants to review, audit, modernise or bulk-update the Agent Skills a project already has (.claude/skills, .agents/skills, .claude/commands, plugin skills) against the current authoring rules for Claude models: skills that feel too prescriptive, shout rules in capitals, run past 500 lines, never trigger or trigger on everything, ask the model to show its reasoning, or exist in one copy per model. Also when they ask "are our skills still right for the new models?", "sistema le skill del repo", "allinea le skill alle nuove linee guida". It first checks the rules are still current, then runs a deterministic checker, reviews each skill, reports, and applies the approved fixes. Do not use it to write a new skill from scratch (padosoft-skill-creator), to install skills (padosoft-skills-router), or to review application code.
 
@@ -1116,7 +1116,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-skil
 
 **Skills that follow the spec and the repo conventions, and carry no provenance out with them.**
 
-`padosoft-skill-creator` · profiles: `core` · scope: `global` · version: 0.2.0
+`padosoft-skill-creator` · profiles: `core` · scope: `global` · version: 0.3.0
 
 **Triggers when** — Use this skill when creating, editing or reviewing an Agent Skill of the padosoft/skills repository, when the user wants to turn a recurring workflow, a checklist or a set of guidelines into a reusable skill, or when they ask where a skill belongs (profile, scope, package) or why the repo CI is failing on catalog, profiles or manifests: it guides the whole creation with scaffolding, the Padosoft conventions and the automated checks. Do not use it to write the technical domain content (that is the job of the skill you are creating) nor to install existing skills (padosoft-skills-router handles that). It also keeps the provenance of the work — dates, customers, people, ids, credentials — out of anything that gets published.
 

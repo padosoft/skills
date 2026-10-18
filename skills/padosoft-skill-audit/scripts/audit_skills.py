@@ -90,6 +90,9 @@ HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
 MD_LINK = re.compile(r"\[[^\]\n]*\]\(\s*([^)\s]+)(?:\s+\"[^\"]*\")?\s*\)")
 CODE_SPAN = re.compile(r"`([^`\n]+)`")
 BUNDLED_PATH = re.compile(r"^(?:\./)?((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]+)$")
+# $1, $2 ... standing alone: Claude Code substitutes arguments into the skill text, and an awk field or a
+# positional parameter looks the same
+POSITIONAL = re.compile(r"(?<![\\$\w])\$[0-9](?!\w)")
 COMMAND_PATH = re.compile(
     r"(?<![\w/.$-])(?:\$\{?CLAUDE_SKILL_DIR\}?/|\./)?"
     r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
@@ -1197,6 +1200,13 @@ def check_content(skill: Skill, files: list[Path]) -> None:
                         "differences to references/models/<family>.md behind a 'Model notes' section")
             if PLACEHOLDER.search(prose):
                 agg.hit("G-BODY-01", "INFO", path, index + 1, "TODO or unfilled {{placeholder}} left in the text")
+        if path == skill.entry:
+            for index, line in iter_shell_lines(lines, start):
+                if POSITIONAL.search(line) and not _suppressed(lines, index):
+                    agg.hit("G-PORT-06", "INFO", path, index + 1,
+                            "a positional placeholder ($1, $2...) in a shell snippet: Claude Code substitutes arguments "
+                            "into the skill text, so an awk field or parameter may be rewritten; use cut or sed, or a "
+                            "script under scripts/")
         _phrase_findings(agg, path, lines, start)
         body_lines = max(1, len(lines) - start)
         count = len(caps_lines)

@@ -119,6 +119,19 @@ for is the thing that produces wrong activations.
 [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions).
 If you change the `description`, re-run the evals and report the activation rate in the PR.
 
+## Releasing
+
+A release is the last step of the work, not a separate task: a `CHANGELOG.md` entry without a tag is unfinished.
+
+1. Write the entry in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) style, dated the day of the release. *Major* when a new MUST rule can invalidate existing templates, *minor* for new skills or rules, *patch* for fixes.
+2. Bump `plugin.json` **and** the matching entry of `.claude-plugin/marketplace.json` for every package whose skills changed. `scripts/validate_plugins.py` fails when the two differ.
+3. `make all`, open the pull request, address the review, merge.
+4. On the merge commit of `main`: an annotated tag `vX.Y.Z` with the message `vX.Y.Z - <title>`, pushed, then a GitHub release with the same title and the CHANGELOG entry as its notes.
+
+## After every pull request
+
+Read the fixes and the lessons of the pull request and ask whether a rule, or better a check in a script, would have prevented them; write it where it will be loaded and say in the pull request body which rules changed, or that none did and why. `CLAUDE.md` and `padosoft-knowhow-harvest` (section 9) describe the loop.
+
 ## What we do not accept
 
 - Rules taken from generic articles without verification against the checkers.

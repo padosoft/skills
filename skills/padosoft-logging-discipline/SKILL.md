@@ -12,7 +12,7 @@ compatibility: >-
   Language-agnostic. The worked mechanisms cover TypeScript/Node, React Native and Laravel/PHP; on another
   stack apply the invariant and find the local equivalent before copying any of them.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   author: Padosoft
   summary: Keep the diagnosis, drop the data — and the log is not the only way data gets out.
   profiles: core
@@ -88,6 +88,15 @@ and both were found only after the artifact was needed.
   something else walks out. Keep name-based exceptions to an explicit, narrow list.
 - **Attach entropy detection to an assignment**, not to every opaque string: `api_key: <value>` is a secret,
   a base64 identifier is not.
+- **Key-based redaction cannot see a secret inside a string value.** Exception text, a URL with embedded
+  credentials or a free-form message carry the secret under a harmless key. Add a text scrub that runs on
+  string values, and normalise key spellings before matching (`api_key`, `apiKey` and `API-KEY` are one
+  key). Match a **bearer token before the key=value forms**: otherwise `Authorization: Bearer <token>` is
+  read as a key and a value, only the scheme word is hidden, and the token walks out.
+- **A buffer that is both persisted and fed back into the next outbound model call needs redaction at
+  insertion**, not only at final output. A conversation history, a scratchpad or a retry context is outbound
+  data on the next turn: scrubbing the final report hides what the log shows and not what the provider
+  received.
 - **Binary artifacts are not covered by text redaction.** Screenshots, PDFs and captured trace archives carry
   whatever was on the screen or the wire; they need their own classification and their own access rules.
 
@@ -206,6 +215,7 @@ intervene once, and prefer that to touching every call site.
 - [ ] No `console.*` / `dd()` / `dump()` / `var_dump()` in runtime paths, staged diff included
 - [ ] Full payloads at `debug`, flow at `info`
 - [ ] Redaction applied where this stack wants it (§8), not where the other stack wants it
+- [ ] String values scrubbed as well as keys; a buffer re-sent to a model redacted at insertion
 - [ ] Production error behaviour verified locally with the bypass off
 
 ## Final report

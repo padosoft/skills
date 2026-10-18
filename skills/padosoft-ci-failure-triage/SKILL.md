@@ -14,7 +14,7 @@ compatibility: >-
   GitHub Actions and the `gh` CLI for the commands; the procedure applies to any CI that stores logs and
   artifacts. Browser-test examples assume a modern end-to-end runner.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: The failed step says where the run stopped, not why — collect everything before diagnosing.
   profiles: devops
@@ -99,6 +99,19 @@ browser suite, not the exotic one: the page did render, it just rendered the err
 different problem from one that just started failing, and "fixing" it by loosening the assertion removes the
 only thing that noticed.
 
+## 4b. Environment defect: a dead server is not a slow one
+
+A test server that goes silent with no error log and then refuses connections has **crashed** (a segfault,
+an out-of-memory kill). It was not slow, so more concurrency or longer timeouts treat the wrong thing.
+
+- **The fix is supervision**: something that restarts the server and records that it did. A language
+  runtime's built-in development server in worker mode may be experimental, and the framework's serve
+  command does not restart it when it dies.
+- **Read the server's own request log across the whole failure window**, from the last good response to the
+  first refused connection. The test output shows only the consequence.
+- **Surface that log in CI when the job fails**, as an artifact or the tail of a step that runs on failure,
+  or the next triage starts without the one file that explains it.
+
 ## 5. What the fix has to state
 
 - The file and the **line**, in a form that is clickable.
@@ -137,6 +150,7 @@ are the same investigation with different storage.
 - [ ] Correlation written out, each observation with its source
 - [ ] Flakiness history checked before touching the test
 - [ ] Failure classified, with the other classes ruled out explicitly
+- [ ] Server went silent then refused connections: treated as a crash, with the server's own log read
 - [ ] Fix names a file and a line, and is not a raised timeout
 - [ ] Debug directory not committed
 

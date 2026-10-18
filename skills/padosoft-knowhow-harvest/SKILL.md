@@ -209,6 +209,24 @@ Once, per repository, in this order:
 Do it repository by repository, not all at once. Each one takes an hour and removes a source of drift
 permanently.
 
+## 9. The small loop: after every pull request or session
+
+The harvest above is the periodic pass across repositories. The same idea at the scale of one piece of work
+is a habit, and it only works if it sits in the project's own always-loaded instructions (a line in the
+agent instruction file and in its rules), where nobody has to remember it.
+
+When a pull request or a session ends, before calling it done:
+
+1. **List what went wrong or had to be corrected**: a red check, a review finding, something done twice, a
+   trap in the environment.
+2. **Ask of each whether it is a class of defect that no rule covers yet.** If it is, add it to the rule that
+   would have prevented it, worded as a rule with its reason and without the story. If a rule already
+   covered it and was broken anyway, make that rule easier to find, or turn it into a check.
+3. **Say it in the pull request**: one line, "Rules updated: …", or "No new rule: …" and why.
+
+What a script can catch should become a script; text is the second choice (`padosoft-skill-audit`, G-FREE-02).
+A lessons file feeds this loop, and the periodic harvest then promotes what several projects learned alike.
+
 ---
 
 ## Gotchas
@@ -237,6 +255,7 @@ permanently.
 - [ ] Every finding recorded — covered with its skill, rejected with its reason, pending with what it waits for
 - [ ] Catalogue rebuilt, checks green, changelog written, release tagged
 - [ ] Adoption: every source file now covered by a skill thinned to its binding, derived instruction files included
+- [ ] After a pull request or session: its fixes and lessons read, and the rules that would have prevented them updated (§9)
 
 ## Final report
 

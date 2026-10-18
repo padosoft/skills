@@ -13,7 +13,7 @@ compatibility: >-
   Stack-agnostic. Examples assume a harness that loads a dataset, invokes a system under test and emits a
   report; the artifact-contract rules apply to any of them.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: A number without a dataset version and a run identity is not a measurement.
   profiles: ai
@@ -52,6 +52,12 @@ misreading it.
 
 - **Validate every sample before the first invocation.** Otherwise an invalid sample halfway through aborts
   the run after side effects have already happened.
+- **A broken row is not an unannotated row.** Absent, malformed and checked are three different outcomes.
+  A malformed row raises as a harness-input error; it never scores as a pass and never as zero. Validate
+  the whole row **before** any filter that can drop it (a cohort filter, a sample limit, a "has an
+  expectation" test), and resolve named references against their registry so a typo fails at load. Report
+  **coverage** — rows scored against rows skipped — next to the aggregate: scoring unannotated rows as 1.0
+  inflates the mean, and nothing in the number says so.
 - **Isolate the failure of one row and one metric.** An exception scoring one sample marks that cell as an
   error and the run continues; a harness that dies on row four hundred has measured nothing and cost
   everything.
@@ -63,9 +69,21 @@ misreading it.
   the recursive walk exhausts the stack.
 - **Compute the dispatch shape once**, outside the loop. Reflection per sample is the easiest performance
   mistake to introduce while supporting several callable shapes.
+- **An evaluation run is not production.** The system under test runs dry: no audit, ledger, spend or
+  notification writes, because the run replays inputs that are not real events. A promise of "no paid
+  calls" must be enforceable **per call**, overriding the host's configuration, and checked where the call
+  is made. The obvious flag governs one path only, so a fallback path still reaches the provider — and it
+  is the failing rows that take the fallback, so the metric bills exactly where the system is weakest. A
+  no-op default binding is not a guarantee either: the host can rebind it. The budget and recording side is
+  in **`padosoft-agent-host-boundaries`**.
 
 ## 3. Metrics, and the shapes that make them lie
 
+- **A metric is a function of the system's output.** If it grades the annotation stored on the row (a
+  label, a flag, an expected tag) instead of what the system produced, changing the output while leaving
+  the row alone does not move the score: the metric is a constant. Prove each metric by changing the
+  output and watching the score move. It is written against the data the harness hands over, returns
+  plausible numbers, and passes review.
 - **Score per sample, aggregate once.** Computing a mean, two percentiles and a pass rate with separate
   passes sorts the same list four times; aggregate in one helper and reuse the sorted values.
 - **Round the boundaries of anything that becomes an artifact.** Histogram bucket edges are part of the
@@ -145,10 +163,12 @@ see **`padosoft-evidence-boundaries`**.
 - [ ] Version validated in the value objects, not only in the loader
 - [ ] Mixed sample sources rejected at the boundary
 - [ ] Report identity: dataset, system, model, parameters, prompt revision, timestamp
-- [ ] Every sample validated before the first invocation
+- [ ] Every sample validated before the first invocation, and before any filter that can drop it
+- [ ] Malformed row raises as an input error; coverage (scored vs skipped) reported next to the aggregate
+- [ ] System under test runs dry; "no paid calls" enforced per call, overriding host configuration
 - [ ] Row-level and metric-level failures isolated; timeouts and retries recorded
 - [ ] Invocation payload minimal and serialisable; cycle guard on the validator
-- [ ] Aggregation done once per metric; artifact boundary values rounded
+- [ ] Each metric moves when the output changes; aggregation done once; artifact boundary values rounded
 - [ ] Cohorts reported; multi-tag samples counted in each; untagged modelled explicitly
 - [ ] Failing cases promotable back into the dataset
 - [ ] No free-form metadata in the report; user-controlled text escaped
@@ -159,7 +179,7 @@ see **`padosoft-evidence-boundaries`**.
 
 ```
 Run: <id> · dataset <name>@<version> · system <version> · model <id>/<params>
-Samples: <n> (cohorts: <list>) · held-out split: <digest>
+Samples: <n> (scored <n> · skipped <n>) · cohorts: <list> · held-out split: <digest>
 Results: pass rate <…> · mean <…> · p90 <…> · worst cohort <…>
 Errors isolated: rows <n> · metrics <n>
 Red team: categories <n/n> · refusal-scored: yes | no

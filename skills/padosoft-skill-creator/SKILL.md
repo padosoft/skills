@@ -13,7 +13,7 @@ compatibility: >-
   Requires Python 3.10+ (standard library only) and the padosoft/skills repository cloned locally to
   regenerate catalog and profiles. Node.js 18+ only to try the installation with npx skills.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: Skills that follow the spec and the repo conventions, and carry no provenance out with them.
   profiles: core
@@ -257,6 +257,9 @@ If build_catalog.py --check fails, almost always a `make catalog` is missing aft
 - **Skill not included in any `plugins/` package**: invisible to whoever installs from Claude Code.
 - **`scope: global` without the `core` profile**: CI blocks it, and rightly so: global skills are counted.
 - **A description that talks about the skill instead of the user**: it triggers at random, or never.
+- **`$1`, `$2` or `$name` in a shell snippet of `SKILL.md`**: Claude Code substitutes arguments into the skill
+  text (`$ARGUMENTS`, `$N`, `$name`), so an `awk` field or a function parameter can arrive rewritten. Use
+  `cut` or `sed`, or put the snippet in a script under `scripts/`. The audit reports it (G-PORT-06).
 
 ---
 

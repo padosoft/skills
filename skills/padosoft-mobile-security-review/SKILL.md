@@ -13,7 +13,7 @@ compatibility: >-
   React Native with Expo. The pre-screens assume a POSIX shell; the rules hold for any mobile app that ships a
   JavaScript bundle.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: The bundle ships to every device and can be decompiled — everything follows from that.
   profiles: react-native
@@ -97,6 +97,16 @@ createMMKV({ id: "auth", encryptionKey: await getOrCreateMmkvKey() });
 
 A password is never persisted anywhere. Stores without sensitive data may stay in plain MMKV.
 
+**A credential must not outlive its local identity.** Keychain items can survive an app deletion while the
+app's own stores do not, so after a reinstall a refresh token can sit next to an empty identity store.
+
+- Use a credential only if the local identity that justifies it exists; otherwise delete it, unused.
+- Never keep half an identity (a bearer without its user) past login. Reconcile before the first request.
+- Run that guard only **after the identity store has hydrated**. With an asynchronous store, "empty" means
+  "not loaded yet", and a guard that runs early wipes users who are logged in.
+- For each new persisted datum, declare what a reinstall does to it: credential, account data, device data
+  or identifier survives, or does not.
+
 ## 3. WebView hardening — `MOBILE-SEC-WEBVIEW-001`
 
 ```bash
@@ -110,6 +120,12 @@ grep -rnE 'originWhitelist|onShouldStartLoadWithRequest|setSupportMultipleWindow
   explicit per-app allow-list, or an opt-in flag passed by a trusted call site. Keep that allow-list minimal —
   **every host on it receives the user's session.**
 - `onMessage` payloads validated with a schema; never act on an unvalidated message.
+- **Validate the sender too, for any message with an effect.** The page-to-native bridge exists in every
+  page the WebView loads, third-party ones included (payment pages, links from a CMS). A schema proves the
+  shape of a message, not who sent it. A message that writes data, reports to third parties or navigates is
+  handled only if the sender URL's host passes the same trust test as session injection; a missing or
+  malformed URL counts as untrusted. Log the host only, never the URL. Register each new effectful message
+  type in an explicit list, so a new one is untrusted until someone adds it.
 
 ## 4. Deep links and external URLs — `MOBILE-SEC-DEEPLINK-001`
 

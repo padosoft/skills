@@ -284,6 +284,12 @@ Until the skill loads, the description is the only thing the model reads about i
 - **G-FLOW-08** (optional) — **The skill improves with a human gate.** When a run fails for a reason that
   will recur, the skill proposes the new gotcha or rule; a person approves it before it is added. `[AS-BP]`
   `[GUIDE]`
+- **G-FLOW-09** (recommended) — **Run every command a skill quotes, once, in a read-only form, before it
+  ships.** A command written from memory, or adapted from another tool, can look right and fail at the first
+  real use: a field the tool's structured output does not have, a flag that belongs to another subcommand, a
+  filter written for an array applied to an object. The agent is then sent down a path that quietly returns
+  nothing, or one that does the opposite of its heading (an approval under "read the suggestion"). Compare
+  the real output with the fields the next step reads. `[BP]`
 
 ---
 
@@ -334,6 +340,11 @@ Think of who will run the skill: a colleague, a customer, a CI runner, another a
   (G-FM-04) and substitutions (`${CLAUDE_SKILL_DIR}`, `${CLAUDE_EFFORT}`, `` !`cmd` ``) are ignored or left
   literal by other agents. Keep them out of shared skills, or write so that a literal placeholder still reads
   correctly ("`${CLAUDE_SKILL_DIR}` is this skill's folder"). `[AS-SPEC]` `[CC]`
+- **G-PORT-06** (recommended) — **Shell snippets in the skill text must survive argument substitution.**
+  In Claude Code, `$ARGUMENTS`, `$ARGUMENTS[N]`, `$N` (0-based) and `$name` (declared in `arguments`) are
+  replaced in the skill content before the model reads it, so an `awk '{print $2}'` or a shell function's `$1`
+  can arrive rewritten. Use `cut`, `sed` capture groups or a script under `scripts/` (a script file is
+  executed as it is), and check the loaded text when in doubt. `[CC]`
 
 ---
 
@@ -516,8 +527,10 @@ model.
 | Backslash paths, or the author's own home directory, written into a skill | G-STRUCT-06, G-PORT-02 |
 | A stub that says "read the other SKILL.md in full" | G-STRUCT-09 |
 | A checklist without the way back | G-FLOW-03 |
+| A command in the steps that nobody ran: wrong field, wrong flag, or the opposite action | G-FLOW-09 |
 | A script that prompts, or fails without saying how to fix it | G-SCRIPT-03, G-SCRIPT-06 |
 | "Use the pdf library" with no install line | G-PORT-01 |
+| `awk '{print $2}'` or a `$1` in a shell snippet of the skill text | G-PORT-06 |
 | `argument-hint` or `model` in a skill uploaded to claude.ai | G-FM-03 |
 | `allowed-tools` used to "restrict" a skill | G-SAFE-02 |
 | `my-skill-haiku` next to `my-skill-opus` | G-MODEL-01 |
@@ -589,6 +602,7 @@ Skill: <name>
 - [ ] Each step at the right freedom; must-hold rules in hooks or scripts; side effects manual             (G-FREE-01..03)
 - [ ] SKILL.md < 500 lines; references one level deep; ToC on files > 100 lines; no dead links or orphans  (G-STRUCT-01..03, -08)
 - [ ] Checklists say where to go back; validators are objective                                            (G-FLOW-03, -04)
+- [ ] Every command the steps quote was run once, and its output holds the fields the next step reads     (G-FLOW-09)
 - [ ] Scripts: non-interactive, --help, structured output, helpful errors, dependencies declared           (G-SCRIPT-03..08)
 - [ ] Requirements and install commands stated; no machine-specific paths; MCP tools qualified             (G-PORT-01, -02, -04)
 - [ ] One skill for all models; model appendices only for measured gaps, additive, with a fallback line    (G-MODEL-01..04)

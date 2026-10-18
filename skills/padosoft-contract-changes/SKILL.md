@@ -14,7 +14,7 @@ compatibility: >-
   Any language with callers and inheritance. The covariance rules are stated for languages that enforce
   substitutability; the search and staging procedure applies everywhere.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   author: Padosoft
   summary: Changing a signature is editing everything that agreed to it.
   profiles: core
@@ -107,6 +107,15 @@ resolved = table + "EventService"   →  rename the class, and the hook simply s
 Two protections: a test that asserts the wiring resolves (not that the handler works — that it is *found*),
 and a startup check that fails loudly when a declared name has no implementation.
 
+## 4b. Hand-enumerated lists drop new members silently
+
+A list somebody maintains by hand skips a new member without an error, and the producer's own tests stay
+green because they never go through the list: a repository's column allow-list, a field-by-field mapper
+between two layers, the list of migrations a package publishes, a test bootstrap list. Assert **end to end**
+that the new member survives every hop, from the input to the stored or returned value. And add a new
+constructor or DTO parameter **last**, with a default, then test the old positional arity: a caller that
+passes the earlier arguments must keep working.
+
 ## 5. The same rule, one level up
 
 A signature is the smallest contract. Everything below is the same shape at a different altitude:
@@ -123,6 +132,11 @@ A signature is the smallest contract. Everything below is the same shape at a di
   fails on the other, at request time, with nothing in either repository's tests to catch it. Use the
   conditional form of the include, or copy the partial and accept the duplication deliberately — and when
   a shared partial starts receiving a new variable, guard its presence until every consumer passes it.
+- **An object hydrated from external input.** An options object with a from-array constructor, or one
+  filled straight from a request, is public API: adding a field changes what clients can send, so the
+  published specification changes with it. The field works over the wire and stays invisible to every
+  consumer reading the spec. Anchor it with a test that compares the keys the object accepts with the keys
+  the specification lists.
 - **A producer moving from synchronous to queued**, or the reverse: the contract that changes is the timing
   and the failure mode, and callers depend on both.
 
@@ -154,6 +168,8 @@ Steps 2 and 4 are the ones that get skipped, in opposite ways: no warning, or no
 
 - [ ] Callers, overrides, test doubles **and** frozen copies all searched
 - [ ] Convention-resolved dependents considered; wiring asserted by a test
+- [ ] Hand-kept lists (allow-lists, mappers, publish lists) checked end to end; new parameters last, with a default
+- [ ] Object hydrated from input: accepted keys compared with the published specification
 - [ ] Every change classified as breaking or not, including default-value changes
 - [ ] Return-type change checked against every subclass in the hierarchy
 - [ ] Parent, children, callers, mocks and fixtures in one coherent change

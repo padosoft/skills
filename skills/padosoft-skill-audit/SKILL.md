@@ -15,7 +15,7 @@ compatibility: >-
   Requires Python 3.10+ (standard library only). The freshness check needs HTTPS access to the
   documentation sites; without it the audit still runs and says the rules were not re-verified.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: Bring a project's skills up to the current rules, after checking the rules are still current.
   profiles: core
@@ -137,6 +137,9 @@ script cannot see:
 - **The description**: the right requests, the boundaries with sibling skills. (G-DESC, G-LIB-02)
 - **Freedom per step**, and rules that must hold every time. (G-FREE-01, G-FREE-02)
 - **Verification, scope and delegation instructions.** (G-GEN-07, G-GEN-08, G-GEN-09)
+- **The commands the steps quote**: run the read-only ones once and compare the output with the fields the
+  next step reads; a command that returns nothing, or that approves, merges or deletes under a heading that
+  says "read", is a bug and not a style point. (G-FLOW-09)
 - **Model handling**: per-model copies, scattered model-specific lines. (§3 below)
 
 What to do with what you find:

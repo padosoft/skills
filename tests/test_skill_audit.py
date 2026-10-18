@@ -885,5 +885,41 @@ def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 
 
+class TestPositionalPlaceholders(unittest.TestCase):
+    """Claude Code substitutes arguments into the skill text: an awk field in a snippet may be rewritten (G-PORT-06)."""
+
+    def levels_of(self, body: str, extra: dict | None = None) -> set[tuple[str, str]]:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}\n")
+            for rel, content in (extra or {}).items():
+                put(Path(tmp), f"demo/{rel}", content)
+            return levels(report_of(str(Path(tmp) / "demo"))[1]["skills"][0])
+
+    def test_an_awk_field_in_a_shell_snippet_is_noted(self) -> None:
+        body = "Run it:\n\n```bash\nps | awk '{print $2}'\n```"
+        self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_shell_function_parameter_is_noted(self) -> None:
+        body = "```sh\nhello() { echo \"$1\"; }\n```"
+        self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_cut_and_named_variables_are_not(self) -> None:
+        body = "```bash\nps | cut -d' ' -f2\necho \"$HOME\" \"$USER2\" $10\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_prose_and_inline_code_are_not(self) -> None:
+        body = "Use `awk '{print $2}'` only inside a script. Costs $5 a month."
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_reference_file_is_not_substituted_so_it_is_not_noted(self) -> None:
+        body = "Read [the notes](references/notes.md)."
+        extra = {"references/notes.md": "```bash\nps | awk '{print $2}'\n```\n"}
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body, extra))
+
+    def test_a_suppressed_line_is_left_alone(self) -> None:
+        body = "```bash\n# audit-ok: the field is awk's, the skill takes no arguments\nps | awk '{print $2}'\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+
 if __name__ == "__main__":
     unittest.main()

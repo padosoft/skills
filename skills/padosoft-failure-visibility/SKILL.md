@@ -14,7 +14,7 @@ compatibility: >-
   Language-agnostic. The examples are PHP/Laravel and TypeScript/React because that is where the cases came
   from; the rule holds anywhere a call can fail.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   author: Padosoft
   summary: The caller must be able to tell success from failure, and a check that does not decide is not a check.
   profiles: core
@@ -126,6 +126,30 @@ Watch for the edge that gets discarded by a truncating conversion: a single-line
 as "0 lines", a count cast to `int` that swallows a legitimate zero, a fallback to `''` when a library
 returned a non-string.
 
+## 4a. A fallback chain advances on "no usable result"
+
+A chain of sources (primary, then cache, then default) has to move on when a step produced nothing usable,
+not only when it returned null. A first step that returns a non-null but empty result — an empty list, a
+blank string — wins the `??` and silently suppresses every fallback behind it.
+
+```php
+// ❌ an empty list is not null, so the fallback never runs
+$rows = $primary->fetch() ?? $fallback->fetch();
+// ✅ define "usable" for the step and advance on it
+$rows = $primary->fetch();
+if ($rows === null || $rows === []) {
+    $rows = $fallback->fetch();
+}
+```
+
+- **Catch only in the steps declared fallible**, and report the exception: a step that may fail says so, and
+  leaves a trace of why it did.
+- **Deterministic steps propagate.** A failure in a parse of your own data or a lookup in a table you own is
+  a bug, and a catch around the whole chain swallows it into the next fallback.
+
+`$a ?? $b` is the natural idiom and it tests only null; the first fix, wrapping every step in try/catch,
+hides the real bugs instead.
+
 ---
 
 ## 4b. The decision trace: being able to answer "why did this happen to this user?"
@@ -235,6 +259,7 @@ Every hit is a **candidate**, to confirm or discard — not an automatic finding
 - [ ] No fetcher returning `null` from a catch
 - [ ] Reducers over arrays guarded for the empty case
 - [ ] Empty, missing and broken render differently
+- [ ] Fallback chains advance on "no usable result"; only declared-fallible steps catch, and report
 - [ ] Tests that provoke the failure, not just the happy path
 
 ## Final report

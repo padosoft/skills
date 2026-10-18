@@ -13,7 +13,7 @@ compatibility: >-
   Any Laravel version. The rules are about how an application is shaped, not about framework features;
   where a version moved a file rather than changing a rule, the text says so.
 metadata:
-  version: 0.4.0
+  version: 0.5.0
   author: Padosoft
   summary: Where the logic lives and what crosses which boundary, on any framework version.
   profiles: laravel
@@ -36,6 +36,12 @@ both is harder to read than a file that is consistently old.
 
 Where a version genuinely moved something it is noted inline. In every one of those cases what moved was the
 *file*, not the rule.
+
+## Contents
+
+1. The flow · 2. Long or asynchronous work · 3. Structure · 4. Eloquent and queries (4b. the builder layer)
+· 5. Migrations · 6. Model events · 7. Types, null, errors, untrusted data, package defaults (7b. Providers and
+the container) · 8. Code shape · 9. Files and storage · 10. Failed jobs · Gotchas · Checklist
 
 ---
 
@@ -98,6 +104,11 @@ responsibility, split it.
   SQL: `whereNotIn` with chunked arrays beats loading everything and rejecting it in memory.
 - **Soft deletes**: a query that must ignore them says so explicitly. A count that silently includes trashed
   rows is a number nobody can reproduce.
+- **Date-range filters are half-open.** A date-only upper bound means the start of that day, so `<= to`
+  drops the whole last day. Filter on `>= start of from` and `< start of (to + 1 day)`. Do not use
+  `whereDate`: it wraps the column in a function and disables its index (**`padosoft-database-design`**
+  §4), and the half-open range on the raw column fixes both. The date cast looks correct and the function
+  wrap is hidden inside the helper, which is why this one is so often written wrong.
 
 `chunkById` and not `chunk` when the loop **modifies** the rows it iterates: `chunk` pages by offset, so
 updating rows shifts the window and silently skips records.
@@ -182,7 +193,7 @@ the job runs against a row that is not there yet.
   value that looks plausible for exactly as long as it takes to reach a customer.
 
 
-Three more that keep a package honest:
+Four more that keep a package honest:
 
 - **Make the illegal state unrepresentable.** When two fields are only valid together — a blocked verdict
   with no reason, an accepted amount with no currency — make the constructor private and expose named
@@ -191,12 +202,60 @@ Three more that keep a package honest:
 - **A misconfiguration that opens a surface fails at boot.** Warn when a feature is enabled and still
   resolves to its no-op implementation; **throw** when something is exposed with an empty guard list. The
   difference is whether the wrong configuration is merely useless or actively unsafe.
+- **Declared but unwired is a defect.** A config key, toggle, DTO field or schema column that nothing reads,
+  or that is read and not honoured, is dead configuration: someone changes it and nothing happens. Every
+  toggle changes behaviour where it is bound — for example by binding a no-op implementation when it is off
+  — and a key nothing consults is deleted, not kept for later.
 - **Routes shipped by a package default to the stateless middleware group**, not the session one, which may
   not even be registered in the host's test context. Put authentication on the privileged routes and let
   the application add the session group where sessions exist.
+- **A package route carries its own prerequisites.** It must not name a limiter or middleware that only the
+  host defines: a missing named limiter throws when the request arrives, not at boot. Register the
+  package's own default and let the host substitute it explicitly, with a binding it can override.
 
 Changing a signature or a return type in a hierarchy is its own procedure: **`padosoft-contract-changes`**.
 Deciding a branch by environment name is another: **`padosoft-environment-gating`**.
+
+### Untrusted structured data: decoded JSON, webhook bodies, model output
+
+Validate the type, then the shape, and only then use the value. Three casts that look harmless:
+
+- **`json_decode($s, true)` cannot tell `{}` from `[]`.** Both become an empty array, so "an object with no
+  keys" and "a list with no items" are the same value. Where the difference matters, decode that field
+  without the associative flag, or check the raw text first.
+- **A shallow `(array)` cast leaves nested objects in place.** The next level still holds objects, and the
+  array access on it fails later. Decode associatively, or convert recursively.
+- **A bare `(string)` cast turns an array into `"Array"`, and an `(int)` cast into 0 or 1.** `"Array"`
+  passes a non-empty check. Test `is_string` / `is_int` first, then the keys, then use it.
+
+**Return the reason for the failure, not a boolean.** A caller that retries — a loop that feeds the error
+back to a model, a re-queued job — only improves when the feedback says which field was the wrong type.
+
+### Lenient parsing of config and `fromArray` inputs
+
+- **A default applies only when the key is absent.** Test with `array_key_exists`, never `??`: `??` treats
+  an explicit `null` as absent, so a cleared or mistyped value silently turns into the default. An explicit
+  `null` is invalid, and says so.
+- **Closed key sets are validated.** A map keyed by an enum, or a list of required cases, is checked for
+  unknown and for missing keys, and for being a list or a map as declared — an empty array is both.
+- **Env-derived scalars are parsed once**, by one parser that every reader calls. They arrive as strings:
+  `(bool) "false"` is true. Two readers parsing the same variable two ways is how a toggle is on in one
+  place and off in another.
+
+## 7b. Providers and the container
+
+- **A global bind or override does not reach a contextual binding of the same abstract.** A consumer with a
+  per-consumer binding keeps its own instance, so override both. Do it in `boot()`, after every
+  package's `register()` has run, or the package's own binding wins. The type hints are identical, the
+  wrong instance is injected, and nothing errors.
+- **A wrapper that carries one consumer's identity is inherited by the next consumer.** If a binding
+  decorates the implementation with a name, tenant or channel, every later consumer of that interface gets
+  the same decorated instance. Build the wrapper per consumer, or bind it contextually.
+- **A nested config key written in `register()` is lost when another package later shallow-merges the
+  parent key.** Write the nested key in `boot()`, after every merge has happened.
+- **Resolving an optional dependency catches only "not bound".** Ask `bound()` first, or catch the
+  container's binding-resolution exception alone. A `catch (Throwable)` also swallows a broken
+  constructor or a missing extension, and the feature then runs quietly without the dependency.
 
 ## 8. Code shape
 
@@ -251,6 +310,11 @@ happens to look at the dashboard", it is not a subsystem. See **`padosoft-failur
 - **Eager loading inside a loop is still N+1**, just harder to see.
 - **An index on a low-cardinality column often does nothing**; measure before adding.
 - **A job retried after a partial write repeats the write.** Idempotency is designed in, not hoped for.
+- **A global override does not reach a contextual binding** (§7b): the right type is injected, the wrong
+  instance behind it.
+- **`??` as the default for an optional key swallows an explicit `null`**, and a bare cast on decoded JSON
+  lets `"Array"` through (§7).
+- **`<= $to` or `whereDate` on a date-only bound** loses the last day or the index (§4).
 - **`dd()` and `dump()` in committed code** — see `padosoft-logging-discipline` §3, and do not delete
   someone else's silently: report it.
 
@@ -263,6 +327,8 @@ happens to look at the dashboard", it is not a subsystem. See **`padosoft-failur
 - [ ] Migration: responsibility, indexes on real patterns, nullability decided, source of truth documented
 - [ ] Bulk paths that bypass model events identified and handled
 - [ ] Full type hints; nullability resolved at the boundary
+- [ ] Decoded external data type- and shape-checked before use; date ranges half-open
+- [ ] Every config key, toggle and DTO field is read and honoured where it is bound; overrides cover contextual bindings
 - [ ] Pint and static analysis clean
 
 ## Final report
