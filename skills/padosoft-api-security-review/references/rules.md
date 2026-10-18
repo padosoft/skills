@@ -9,6 +9,20 @@
 Read a section when its check fires and you need the reasoning, or when you have to decide whether a case is
 a genuine exception.
 
+## Contents
+
+- [API-SEC-AUTH-001 — Auth on every route, role guard, RBAC](#api-sec-auth-001--auth-on-every-route-role-guard-rbac)
+- [API-SEC-IDOR-001 — Ownership from the authenticated id only](#api-sec-idor-001--ownership-from-the-authenticated-id-only)
+- [API-SEC-SECRET-001 — No secrets in settings or responses](#api-sec-secret-001--no-secrets-in-settings-or-responses)
+- [API-SEC-LOG-001 — Logging, telemetry and error leak](#api-sec-log-001--logging-telemetry-and-error-leak)
+- [API-SEC-ENV-001 — Environment gates must be fail-SAFE](#api-sec-env-001--environment-gates-must-be-fail-safe)
+- [API-SEC-SQL-001 — Bound SQL](#api-sec-sql-001--bound-sql)
+- [API-SEC-LIMITS-001 — Structural resource caps](#api-sec-limits-001--structural-resource-caps)
+- [API-SEC-OUTPUT-001 — Injection into downstream consumers](#api-sec-output-001--injection-into-downstream-consumers)
+- [API-SEC-TRUST-001 — No trust from caller input](#api-sec-trust-001--no-trust-from-caller-input)
+- [API-SEC-SUPPLY-001 — Supply chain, container, CI/CD](#api-sec-supply-001--supply-chain-container-cicd)
+- [API-SEC-LLM-001 — AI and LLM surface](#api-sec-llm-001--ai-and-llm-surface)
+
 ---
 
 ## API-SEC-AUTH-001 — Auth on every route, role guard, RBAC

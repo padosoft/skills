@@ -6,6 +6,16 @@ proof, and the part of the claim it leaves untouched.
 These are worked instances of the table in §1 of SKILL.md. They are here rather than in the skill because
 you only need the one domain you are reviewing.
 
+## Contents
+
+- [Storage, encryption and backup](#storage-encryption-and-backup)
+- [Identity and access](#identity-and-access)
+- [Telemetry and observability](#telemetry-and-observability)
+- [Queues, workers and effects](#queues-workers-and-effects)
+- [Supply chain and release](#supply-chain-and-release)
+- [Money and settlement](#money-and-settlement)
+- [Data protection](#data-protection)
+
 ---
 
 ## Storage, encryption and backup

@@ -3,6 +3,28 @@
 Read the section for the domain you are working on. Each entry is a control plus **what makes it real** —
 the part that is usually missing when the control is nominally present.
 
+## Contents
+
+- [1. Access control and authorisation](#1-access-control-and-authorisation)
+- [2. Authentication and identity](#2-authentication-and-identity)
+- [3. Injection](#3-injection)
+- [4. Cryptography and secrets](#4-cryptography-and-secrets)
+- [5. Configuration](#5-configuration)
+- [6. Software supply chain](#6-software-supply-chain)
+- [7. Build and delivery integrity](#7-build-and-delivery-integrity)
+- [8. Logging, detection and alerting](#8-logging-detection-and-alerting)
+- [9. Exceptional conditions](#9-exceptional-conditions)
+- [10. Rate limiting and anti-automation](#10-rate-limiting-and-anti-automation)
+- [11. Business-logic abuse](#11-business-logic-abuse)
+- [12. Data protection and privacy](#12-data-protection-and-privacy)
+- [13. Uploads and files](#13-uploads-and-files)
+- [14. API surface](#14-api-surface)
+- [15. Browser surface](#15-browser-surface)
+- [16. Mobile surface](#16-mobile-surface)
+- [17. Infrastructure and edge](#17-infrastructure-and-edge)
+- [18. Process and governance](#18-process-and-governance)
+- [19. AI and model surface](#19-ai-and-model-surface)
+
 ---
 
 ## 1. Access control and authorisation

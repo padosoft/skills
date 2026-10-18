@@ -1,7 +1,7 @@
 ---
 name: padosoft-email-html-builder
 description: >-
-  Use this skill whenever the user creates, fixes, converts or reviews an HTML email (welcome, transactional, newsletter, DEM, ESP template) or asks to test it on Mailtrap or MailUp, even when they do not explicitly say "HTML", "template" or "deliverability": it produces table-based emails with minimal inline CSS, an aligned text/plain part, one-click List-Unsubscribe, and validates them with the included linter down to 0 errors, targeting SpamAssassin spam <= 0.1 and HTML Check with no warnings outside the baseline. Do not use it for copywriting without code, for configuring DNS/SPF/DKIM or for managing lists and bulk sends.
+  Use this skill whenever the user creates, fixes, converts or reviews an HTML email (welcome, transactional, newsletter, DEM, ESP template) or asks to test it on Mailtrap or MailUp, even when they do not explicitly say "HTML", "template" or "deliverability": it produces table-based emails with minimal inline CSS, an aligned text/plain part, one-click List-Unsubscribe, and validates them with the included linter down to 0 errors, targeting SpamAssassin spam score of at most 0.1 and HTML Check with no warnings outside the baseline. Do not use it for copywriting without code, for configuring DNS/SPF/DKIM or for managing lists and bulk sends.
 license: MIT
 compatibility: >-
   Requires Python 3.10+ for the included scripts (standard library only). Optional: a headless browser
