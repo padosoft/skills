@@ -41,6 +41,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import unquote
 
 # --- Limits, each with the source that sets it --------------------------------------------------------
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")  # agentskills.io spec: no edge or double hyphens
@@ -84,6 +85,10 @@ STDLIB = set(getattr(sys, "stdlib_module_names", ())) | {"__future__"}
 
 SUPPRESS = re.compile(r"audit-ok:\s*\S.{2,}")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+IN_FILE_LINK = re.compile(r"\]\(\s*#([^)\s]+)\s*\)")
+HEADING_LINK = re.compile(r"\[([^\]\n]*)\]\([^)\n]*\)")
+HTML_TAG = re.compile(r"<[^>]+>")
+HTML_ANCHOR = re.compile(r'(?:id|name)="([^"]+)"')
 INLINE_CODE = re.compile(r"`[^`\n]*`")
 QUOTED = re.compile(r'"[^"\n]*"|“[^”\n]*”|«[^»\n]*»')
 HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
@@ -634,6 +639,7 @@ def audit_skill(skill: Skill, shared: bool) -> None:
     check_size(skill)
     files = bundled_files(skill)
     check_links_and_paths(skill, files)
+    check_anchors(skill, files)
     check_content(skill, files)
     check_scripts(skill, files)
 
@@ -1192,6 +1198,46 @@ def _phrase_findings(agg: "_Aggregate", path: Path, lines: list[str], start: int
                 if rule_id == "G-GEN-05":
                     reasoning_lines.add(index)
                 agg.hit(rule_id, level, path, index + 1, message)
+
+
+def github_anchor(heading: str) -> str:
+    """The anchor GitHub gives a heading: lowercase, markup and punctuation dropped, underscores and hyphens kept."""
+    text = HEADING_LINK.sub(r"\1", heading)
+    # a tag outside backticks is markup and disappears; inside backticks it is text ("`<style>` block")
+    pieces = re.split(r"(`[^`]*`)", text)
+    text = "".join(p if p.startswith("`") else HTML_TAG.sub("", p) for p in pieces)
+    text = re.sub(r"[`*]", "", text).strip().lower()
+    return re.sub(r"[^\w\- ]", "", text).replace(" ", "-")
+
+
+def check_anchors(skill: Skill, files: list[Path]) -> None:
+    """A link to #something inside a file must land on a heading of that file (a contents list that does not is dead)."""
+    docs = [(skill.entry, skill.lines, skill.body_start)]
+    for md in _md_files(skill, files):
+        try:
+            docs.append((md, read_text(md).split("\n"), 0))
+        except OSError:
+            continue  # already reported by the link check
+    for path, lines, start in docs:
+        anchors: set[str] = set(HTML_ANCHOR.findall("\n".join(lines)))
+        seen: dict[str, int] = {}
+        for _, line in iter_prose(lines, start):
+            h = HEADING.match(line)
+            if not h:
+                continue
+            base = github_anchor(h.group(2).rstrip("#").strip())
+            n = seen.get(base, 0)
+            seen[base] = n + 1
+            anchors.add(base if n == 0 else f"{base}-{n}")
+        for index, line in iter_prose(lines, start):
+            if _suppressed(lines, index):
+                continue
+            for m in IN_FILE_LINK.finditer(INLINE_CODE.sub(" ", line)):
+                fragment = unquote(m.group(1)).lower()
+                if fragment and fragment not in anchors:
+                    skill.add("G-STRUCT-08", "WARN", path, index + 1,
+                              f"the link to #{fragment} matches no heading of this file: GitHub keeps underscores and "
+                              "drops punctuation, and a repeated heading gets -1, -2")
 
 
 def check_content(skill: Skill, files: list[Path]) -> None:

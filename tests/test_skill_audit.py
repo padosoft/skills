@@ -959,5 +959,44 @@ class TestPositionalPlaceholders(unittest.TestCase):
         self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
 
 
+class TestInFileAnchors(unittest.TestCase):
+    """A contents list whose links match no heading is a dead list (G-STRUCT-08)."""
+
+    def findings(self, body: str) -> list[str]:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}\n")
+            skill = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
+            return [f["message"] for f in skill["findings"] if f["id"] == "G-STRUCT-08" and f["level"] == "WARN"]
+
+    def test_underscores_are_kept_and_punctuation_dropped(self) -> None:
+        body = "- [Playbook](#playbook-test_bug)\n- [Setup, step 1](#setup-step-1)\n\n## Playbook: `test_bug`\n\n## Setup, step 1\n"
+        self.assertEqual(self.findings(body), [])
+
+    def test_a_link_without_the_underscore_is_dead(self) -> None:
+        body = "- [Playbook](#playbook-testbug)\n\n## Playbook: `test_bug`\n"
+        found = self.findings(body)
+        self.assertEqual(len(found), 1)
+        self.assertIn("#playbook-testbug", found[0])
+
+    def test_a_tag_in_backticks_stays_in_the_heading_text(self) -> None:
+        body = "- [Style](#5-the-style-block--minimal)" + chr(10) + chr(10) + "## 5. The `<style>` block — minimal" + chr(10)
+        self.assertEqual(self.findings(body), [])
+
+    def test_a_dash_in_a_heading_gives_a_double_hyphen(self) -> None:
+        body = "- [A](#a--b)\n- [Wrong](#a-b)\n\n## A — B\n"
+        self.assertEqual(len(self.findings(body)), 1)
+
+    def test_a_repeated_heading_is_numbered(self) -> None:
+        body = "- [One](#setup)\n- [Two](#setup-1)\n- [Three](#setup-2)\n\n## Setup\n\n## Setup\n"
+        found = self.findings(body)
+        self.assertEqual(len(found), 1)
+        self.assertIn("#setup-2", found[0])
+
+    def test_code_and_an_explicit_html_anchor_are_left_alone(self) -> None:
+        body = ("`[x](#nowhere)` and [y](#custom)\n\n```md\n[z](#also-nowhere)\n```\n\n"
+                "<a id=\"custom\"></a>\n")
+        self.assertEqual(self.findings(body), [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1172,7 +1172,7 @@ npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-secu
 
 **Bring a project's skills up to the current rules, after checking the rules are still current.**
 
-`padosoft-skill-audit` · profiles: `core` · scope: `global` · version: 0.2.0
+`padosoft-skill-audit` · profiles: `core` · scope: `global` · version: 0.2.1
 
 **Triggers when** — Use this skill when the user wants to review, audit, modernise or bulk-update the Agent Skills a project already has (.claude/skills, .agents/skills, .claude/commands, plugin skills) against the current authoring rules for Claude models: skills that feel too prescriptive, shout rules in capitals, run past 500 lines, never trigger or trigger on everything, ask the model to show its reasoning, or exist in one copy per model. Also when they ask "are our skills still right for the new models?", "sistema le skill del repo", "allinea le skill alle nuove linee guida". It first checks the rules are still current, then runs a deterministic checker, reviews each skill, reports, and applies the approved fixes. Do not use it to write a new skill from scratch (padosoft-skill-creator), to install skills (padosoft-skills-router), or to review application code.
 
