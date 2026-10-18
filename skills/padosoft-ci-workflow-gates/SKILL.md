@@ -13,7 +13,7 @@ compatibility: >-
   GitHub Actions for the trigger and ruleset specifics; the reasoning about what makes a gate real applies to
   any CI system.
 metadata:
-  version: 0.3.0
+  version: 0.4.0
   author: Padosoft
   summary: A gate that cannot fail is not a gate.
   profiles: devops
@@ -86,6 +86,10 @@ one**, which replaces the safe root grant rather than narrowing it. Validate the
   gets no run at all. List every type you still need.
 - **A label-gated job is inert if the trigger does not subscribe to the label event.** The condition can be
   perfectly correct and never evaluated, because adding the label starts no run.
+- **A `branches:` filter on a `pull_request` trigger matches the PR's base branch, not its head.** Pull
+  requests stacked on a non-default branch get no run at all, and a rule of "merge when no required check
+  fails" then passes vacuously, because there are no checks to fail. List the intermediate base patterns, or
+  drop the filter, and give those branches the same rules (§7).
 - **A required check cannot run on the merge commit before the merge exists.** Gating on "the exact merge
   SHA" makes the pre-merge gate impossible: require the checks on the final PR **head** SHA.
 - **Pass the base SHA in from the event**, and verify or fetch it. Building a diff-based gate on an assumed
@@ -93,6 +97,25 @@ one**, which replaces the safe root grant rather than narrowing it. Validate the
 - **Normalise and compare a complete condition**, never a substring: two substring checks are both satisfied
   by an impossible `A && B`, and the job never runs.
 - **Requiring a script by name in the run text accepts `echo script.ps1`.** Compare the parsed command.
+
+## 4b. Path and topology traps that end green
+
+A step can succeed having looked at the wrong place. None of these fails the job.
+
+- **`defaults.run.working-directory` applies to `run:` steps, not to `uses:` steps.** A
+  `cache-dependency-path`, an artifact `path` or a `hashFiles()` expression is resolved from the repository
+  root: write it relative to the root even when every script runs in a subfolder.
+- **An artifact upload drops dotfiles and dot-directories by default and still succeeds.** A report folder
+  with a leading dot arrives empty. Opt in to hidden files explicitly, and have the job that consumes the
+  artifact fail on an empty one.
+- **The setup step validates its cache path as it runs**, so an `if:` guard written on a later step cannot
+  protect it. Put the guard on the setup step itself, or give it a path that always exists.
+- **"Build once, reuse" has to be checked against the job topology.** Every job starts on a fresh runner, so
+  a job that needs the build output gets nothing from `needs:` alone, which only orders the jobs. The build
+  job uploads the output as an artifact and the consumer downloads it (or rebuilds). Draw the dependency; do
+  not assume the order.
+- **A `push` and a `pull_request` trigger on the same branch run the workflow twice** for every commit on a
+  pull request branch. Restrict `push` to branches that are not pull request heads.
 
 ## 5. Conclusions are not the whole result
 
@@ -127,6 +150,11 @@ Pinning the action is the start of it, not the end.
 - **Test the published bundle, not the working tree.** Assets resolve differently once packaged, an offline
   or air-gapped bundle has its own release identity, and an optional driver pulled into the main bundle
   changes what every user downloads. The shipped examples are part of the supply chain too.
+- **A package ships what the ignore list lets through.** Everything not export-ignored (or not in the
+  `files` whitelist) goes to consumers, and a documentation site or a development lock file then shows up in
+  their scanners as advisories against your runtime package. List the real archive
+  (`git archive HEAD | tar -t`, `npm pack --dry-run`) instead of reading the ignore file. An install from
+  source bypasses the filter altogether, so it is a courtesy to dist installs, not a boundary.
 
 ## 5c. Scanners earn their place by being read
 
@@ -137,9 +165,14 @@ A scanner nobody reads is a line in a bill. Four decisions make the difference:
   diff is unprotected too. It becomes blocking after the triage.
 - **Run dependency audits on the pull request *and* on a schedule.** An advisory published tomorrow concerns
   code nobody is touching, so a pull-request-only audit never sees it.
-- **Audit the lock file, and do not exclude development dependencies** when the bundler puts them in the
-  shipped bundle. "Which section is it declared in" is the wrong question; "does it reach the bundle" is the
-  right one.
+- **Audit the lock file of an application, and do not exclude development dependencies** when the bundler
+  puts them in the shipped bundle. "Which section is it declared in" is the wrong question; "does it reach
+  the bundle" is the right one.
+- **A library that commits no lock is exposed by its range.** Advisories against a library are evaluated
+  against the manifest range, so a range such as `^4 || ^5` that admits a vulnerable release keeps the alert
+  open however clean your own install is. Raise the floor until the range excludes it, and verify with an
+  audit that includes the development perimeter. The reflex to resist is reaching for the lock file, which
+  a library does not commit.
 - **Ignore the unfixable, explicitly.** Output that contains items nobody can act on teaches people to skip
   the output.
 
@@ -204,11 +237,16 @@ checks are the ones that can run pre-merge (§4).
 - [ ] Structured files parsed and traversed, never regexed
 - [ ] `permissions` validated at root **and** every job
 - [ ] `pull_request.types` lists every type still needed; label triggers subscribed
+- [ ] `pull_request` branch filter read as a filter on the base: stacked pull requests still get a run
 - [ ] Required checks gate the PR head SHA, not a merge SHA that does not exist yet
+- [ ] Paths in `uses:` steps written from the repository root; no `push` plus `pull_request` double run
+- [ ] A job that consumes build output downloads the artifact the build job uploaded (`needs:` only orders
+  them); hidden files uploaded on purpose
 - [ ] Annotations inspected, not just conclusions; actions pinned to SHAs
 - [ ] Fast/extended tiers, with the extended trigger actually wired
 - [ ] Images and artifacts pinned by digest; key identity pinned alongside the signature
 - [ ] Dependency audit on every lockfile change; the published bundle tested, not the tree
+- [ ] Published archive listed, not inferred from the ignore file; a library's range raised past an advisory
 - [ ] Rulesets cover intermediate branches; tag creation and immutability split
 
 ## Final report

@@ -15,7 +15,7 @@ compatibility: >-
   sections are written for a bundled mobile application, where they bite hardest; the discipline applies to
   a minified web bundle and a server stack trace equally.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: Never write a claim stronger than the evidence you actually have.
   profiles: core
@@ -64,6 +64,10 @@ git show <build-sha>:<path> | grep -n "<fragment>"      # did this line exist th
 - **Not in** → it may already be fixed on the mainline. Check before writing new code.
 - **A record that comes from an operating-system history** rather than from a live capture carries the
   version of whoever *read* it, not of whoever crashed. Look for the age field.
+- **"x is not a function", or an undefined symbol at first render**, may mean the build lacks the commit that
+  defines the symbol: with squash merges between two long-lived branches, a build cut from the wrong one is
+  missing code the other has. Check the symbol exists at the build's commit before hunting a logic fault, and
+  the ancestry as in **`padosoft-git-commit-integrity`** §7.
 
 ## 3. Attribute the frame, and measure the uncertainty
 
@@ -147,6 +151,20 @@ A fix that removes a suspected precondition without a reproduction says **"remov
 precondition"**, not "fixes it". And close with **what remains to be verified**, on a device, in the next
 release, by whom.
 
+## 9. Close the reporter issue
+
+A crash fix is done when each reporter issue it concerns carries a note with the cause and the grade of proof
+(§8). Closing needs care, because the state belongs to the issue:
+
+- **Close only if every variant is resolved.** Closing a grouped issue hides the variants still open (§1).
+- **Close before the fixed build starts reporting.** Automatic regression detection keys on versions the
+  issue has not seen at close time; if the fixed build has already reported, a recurrence in it is not
+  flagged.
+- **An over-the-air fix keeps the binary version**, so version-based detection cannot see it: check the
+  events by update id by hand.
+- **Cite breadcrumbs before custom keys** on a non-fatal event: the keys may be a snapshot of the last
+  published state, while the breadcrumbs belong to the event.
+
 ---
 
 ## Gotchas
@@ -174,6 +192,7 @@ release, by whom.
 - [ ] Error boundary present, or added first
 - [ ] Every sentence graded; the word check run over the text
 - [ ] What remains unverified stated explicitly
+- [ ] Each reporter issue noted with cause and grade; closed only when every variant is resolved, before the fixed build reports; over-the-air fix checked by update id
 
 ## Final report
 
@@ -186,5 +205,6 @@ Class: <row> | NEW: <proposed row>
 Library facts: <claim> ← <command and result>
 Degradation: boundary present | added
 Diagnosis grades: verified <…> · attributed <…> · suspected <…> · not verified <…>
+Reporter issue: noted with cause and grade · closed (all variants resolved) | left open (<variants>)
 To verify on a device: <…>
 ```

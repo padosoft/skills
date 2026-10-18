@@ -14,7 +14,7 @@
       "source": "./plugins/padosoft-core",
       "displayName": "Padosoft Core",
       "description": "Cross-project skills, always on: router, skill creation, commit integrity, logging, failure visibility, test integrity, atomic invariants, docs drift.",
-      "version": "0.14.1",
+      "version": "0.15.0",
       "author": {
         "name": "Padosoft"
       },
@@ -53,7 +53,7 @@
       "source": "./plugins/padosoft-api",
       "displayName": "Padosoft API",
       "description": "Building and reviewing HTTP APIs: security review, Hono/Bun conventions, OpenAPI spec workflow.",
-      "version": "0.3.1",
+      "version": "0.4.0",
       "author": {
         "name": "Padosoft"
       },
@@ -72,7 +72,7 @@
       "source": "./plugins/padosoft-devops",
       "displayName": "Padosoft DevOps",
       "description": "Delivery workflows: PR review triage, CI gates that actually gate, cross-platform scripting.",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "author": {
         "name": "Padosoft"
       },
@@ -90,7 +90,7 @@
       "source": "./plugins/padosoft-react-native",
       "displayName": "Padosoft React Native",
       "description": "React Native / Expo: conventions from two production apps, mobile security review, screen and hook scaffolding.",
-      "version": "0.3.1",
+      "version": "0.4.0",
       "author": {
         "name": "Padosoft"
       },
@@ -108,7 +108,7 @@
       "source": "./plugins/padosoft-laravel",
       "displayName": "Padosoft Laravel",
       "description": "Laravel: conventions, security review with ten checks, scaffolding, and the admin/back-office interface pattern.",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "author": {
         "name": "Padosoft"
       },
@@ -145,7 +145,7 @@
       "source": "./plugins/padosoft-ai",
       "displayName": "Padosoft AI",
       "description": "Agents, tools, retrieval and the corpus behind them.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "author": {
         "name": "Padosoft"
       },

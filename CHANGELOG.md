@@ -48,6 +48,34 @@ way to bring a project's existing skills up to it.
   skill and follows it, so the workflow lives in one place.
 - `make audit-skills` and `make freshness`; tests for the checker and the freshness check, with the latter
   run offline against fixture pages.
+- **Rules harvested from the lessons files and rule folders of other repositories** (seven lessons files and
+  ten rule files that had grown since the last pass). Each one is a class of defect with its reason, placed in
+  the skill that already owns the topic:
+  - `padosoft-laravel-conventions`: a global binding does not reach a contextual one, untrusted structured
+    data (`{}` versus `[]`, casts), lenient parsing of config and `fromArray` inputs, a config key nothing
+    honours, a package route that needs a host-defined limiter, half-open date ranges (and
+    `padosoft-database-design` on `whereDate`).
+  - `padosoft-durable-effects`: a state flip committed before its job is enqueued, and resumable multi-job
+    runs. `padosoft-atomic-invariants`: locks and windows on a cache store, and a cost cap that fails closed.
+    `padosoft-failure-visibility`: a fallback chain advances on "no usable result". `padosoft-query-performance`:
+    the key of a rollup row carries every grouping dimension.
+  - `padosoft-ci-workflow-gates`: path and topology traps that end green, the base-branch meaning of a
+    `pull_request` filter, what a package really ships, a library's range as its exposure.
+    `padosoft-ci-failure-triage`: a dead server is not a slow one. `padosoft-git-commit-integrity`: branch
+    ancestry across two long-lived branches. `padosoft-crash-triage`: closing the reporter issue.
+  - `padosoft-ai-evaluation`: a metric must move with the output, a broken row is not an unannotated row, an
+    evaluation run is not production. `padosoft-contract-changes`: a hydrated DTO is a wire contract, and
+    hand-enumerated lists drop new members silently. `padosoft-logging-discipline`: secrets inside free text.
+    `padosoft-mobile-security-review`: a credential must not outlive its local identity, origin check on bridge
+    messages. `padosoft-react-native-conventions`: side effects of a speculative mount (`RN-NAV-008`).
+- **Two rules in the authoring rulebook, one of them checked.** `G-FLOW-09`: run every command a skill quotes
+  once, in a read-only form, because a wrong field or flag sends the agent down a path that quietly returns
+  nothing. `G-PORT-06`: Claude Code substitutes `$ARGUMENTS`, `$N` and `$name` into the skill text, so an awk
+  field or a function parameter in a shell snippet can arrive rewritten; the audit reports it (INFO).
+- **`CLAUDE.md` for this repository**, a *Releasing* and an *After every pull request* section in
+  `CONTRIBUTING.md`, and section 9 of `padosoft-knowhow-harvest`: read the fixes and lessons of each pull
+  request or session and turn the class of defect into a rule, better still a check. A rule belongs in the
+  place that is loaded; a note about what happened that day does not.
 
 ### Changed
 
@@ -56,8 +84,9 @@ way to bring a project's existing skills up to it.
   the full index, and a stale skill count removed from the structure tree.
 - CI runs the repository's own audit with `--strict` (a warning fails the build; `make audit-self`), now that
   the skills are clean, so the cleanup cannot regress.
-- Packages: `padosoft-core` 0.14.1, `padosoft-api` 0.3.1, `padosoft-email` 1.1.1,
-  `padosoft-react-native` 0.3.1 (their skills changed, see Fixed).
+- Packages: `padosoft-core` 0.15.0, `padosoft-api` 0.4.0, `padosoft-devops` 0.4.0, `padosoft-ai` 0.3.0,
+  `padosoft-laravel` 0.6.0, `padosoft-react-native` 0.4.0, `padosoft-email` 1.1.1 (their skills changed, see
+  Added and Fixed).
 
 ### Fixed
 

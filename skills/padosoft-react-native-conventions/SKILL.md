@@ -14,7 +14,7 @@ compatibility: >-
   React Native with Expo, expo-router, React Query, Zustand, FlashList, Reanimated and a NativeWind-style
   utility CSS setup. The reasoning holds beyond those; the snippets assume them.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: The rules that survived independently in two production apps.
   profiles: react-native
@@ -139,6 +139,12 @@ a constant-frame wrapper, never in a dense mount window.
 - Never an error boundary of your own: use the router's route-level one.
 - Never derive **per-instance** state from a **global** routing hook in components that stay mounted under
   tabs — anchor the scope to the route that owns the subtree.
+- **A screen can be mounted without being visited** (link preview, prefetched route, inactive tab).
+  Tracking, "recently viewed", navigation options and dispatch, persistence and remote-page bridges are
+  gated on real focus, from the **first commit** of the speculative instance: read the live navigation
+  state, not a focus hook that lags a commit. That instance gets a placeholder navigation object that
+  throws on option or dispatch calls, so nothing looks wrong in development and a production build
+  crashes (`RN-NAV-008`).
 - **Structural** layout choices use the layout hooks, not CSS breakpoints; breakpoints are for styling. The
   layout class is measured on the **window** and reactively, never from a module constant, the device idiom or
   the aspect ratio.
@@ -195,6 +201,7 @@ it with the project's serializer. The reasoning and the per-stack mechanism live
 - [ ] Store reads through a shallow selector; new fields registered in the schema
 - [ ] Query keys complete and built with the shared builders; no manual typing; invalid params via `enabled`
 - [ ] No `setState`, ref mutation or navigation during render; subscriptions return cleanup
+- [ ] Screen side effects (tracking, navigation options, persistence, bridges) gated on live focus, not on mount
 - [ ] No list inside a list slot; horizontal lists with the right animation and snapping props
 - [ ] No shared value read right after `withTiming`/`withSpring`
 - [ ] No literal colour beside an inverting token; no `dark:` block identical to the light one

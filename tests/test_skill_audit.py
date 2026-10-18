@@ -885,5 +885,79 @@ def tearDownModule() -> None:
     shutil.rmtree(PROJECT.parent, ignore_errors=True)
 
 
+class TestPositionalPlaceholders(unittest.TestCase):
+    """Claude Code substitutes arguments into the skill text: an awk field in a snippet may be rewritten (G-PORT-06)."""
+
+    def levels_of(self, body: str, extra: dict | None = None) -> set[tuple[str, str]]:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}---\n\n{body}\n")
+            for rel, content in (extra or {}).items():
+                put(Path(tmp), f"demo/{rel}", content)
+            return levels(report_of(str(Path(tmp) / "demo"))[1]["skills"][0])
+
+    def test_an_awk_field_in_a_shell_snippet_is_noted(self) -> None:
+        body = "Run it:\n\n```bash\nps | awk '{print $2}'\n```"
+        self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_shell_function_parameter_is_noted(self) -> None:
+        body = "```sh\nhello() { echo \"$1\"; }\n```"
+        self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_cut_and_named_variables_are_not(self) -> None:
+        body = "```bash\nps | cut -d' ' -f2\necho \"$HOME\" \"$USER2\"\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_multi_digit_index_and_a_literal_prefix_are_noted(self) -> None:
+        for snippet in ("awk '{print $10}'", 'echo "prefix$1"', "echo $12 done"):
+            body = "```bash" + chr(10) + snippet + chr(10) + "```"
+            self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body), snippet)
+
+    def test_an_escaped_dollar_and_the_process_id_are_not(self) -> None:
+        body = "```bash" + chr(10) + "echo " + chr(92) + "$1 $$1" + chr(10) + "```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_prose_and_inline_code_are_not(self) -> None:
+        body = "Use `awk '{print $2}'` only inside a script. Costs $5 a month."
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_reference_file_is_not_substituted_so_it_is_not_noted(self) -> None:
+        body = "Read [the notes](references/notes.md)."
+        extra = {"references/notes.md": "```bash\nps | awk '{print $2}'\n```\n"}
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body, extra))
+
+    def with_arguments(self, declaration: str, body: str) -> set[tuple[str, str]]:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}{declaration}\n---\n\n{body}\n")
+            return levels(report_of(str(Path(tmp) / "demo"))[1]["skills"][0])
+
+    def test_a_shell_variable_named_like_a_declared_argument_is_noted(self) -> None:
+        body = "```bash\ntarget=$(pwd)\necho \"$target\"\n```"
+        for declaration in ("arguments: [target, mode]", "arguments: target mode",
+                            "arguments:" + chr(10) + "  - target" + chr(10) + "  - mode",
+                            "arguments: [{name: target, description: where}]",
+                            "arguments: [{description: directory, name: target}]",
+                            "arguments: [{name: " + chr(34) + "target" + chr(34) + ", description: directory}]",
+                            "arguments:" + chr(10) + "  - name: target" + chr(10) + "    description: where"):
+            self.assertIn(("G-PORT-06", "INFO"), self.with_arguments(declaration, body), declaration)
+
+    def test_the_other_keys_of_a_mapping_are_not_argument_names(self) -> None:
+        body = "```bash" + chr(10) + "directory=$(pwd)" + chr(10) + "echo " + chr(34) + "$directory" + chr(34) + chr(10) + "```"
+        declaration = "arguments:" + chr(10) + "  - name: target" + chr(10) + "    description: directory"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.with_arguments(declaration, body))
+
+    def test_using_a_declared_argument_on_purpose_is_not_noted(self) -> None:
+        body = "```bash\ngit switch \"$target\"\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.with_arguments("arguments: [target]", body))
+
+    def test_a_variable_with_no_declared_argument_of_that_name_is_not_noted(self) -> None:
+        body = "```bash\ntarget=$(pwd)\necho \"$target\"\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.with_arguments("arguments: [other]", body))
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_suppressed_line_is_left_alone(self) -> None:
+        body = "```bash\n# audit-ok: the field is awk's, the skill takes no arguments\nps | awk '{print $2}'\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+
 if __name__ == "__main__":
     unittest.main()

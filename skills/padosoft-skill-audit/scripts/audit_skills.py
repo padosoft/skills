@@ -90,6 +90,13 @@ HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
 MD_LINK = re.compile(r"\[[^\]\n]*\]\(\s*([^)\s]+)(?:\s+\"[^\"]*\")?\s*\)")
 CODE_SPAN = re.compile(r"`([^`\n]+)`")
 BUNDLED_PATH = re.compile(r"^(?:\./)?((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]+)$")
+# $1, $2 ... standing alone: Claude Code substitutes arguments into the skill text, and an awk field or a
+# positional parameter looks the same
+POSITIONAL = re.compile(r"(?<![\\$])\$[0-9]+(?!\w)")
+ARGUMENT_NAME = re.compile(r"[A-Za-z_]\w*")
+# the parser returns a mapping entry as text: "{name: target, ...}", "{description: x, name: target}" or, in a
+# block list, "name: target" and "description: x" as separate items; only the name key gives a name
+MAPPING_ARGUMENT = re.compile(r"(?:^|[{,\s])name\s*:\s*[\x22\x27]?([A-Za-z_]\w*)")
 COMMAND_PATH = re.compile(
     r"(?<![\w/.$-])(?:\$\{?CLAUDE_SKILL_DIR\}?/|\./)?"
     r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
@@ -846,6 +853,27 @@ def iter_prose(lines: list[str], start: int = 0):
             yield index, line
 
 
+def _argument_names_in(text: str) -> list[str]:
+    """Names in one piece of the declaration: "a b", "{name: a, description: x}" or "- name: a description: x"."""
+    found = [m.group(1) for m in MAPPING_ARGUMENT.finditer(text)]
+    if found or ":" in text or "{" in text:  # a mapping: only its `name` keys are names, "description: x" is not
+        return found
+    return text.split()
+
+
+def declared_arguments(skill: Skill) -> set[str]:
+    """Names from the `arguments` frontmatter field: a string, a list of names, or a list of mappings with `name`."""
+    value = skill.frontmatter.get("arguments")
+    items = value if isinstance(value, list) else [value] if isinstance(value, str) else []
+    names: list[object] = []
+    for item in items:
+        if isinstance(item, dict):
+            names.append(item.get("name"))
+        elif isinstance(item, str):
+            names.extend(_argument_names_in(item))
+    return {n for n in names if isinstance(n, str) and ARGUMENT_NAME.fullmatch(n)}
+
+
 def iter_shell_lines(lines: list[str], start: int = 0):
     """(0-based index, line) inside fenced blocks that hold shell commands, comment lines left out."""
     fence: str | None = None
@@ -1197,6 +1225,18 @@ def check_content(skill: Skill, files: list[Path]) -> None:
                         "differences to references/models/<family>.md behind a 'Model notes' section")
             if PLACEHOLDER.search(prose):
                 agg.hit("G-BODY-01", "INFO", path, index + 1, "TODO or unfilled {{placeholder}} left in the text")
+        if path == skill.entry:
+            for index, line in iter_shell_lines(lines, start):
+                for name in sorted(declared_arguments(skill)):
+                    if re.search(r"(?:^|[\s;&|(])" + re.escape(name) + r"=", line) and not _suppressed(lines, index):
+                        agg.hit("G-PORT-06", "INFO", path, index + 1,
+                                f"the shell variable {name} has the name of a declared argument: ${name} in this text "
+                                "is substituted before the shell sees it; rename the variable")
+                if POSITIONAL.search(line) and not _suppressed(lines, index):
+                    agg.hit("G-PORT-06", "INFO", path, index + 1,
+                            "a positional placeholder ($1, $2...) in a shell snippet: Claude Code substitutes arguments "
+                            "into the skill text, so an awk field or parameter may be rewritten; use cut or sed, or a "
+                            "script under scripts/")
         _phrase_findings(agg, path, lines, start)
         body_lines = max(1, len(lines) - start)
         count = len(caps_lines)

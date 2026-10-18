@@ -13,7 +13,7 @@ compatibility: >-
   Provider- and runtime-agnostic. The rules assume you control the host: the process that dispatches calls,
   persists their records and exposes tools.
 metadata:
-  version: 0.4.0
+  version: 0.5.0
   author: Padosoft
   summary: The host decides what an agent may do, what gets recorded, and what any of it proves.
   profiles: ai, api
@@ -163,6 +163,8 @@ An artifact produced by a model is not evidence because it validates against a s
   experiment, and without a pinned identity the record cannot say which one ran.
 - **"It cost almost nothing in testing" is a statement about your test inputs.** The budget must hold on the
   input you did not imagine.
+- **An evaluation run is not production**: it runs dry, with "no paid calls" enforced per call where the
+  call is made — see **`padosoft-ai-evaluation`**.
 - **An aggregate score hides the part with no coverage.** Report what was not evaluated next to what was.
 - **A tool that returns raw payloads makes every consumer a data processor**, including the ones you have
   not written yet.

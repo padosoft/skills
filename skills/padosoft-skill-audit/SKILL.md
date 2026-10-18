@@ -15,7 +15,7 @@ compatibility: >-
   Requires Python 3.10+ (standard library only). The freshness check needs HTTPS access to the
   documentation sites; without it the audit still runs and says the rules were not re-verified.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: Bring a project's skills up to the current rules, after checking the rules are still current.
   profiles: core
@@ -46,6 +46,7 @@ every model.**
 | `scripts/check_freshness.py` | Phase 0: are the rules still in line with their sources, and is this copy current? |
 | `scripts/audit_skills.py` | Phases 1 and 5: inventory and deterministic checks, read-only |
 | `assets/audit-prompt.md` | The prompt to paste in agents or projects where this skill is not installed |
+| `assets/project-audit.yml` | A GitHub Actions workflow a project copies: a pull-request gate and a weekly report issue, no secret |
 
 Run the scripts from this skill's folder: `python3 "${CLAUDE_SKILL_DIR}/scripts/audit_skills.py" <root>`.
 Claude Code fills in `${CLAUDE_SKILL_DIR}` only when the skill is loaded; if the text reaches you unsubstituted,
@@ -137,6 +138,9 @@ script cannot see:
 - **The description**: the right requests, the boundaries with sibling skills. (G-DESC, G-LIB-02)
 - **Freedom per step**, and rules that must hold every time. (G-FREE-01, G-FREE-02)
 - **Verification, scope and delegation instructions.** (G-GEN-07, G-GEN-08, G-GEN-09)
+- **The commands the steps quote**: run the read-only ones once and compare the output with the fields the
+  next step reads; a command that returns nothing, or that approves, merges or deletes under a heading that
+  says "read", is a bug and not a style point. (G-FLOW-09)
 - **Model handling**: per-model copies, scattered model-specific lines. (§3 below)
 
 What to do with what you find:

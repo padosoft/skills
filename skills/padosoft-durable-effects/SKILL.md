@@ -13,7 +13,7 @@ compatibility: >-
   Stack-agnostic. Examples assume a relational store behind the queue, because that is where the fencing and
   serialisation semantics become explicit.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: Padosoft
   summary: A queue moves work, not effects — claim the effect atomically before performing it.
   profiles: api, data
@@ -55,6 +55,21 @@ the previous holder may have completed the external side effect **in the moment 
 The ledger can stop the duplicate *state transition*. Only an idempotency key on the external side makes the
 external operation safe across that reclaim. If the downstream system has no such key, say so out loud: the
 system is at-least-once, and the design has to tolerate it.
+
+## 2b. Commit then enqueue strands the work
+
+A state flip that commits before its follow-up job is enqueued leaves nothing to re-drive: the retry reads the
+new state, concludes the work has started, and does nothing.
+
+- **Keep both in one step, or keep the flipped state recognisable.** Either the flip and the enqueue are
+  atomic (an outbox row written in the same transaction), or the state says "flipped, not yet dispatched" so
+  a retry re-enters it. Add a sweeper that finds stranded rows by that signature.
+- **Release claims that were never dispatched.** An enqueue that throws after the claim must give the claim
+  back, or the work waits behind a claim nobody is working on.
+- **The synchronous queue driver ignores the delay and runs the job inline**, so dispatching while holding a
+  lock makes the job wait for the lock its own caller holds.
+- **Best-effort notifications go last**: after the durable write, after commit, outside the lock, and they
+  never throw. A failing notice must not undo or block the state it announces.
 
 ## 3. A lease is owned, and ownership can be lost
 
@@ -115,6 +130,28 @@ and the first one is where the data actually goes wrong.
   terminal state, skip the completed ones while parsing, and let the recount include them. Otherwise a
   re-validation silently undoes work somebody already reviewed.
 
+## 5c. A run of many jobs that can be resumed
+
+A run is a chain or fan-out of jobs over one batch, with a stored state that can be resumed after a failure.
+The jobs of the abandoned attempt are still in the queue when the new attempt starts.
+
+- **Every job carries a run marker** and no-ops if it differs from the batch's current one: no processing,
+  no finalising, no enqueuing the next job. Otherwise a stale job races the resumed run.
+- **The move to the error state is one conditional update on the run marker and the observed state
+  together.** A late failure handler that writes unconditionally overwrites a run that was resumed in the
+  meantime, and one that compares only the state can still win: the old handler saw `running`, the resumed
+  run is `running` again under a new marker, and the update succeeds. Checking the marker beforehand leaves
+  the same race, so both conditions belong in the same atomic update.
+- **A stalled-run sweeper declares a run dead only on evidence.** Use a heartbeat and a threshold above the
+  longest job timeout; require that no job is waiting or delayed; touch nothing if the queue cannot be read
+  (unknown is not dead); run it on a different queue from the work it watches, or a stuck queue stops its own
+  watchdog.
+- **A field added to a queued job is optional, with a defined meaning for "absent".** In-flight payloads were
+  serialised by the previous version and are deserialised by the new one.
+- **Completion hooks fire once from every terminal exit** (success, failure, cancel, sweep), may run again on
+  resume so they are idempotent, and contain their own exceptions: a failing hook must not change the
+  outcome of the run.
+
 ## 6. Event streams and replay
 
 - **An event id is not replay.** Persist the event *before* publishing the notification, subscribe before
@@ -154,12 +191,14 @@ visible bootstrap fallback, never the production answer.
 
 - [ ] The effect key is claimed atomically **before** the effect, with duplicates and key-reuse both handled
 - [ ] Signature/authenticity verified as a separate, prior check
+- [ ] State flip and enqueue atomic, or the flipped state recognisable to a retry and to a sweeper
 - [ ] Lease renewal uses the fencing token; lease loss is its own outcome, not an ack and not a failure
 - [ ] Cancellation is a durable state; late acknowledgements rejected
 - [ ] Shutdown checks its active flag after every await, and catches post-stop errors
 - [ ] Retry policy bounded, with a named destination for exhausted work
 - [ ] The durable store is what persists the message; notifications are not the queue
 - [ ] Bootstrap serialised under a transaction-scoped lock
+- [ ] Resumable runs: run marker on every job, compare-and-set (marker and state together) into the error state, a sweeper on its own queue
 - [ ] Replay: persist before publish, subscribe before replay, explicit missing-cursor signal
 - [ ] Webhooks verified on the raw body, with a clock tolerance
 - [ ] Worker identity required at boot; tenant scope enforced at dequeue and at ack

@@ -13,7 +13,7 @@ compatibility: >-
   Examples use Eloquent and the Laravel query builder; the thresholds and the access patterns apply to any
   ORM over a relational database.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: The code was written against the volume that existed then, and the volume moved.
   profiles: data, laravel
@@ -113,7 +113,7 @@ actually needs them.
 
 ## 7. Recalculating a denormalised table
 
-Three rules, and the first one is the one that causes incidents:
+Four rules, and the first one is the one that causes incidents:
 
 - **Never truncate and rebuild.** The table is empty for the whole duration of the rebuild, and everything
   reading it sees nothing — not an error, *nothing*. Instead: delete the rows whose subject no longer
@@ -122,6 +122,9 @@ Three rules, and the first one is the one that causes incidents:
   empty if the job dies in between.
 - **Bulk moves belong in the database.** An insert-from-select does in one statement what a read-modify-write
   loop does in thousands of round trips.
+- **The unique or upsert key of an aggregate row contains every dimension the aggregation groups by.** A
+  narrower key makes the second group overwrite the first, with no error. A fixture with one currency or one
+  channel passes; test with two values of each grouped dimension.
 
 See **`padosoft-atomic-invariants`** for the general form, and **`padosoft-durable-effects`** for what the
 fan-out needs to be safe.
@@ -171,7 +174,7 @@ Every hit is a candidate; the volume decides whether it is a defect.
 - [ ] Existence checks, not counts; direct value reads, not hydrated models
 - [ ] No avoidable distinct; join order starts from the restricted set
 - [ ] Caches have a stated invalidation; request-scoped memos reset on termination
-- [ ] Recalculation: no truncate, per-subject transaction, bulk work pushed into SQL
+- [ ] Recalculation: no truncate, per-subject transaction, bulk work pushed into SQL, row key covers every grouped dimension
 - [ ] Measured at production-like volume, before and after
 
 ## Final report
@@ -182,6 +185,6 @@ Volume assumed: <rows>  ·  measured on: <dataset size>
 Queries: <before> → <after>   ·   time: <before> → <after>   ·   peak memory: <…>
 Technique: <chunk by id | keyset | deferred join | stream>
 Cache: <what, ttl/tags, invalidation>
-Recalculation: <fan-out, transaction boundary>
+Recalculation: <fan-out, transaction boundary, row key = grouped dimensions>
 Still unbounded: none | <where>
 ```

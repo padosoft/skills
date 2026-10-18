@@ -14,7 +14,7 @@ compatibility: >-
   MySQL and MariaDB with InnoDB; the index reasoning transfers to other engines, the partitioning and
   generated-column constraints do not. Migration examples use Laravel's schema builder.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
   author: Padosoft
   summary: The index, the key and the partition are part of the table's design, not a later fix.
   profiles: data, laravel
@@ -86,7 +86,10 @@ WHERE created_at BETWEEN ? AND ?
 ```
 
 Any wrapping of the indexed column — a cast, a concatenation, a date function, a case change — turns the
-lookup into a scan. Rewrite the predicate, or index the expression if the engine supports it.
+lookup into a scan. Rewrite the predicate, or index the expression if the engine supports it. ORM date
+helpers such as `whereDate` apply that wrapping out of sight: filter on a half-open range of the raw
+column instead (`>= start`, `< start of the next day`), since `BETWEEN` with a date-only upper bound
+drops the last day.
 
 For a frequent `ORDER BY column DESC`, declare the direction in the index rather than hoping: it matters
 when grouping and ordering disagree.
@@ -183,7 +186,7 @@ Early return at the top of the migration, not a conditional wrapped around the w
 - [ ] Three-star index designed for the main expected queries
 - [ ] No redundant single-column index shadowed by a composite prefix
 - [ ] Primary key not duplicated inside secondary indexes
-- [ ] No function applied to an indexed column in a predicate
+- [ ] No function applied to an indexed column in a predicate (`whereDate` included); date ranges half-open
 - [ ] Descending index where the frequent order is descending
 - [ ] Naming convention followed
 - [ ] Growth past a million rows considered: partition decided for or against, and why

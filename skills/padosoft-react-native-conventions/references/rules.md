@@ -169,6 +169,14 @@ completion callback.
 | RN-NAV-005 | MUST | The anchor option follows the **topology** of the destination |
 | RN-NAV-006 | MUST | First screen of a nested stack: with a visible header back, the explicit back goes in the header-items slot, never in `headerLeft` |
 | RN-NAV-007 | MUST | Safe-area wrapper only for non-scrollable content |
+| RN-NAV-008 | MUST | A screen mounted without being visited (link preview, prefetched route, inactive tab) runs no tracking, recently-viewed, navigation-options or dispatch, persistence or remote-page bridge until it has real focus — gate on live navigation state from the first commit, not on a hook that lags |
+
+**RN-NAV-008.** A mounted screen is not a visited screen. The speculative instance renders, runs its effects
+and receives a **placeholder navigation object** that throws when it is asked to set options or dispatch an
+action. A focus hook that reports the new value one commit late lets the first effect through, so the gate
+must read the live navigation state. **Nothing looks wrong in development**; the crash appears only in a
+production build. The same instance must not record a view, write a "recently viewed" entry or open a
+bridge to a remote page the user never opened.
 
 ## RN-LAYOUT — Adaptive layout
 
