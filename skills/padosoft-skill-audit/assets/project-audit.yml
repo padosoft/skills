@@ -84,7 +84,7 @@ jobs:
           # outputs below. A random token turns command processing off around everything it prints.
           stop="stop_$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
           set +e
-          python3 "$RUNNER_TEMP/audit_skills.py" . --strict > "$RUNNER_TEMP/audit.txt"
+          python3 "$RUNNER_TEMP/audit_skills.py" . --strict > "$RUNNER_TEMP/audit.txt" 2>&1  # stderr too: it names repository files
           code=$?
           echo "::stop-commands::$stop"
           cat "$RUNNER_TEMP/audit.txt"

@@ -20,7 +20,8 @@ The workflow a project copies runs with least privilege and a pinned checker.
   release's full commit, with the tag in a comment, because a tag can be moved (the README says how to get it).
 - **Workflow commands in the checker's output are switched off.** The checker prints paths taken from the
   repository and the runner reads `::add-mask::` and the like in anything a step prints, so a folder named like
-  one could hide the job outputs and silence the report. A random stop token wraps everything that is printed.
+  one could hide the job outputs and silence the report. A random stop token wraps everything that is printed, and the
+  weekly report captures the checker's stderr with its stdout so that both are printed inside the protected region.
 - Package `padosoft-core` 0.15.2; `padosoft-skill-audit` 0.2.2.
 
 ## [1.19.1] - 2026-10-18
