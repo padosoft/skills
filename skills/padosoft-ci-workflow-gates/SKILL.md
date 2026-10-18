@@ -110,8 +110,10 @@ A step can succeed having looked at the wrong place. None of these fails the job
   artifact fail on an empty one.
 - **The setup step validates its cache path as it runs**, so an `if:` guard written on a later step cannot
   protect it. Put the guard on the setup step itself, or give it a path that always exists.
-- **"Build once, reuse" has to be checked against the job topology.** A job that needs the build output but
-  does not `needs:` the build job gets an empty workspace. Draw the dependency; do not assume the order.
+- **"Build once, reuse" has to be checked against the job topology.** Every job starts on a fresh runner, so
+  a job that needs the build output gets nothing from `needs:` alone, which only orders the jobs. The build
+  job uploads the output as an artifact and the consumer downloads it (or rebuilds). Draw the dependency; do
+  not assume the order.
 - **A `push` and a `pull_request` trigger on the same branch run the workflow twice** for every commit on a
   pull request branch. Restrict `push` to branches that are not pull request heads.
 
@@ -238,7 +240,8 @@ checks are the ones that can run pre-merge (§4).
 - [ ] `pull_request` branch filter read as a filter on the base: stacked pull requests still get a run
 - [ ] Required checks gate the PR head SHA, not a merge SHA that does not exist yet
 - [ ] Paths in `uses:` steps written from the repository root; no `push` plus `pull_request` double run
-- [ ] A job that consumes build output `needs:` the build job; hidden files uploaded on purpose
+- [ ] A job that consumes build output downloads the artifact the build job uploaded (`needs:` only orders
+  them); hidden files uploaded on purpose
 - [ ] Annotations inspected, not just conclusions; actions pinned to SHAs
 - [ ] Fast/extended tiers, with the extended trigger actually wired
 - [ ] Images and artifacts pinned by digest; key identity pinned alongside the signature

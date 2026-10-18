@@ -904,7 +904,16 @@ class TestPositionalPlaceholders(unittest.TestCase):
         self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body))
 
     def test_cut_and_named_variables_are_not(self) -> None:
-        body = "```bash\nps | cut -d' ' -f2\necho \"$HOME\" \"$USER2\" $10\n```"
+        body = "```bash\nps | cut -d' ' -f2\necho \"$HOME\" \"$USER2\"\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
+
+    def test_a_multi_digit_index_and_a_literal_prefix_are_noted(self) -> None:
+        for snippet in ("awk '{print $10}'", 'echo "prefix$1"', "echo $12 done"):
+            body = "```bash" + chr(10) + snippet + chr(10) + "```"
+            self.assertIn(("G-PORT-06", "INFO"), self.levels_of(body), snippet)
+
+    def test_an_escaped_dollar_and_the_process_id_are_not(self) -> None:
+        body = "```bash" + chr(10) + "echo " + chr(92) + "$1 $$1" + chr(10) + "```"
         self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
 
     def test_prose_and_inline_code_are_not(self) -> None:
@@ -915,6 +924,26 @@ class TestPositionalPlaceholders(unittest.TestCase):
         body = "Read [the notes](references/notes.md)."
         extra = {"references/notes.md": "```bash\nps | awk '{print $2}'\n```\n"}
         self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body, extra))
+
+    def with_arguments(self, declaration: str, body: str) -> set[tuple[str, str]]:
+        with tempfile.TemporaryDirectory() as tmp:
+            put(Path(tmp), "demo/SKILL.md", f"---\nname: demo\n{DESC}{declaration}\n---\n\n{body}\n")
+            return levels(report_of(str(Path(tmp) / "demo"))[1]["skills"][0])
+
+    def test_a_shell_variable_named_like_a_declared_argument_is_noted(self) -> None:
+        body = "```bash\ntarget=$(pwd)\necho \"$target\"\n```"
+        for declaration in ("arguments: [target, mode]", "arguments: target mode",
+                            "arguments:" + chr(10) + "  - target" + chr(10) + "  - mode"):
+            self.assertIn(("G-PORT-06", "INFO"), self.with_arguments(declaration, body), declaration)
+
+    def test_using_a_declared_argument_on_purpose_is_not_noted(self) -> None:
+        body = "```bash\ngit switch \"$target\"\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.with_arguments("arguments: [target]", body))
+
+    def test_a_variable_with_no_declared_argument_of_that_name_is_not_noted(self) -> None:
+        body = "```bash\ntarget=$(pwd)\necho \"$target\"\n```"
+        self.assertNotIn(("G-PORT-06", "INFO"), self.with_arguments("arguments: [other]", body))
+        self.assertNotIn(("G-PORT-06", "INFO"), self.levels_of(body))
 
     def test_a_suppressed_line_is_left_alone(self) -> None:
         body = "```bash\n# audit-ok: the field is awk's, the skill takes no arguments\nps | awk '{print $2}'\n```"

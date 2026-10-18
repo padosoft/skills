@@ -487,13 +487,81 @@ the current rules:
    gotchas) stays; the skill keeps its language and what it does. The checker must come back green, and
    what was *not* re-tested is stated, not implied.
 
-**Three ways to run it**
+### The whole picture: two loops
+
+Two different things go stale, and they are handled in two different places.
+
+| | The **rules** | The **skills of a project** |
+|---|---|---|
+| What goes stale | The authoring guidance itself: a new model, a reworded best practice, a new frontmatter field | A project's own skills drifting from the rules: a `MUST` in capitals, a description an upload rejects, a 900-line `SKILL.md` |
+| Where it is handled | **Here**, in `padosoft/skills`, once for everybody | In **each project**, against the rules of the version it installed |
+| What notices | The weekly [`guidelines-freshness.yml`](.github/workflows/guidelines-freshness.yml) workflow, and the first phase of the audit on any machine | The [`project-audit.yml`](skills/padosoft-skill-audit/assets/project-audit.yml) workflow copied into the project, or the audit run by hand |
+| What it produces | An issue labelled `guidelines-drift` in this repository: *which* pages, rules and models moved. It does not propose the new wording | A failing check on a pull request that adds an ERROR, and one open issue labelled `skills-audit` in the project with the full report |
+| Who fixes | A maintainer, in a pull request here, following [`refresh-procedure.md`](skills/padosoft-skill-audit/references/refresh-procedure.md), then a release | A developer, in a session in the project: *"audit the skills of this repo and apply the report"*, then a pull request in the project |
+| How it reaches the other side | A release. Projects run `npx skills update` (or `claude plugin marketplace update padosoft`) | It does not: the project is checked against the rules of the version it installed |
+
+Neither loop calls a model or needs a secret. The workflows run Python scripts that read files and public
+web pages. The judgement — what a reworded page means for a rule, how to rewrite a skill without losing what
+is specific to the project — stays in a session with a person.
+
+#### Keeping this package up to date with the latest guidelines (maintainers)
+
+1. **Nothing to do until the weekly workflow opens a `guidelines-drift` issue.** The issue lists the drifted
+   pages and the rule IDs to re-check (see *The weekly workflow, in short* below).
+2. **Open a session in this repository** and ask: *"the guidelines-drift issue is open, follow
+   `references/refresh-procedure.md`"*. The skill reads only the pages that drifted, writes a delta of what
+   changed for the rules, and edits [`guidelines.md`](skills/padosoft-skill-audit/references/guidelines.md)
+   and [`sources.json`](skills/padosoft-skill-audit/references/sources.json).
+3. **Record the new baseline and ship it**:
+   `python3 skills/padosoft-skill-audit/scripts/check_freshness.py --rebaseline`, then `make all`, a pull
+   request, and a release (*Releasing* in [CONTRIBUTING.md](CONTRIBUTING.md)). Close the issue.
+4. **In parallel, the lessons**: the [harvest loop](#keeping-it-current-the-harvest-loop) moves what the
+   company's repositories learned into the skills, and after every pull request or session the fixes and
+   lessons are read and turned into a rule or a check (`CLAUDE.md`, section *After every pull request*).
+
+#### Keeping the skills installed in each project up to date
+
+**Once per project**
+
+1. **Make the skill available.** `npx skills add padosoft/skills --skill padosoft-skill-audit` inside the
+   project (commit the result, and the workflow below uses that copy), or install the `core` profile globally
+   on each machine (`bash scripts/install-profile.sh core --global`, or
+   `claude plugin install padosoft-core@padosoft`). Without a committed copy the workflow downloads the
+   checker of a pinned release instead.
+2. **Copy the workflow** [`project-audit.yml`](skills/padosoft-skill-audit/assets/project-audit.yml) to
+   `.github/workflows/skills-audit.yml` in the project, set `SKILLS_REF` to the release of `padosoft/skills`
+   you installed, commit and push. Issues must be enabled on the repository. No secret is needed.
+
+**What the workflow does**
+
+| Trigger | What happens |
+|---|---|
+| A pull request that touches `.claude/skills`, `.claude/commands` or `.agents/skills` | The checker runs offline; an **ERROR**-level finding (a description an upload rejects, a `SKILL.md` that does not parse) fails the check |
+| Every Monday at 06:23 UTC, or *Run workflow* by hand | The checker runs with `--strict`. Findings: one issue labelled `skills-audit` is opened, or a comment is added to the one already open. Clean: the open issue is closed. Part of the repository unreadable: a warning in the log |
+
+**When the issue is open.** In a session in the project, ask *"audit the skills of this repo and apply the
+report"* (or paste [`audit-prompt.md`](skills/padosoft-skill-audit/assets/audit-prompt.md) where the skill is
+not installed). The skill reviews each skill before it edits, keeps what is specific to the project,
+re-runs the checker, and leaves the pull request to you.
+
+**When this package publishes new rules.** `npx skills update` (or `claude plugin marketplace update
+padosoft`), then bump `SKILLS_REF`. The next run checks the project against the new rules.
+
+**Why it opens an issue and not a pull request.** The script sees what a script can decide; fixing is a
+judgement job (does this capitalised line record a real failure? is this reference worth keeping?). A pull
+request opened by a script would be empty, or a mechanical rewrite of skills nobody reviewed. If you want
+fully automatic pull requests anyway, run Claude Code in a GitHub Action with your own API key and the
+audit prompt in `apply` mode; that is a decision about cost, secrets and who reviews, and it is not shipped
+here.
+
+**Four ways to run it**
 
 | Where | How |
 |---|---|
 | Any project with `core` installed | In a session: *"audit the skills of this repo"*, *"sistema le skill alle nuove linee guida"* |
 | A project or agent without the skill | Paste [`assets/audit-prompt.md`](skills/padosoft-skill-audit/assets/audit-prompt.md): it installs the skill and follows it |
 | Just the checks | `python3 skills/padosoft-skill-audit/scripts/audit_skills.py <repo>` (`--json`, `--strict`, `--shared`) |
+| Automatically, in CI | Copy [`project-audit.yml`](skills/padosoft-skill-audit/assets/project-audit.yml): a pull-request gate and a weekly report issue (see *Keeping the skills installed in each project up to date*) |
 
 **One skill for every model.** The differences between Opus, Sonnet and Haiku are handled inside a single
 skill, never by copying it per model: the base instructions must work on all of them; Claude Code can pin
@@ -525,7 +593,7 @@ next update of the skill — an installed copy is never edited in place.
 
 | | |
 |---|---|
-| When | Every Monday at 06:17 UTC (`cron: "17 6 * * 1"`), and on demand from the Actions tab or with `gh workflow run guidelines-freshness.yml`. GitHub runs schedules only from the default branch, so the first run is the first Monday after this lands on `main` |
+| When | Every Monday at 06:17 UTC (`cron: "17 6 * * 1"`), and on demand from the Actions tab or with `gh workflow run guidelines-freshness.yml`. GitHub runs schedules only from the default branch, where this one lives; a manual run was verified (18 sources, aligned, no issue opened) |
 | What it runs | `check_freshness.py` and nothing else: Python standard library, plain HTTPS requests to the public documentation pages. **No LLM, no API key, no secret to configure** |
 | What it needs | The built-in `GITHUB_TOKEN` with `contents: read` and `issues: write` (declared in the workflow), and Issues enabled on the repository |
 | Aligned | Exit 0: nothing happens, the run is green |

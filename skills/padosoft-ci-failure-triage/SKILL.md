@@ -101,10 +101,13 @@ only thing that noticed.
 
 ## 4b. Environment defect: a dead server is not a slow one
 
-A test server that goes silent with no error log and then refuses connections has **crashed** (a segfault,
-an out-of-memory kill). It was not slow, so more concurrency or longer timeouts treat the wrong thing.
+A test server that goes silent with no error log and then refuses connections has probably **crashed** (a
+segfault, an out-of-memory kill) rather than slowed down. A clean shutdown, or a listener that moved to
+another port, produces the same symptoms, so confirm before you diagnose: is the process still there, is
+something listening on the port, did the system log record an exit status or an out-of-memory kill? Only a
+crash makes more concurrency or longer timeouts the wrong treatment.
 
-- **The fix is supervision**: something that restarts the server and records that it did. A language
+- **If it crashed, the fix is supervision**: something that restarts the server and records that it did. A language
   runtime's built-in development server in worker mode may be experimental, and the framework's serve
   command does not restart it when it dies.
 - **Read the server's own request log across the whole failure window**, from the last good response to the
@@ -150,7 +153,8 @@ are the same investigation with different storage.
 - [ ] Correlation written out, each observation with its source
 - [ ] Flakiness history checked before touching the test
 - [ ] Failure classified, with the other classes ruled out explicitly
-- [ ] Server went silent then refused connections: treated as a crash, with the server's own log read
+- [ ] Server went silent then refused connections: process, listener and exit evidence checked before calling it a
+  crash, and the server's own log read
 - [ ] Fix names a file and a line, and is not a raised timeout
 - [ ] Debug directory not committed
 

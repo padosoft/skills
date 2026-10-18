@@ -343,8 +343,10 @@ Think of who will run the skill: a colleague, a customer, a CI runner, another a
 - **G-PORT-06** (recommended) — **Shell snippets in the skill text must survive argument substitution.**
   In Claude Code, `$ARGUMENTS`, `$ARGUMENTS[N]`, `$N` (0-based) and `$name` (declared in `arguments`) are
   replaced in the skill content before the model reads it, so an `awk '{print $2}'` or a shell function's `$1`
-  can arrive rewritten. Use `cut`, `sed` capture groups or a script under `scripts/` (a script file is
-  executed as it is), and check the loaded text when in doubt. `[CC]`
+  can arrive rewritten, and so can a shell variable that shares its name with a declared argument. Using a
+  declared `$name` on purpose is how the placeholder is meant to work. Use `cut`, `sed` capture groups or a
+  script under `scripts/` (a script file is executed as it is), and check the loaded text when in doubt.
+  `[CC]`
 
 ---
 

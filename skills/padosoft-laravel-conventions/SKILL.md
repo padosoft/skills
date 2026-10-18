@@ -251,11 +251,15 @@ back to a model, a re-queued job — only improves when the feedback says which 
 - **A wrapper that carries one consumer's identity is inherited by the next consumer.** If a binding
   decorates the implementation with a name, tenant or channel, every later consumer of that interface gets
   the same decorated instance. Build the wrapper per consumer, or bind it contextually.
-- **A nested config key written in `register()` is lost when another package later shallow-merges the
-  parent key.** Write the nested key in `boot()`, after every merge has happened.
-- **Resolving an optional dependency catches only "not bound".** Ask `bound()` first, or catch the
-  container's binding-resolution exception alone. A `catch (Throwable)` also swallows a broken
-  constructor or a missing extension, and the feature then runs quietly without the dependency.
+- **`mergeConfigFrom()` merges one level deep, and the application's value wins.** A nested array the
+  application sets replaces the package's whole nested array, so the sibling defaults inside it disappear
+  without an error. When both the application's values and the package's nested defaults must survive,
+  merge that level explicitly instead of trusting the shallow merge.
+- **Check that an optional dependency is bound before resolving it, then let resolution fail loudly.** Ask
+  `bound()` first and resolve outside any `try`. Do not catch the container's binding-resolution exception
+  to mean "not installed": it is also thrown when a bound service has a constructor dependency that cannot
+  be resolved, and a `catch (Throwable)` swallows a missing extension on top of that. Either way the feature
+  quietly runs without a component that is installed but misconfigured.
 
 ## 8. Code shape
 

@@ -92,7 +92,8 @@ CODE_SPAN = re.compile(r"`([^`\n]+)`")
 BUNDLED_PATH = re.compile(r"^(?:\./)?((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]+)$")
 # $1, $2 ... standing alone: Claude Code substitutes arguments into the skill text, and an awk field or a
 # positional parameter looks the same
-POSITIONAL = re.compile(r"(?<![\\$\w])\$[0-9](?!\w)")
+POSITIONAL = re.compile(r"(?<![\\$])\$[0-9]+(?!\w)")
+ARGUMENT_NAME = re.compile(r"[A-Za-z_]\w*")
 COMMAND_PATH = re.compile(
     r"(?<![\w/.$-])(?:\$\{?CLAUDE_SKILL_DIR\}?/|\./)?"
     r"((?:scripts|references|reference|assets|templates|examples)/[A-Za-z0-9._/-]*[A-Za-z0-9_]\.[A-Za-z0-9]+)"
@@ -849,6 +850,14 @@ def iter_prose(lines: list[str], start: int = 0):
             yield index, line
 
 
+def declared_arguments(skill: Skill) -> set[str]:
+    """Names from the `arguments` frontmatter field: a space-separated string, or a list of names or of {name: ...}."""
+    value = skill.frontmatter.get("arguments")
+    items = value.split() if isinstance(value, str) else value if isinstance(value, list) else []
+    names = (item.get("name") if isinstance(item, dict) else item for item in items)
+    return {n for n in names if isinstance(n, str) and ARGUMENT_NAME.fullmatch(n)}
+
+
 def iter_shell_lines(lines: list[str], start: int = 0):
     """(0-based index, line) inside fenced blocks that hold shell commands, comment lines left out."""
     fence: str | None = None
@@ -1202,6 +1211,11 @@ def check_content(skill: Skill, files: list[Path]) -> None:
                 agg.hit("G-BODY-01", "INFO", path, index + 1, "TODO or unfilled {{placeholder}} left in the text")
         if path == skill.entry:
             for index, line in iter_shell_lines(lines, start):
+                for name in sorted(declared_arguments(skill)):
+                    if re.search(r"(?:^|[\s;&|(])" + re.escape(name) + r"=", line) and not _suppressed(lines, index):
+                        agg.hit("G-PORT-06", "INFO", path, index + 1,
+                                f"the shell variable {name} has the name of a declared argument: ${name} in this text "
+                                "is substituted before the shell sees it; rename the variable")
                 if POSITIONAL.search(line) and not _suppressed(lines, index):
                     agg.hit("G-PORT-06", "INFO", path, index + 1,
                             "a positional placeholder ($1, $2...) in a shell snippet: Claude Code substitutes arguments "
