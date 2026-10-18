@@ -2,7 +2,8 @@
 """
 validate_plugins.py - Checks the Claude Code plugin manifests of the monorepo.
 
-Checks: valid JSON, name identical to the plugin folder, every path in "skills"
+Checks: valid JSON, name identical to the plugin folder, the same version in the
+marketplace and in the plugin manifest, every path in "skills"
 existing, and every skill of the repo covered by at least one plugin (otherwise it would be
 installable through npx skills but invisible to whoever uses the marketplace).
 
@@ -52,6 +53,11 @@ def main() -> int:
             problems.append(f"{src.name}: 'name' ({plugin.get('name')!r}) differs from the folder")
         if plugin.get("name") != entry.get("name"):
             problems.append(f"{src.name}: name differs between marketplace.json and plugin.json")
+        if plugin.get("version") != entry.get("version"):
+            problems.append(
+                f"{src.name}: version is {plugin.get('version')!r} in plugin.json but {entry.get('version')!r} in "
+                "marketplace.json: bump both, or the listing shows a version that is not the one installed"
+            )
         for rel in plugin.get("skills", []):
             target = (src / rel).resolve()
             if not (target / "SKILL.md").is_file():

@@ -1,4 +1,4 @@
-.PHONY: help catalog harvest harvest-status privacy validate audit-skills freshness test lint-email all
+.PHONY: help catalog harvest harvest-status privacy validate audit-skills audit-self freshness test lint-email all
 
 EMAIL_SKILL ?= skills/padosoft-email-html-builder
 EMAIL       ?= $(EMAIL_SKILL)/templates/reference-welcome-dark.html
@@ -27,6 +27,9 @@ validate:        ## Validate every SKILL.md and the catalog consistency
 audit-skills:    ## Audit the skills of this repository (or: make audit-skills ROOT=path/to/a/project)
 	python3 skills/padosoft-skill-audit/scripts/audit_skills.py "$(or $(ROOT),skills/)"
 
+audit-self:      ## The skills of this repository must pass their own audit, warnings included (as in CI)
+	python3 skills/padosoft-skill-audit/scripts/audit_skills.py skills/ --strict
+
 freshness:       ## Are the skill-authoring rules still in line with their official sources? (needs network)
 	python3 skills/padosoft-skill-audit/scripts/check_freshness.py
 
@@ -36,4 +39,4 @@ test:            ## Run all the tests
 lint-email:      ## Lint an email: make lint-email EMAIL=path/to/email.html
 	python3 $(EMAIL_SKILL)/scripts/lint_email.py $(EMAIL) --subject "$(SUBJECT)"
 
-all: privacy validate audit-skills test lint-email ## All the checks (same as CI)
+all: privacy validate audit-self test lint-email ## All the checks (same as CI)

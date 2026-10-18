@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows
 [SemVer](https://semver.org/): *major* when a new MUST rule can invalidate existing templates.
 
-## [1.19.0] - 2026-10-17
+## [1.19.0] - 2026-10-18
 
 45 skills. The catalogue now carries the rulebook for writing skills for the current Claude models, and a
 way to bring a project's existing skills up to it.
@@ -54,7 +54,21 @@ way to bring a project's existing skills up to it.
 - **README** - a section on keeping existing skills current (what the audit does, the three ways to run it,
   how model differences are handled, how the rulebook stays fresh), the new skill in the `core` list and in
   the full index, and a stale skill count removed from the structure tree.
-- `padosoft-core` package: 0.14.0.
+- CI runs the repository's own audit with `--strict` (a warning fails the build; `make audit-self`), now that
+  the skills are clean, so the cleanup cannot regress.
+- Packages: `padosoft-core` 0.14.1, `padosoft-api` 0.3.1, `padosoft-email` 1.1.1,
+  `padosoft-react-native` 0.3.1 (their skills changed, see Fixed).
+
+### Fixed
+
+- **The skills pass their own audit with no warning.** The long reference files of
+  `padosoft-api-security-review`, `padosoft-email-html-builder`, `padosoft-evidence-boundaries`,
+  `padosoft-react-native-conventions` and `padosoft-security-baseline` now open with a contents list, so a
+  partial read sees what is below. The description of `padosoft-email-html-builder` no longer contains an
+  angle bracket (claude.ai and the Skills API reject it): the spam threshold is written in words.
+- **`marketplace.json` listed old versions** for seven of the eight packages (`padosoft-core` showed 0.5.0
+  while the package was 0.14.0). They now match the manifests, and `validate_plugins.py` fails when the two
+  disagree, so the listing cannot drift again unnoticed.
 
 ## [1.18.0] - 2026-09-20
 

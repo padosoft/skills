@@ -5,6 +5,25 @@
 > **Sources** — [MT] Mailtrap (HTML Check on caniemail.com data, SpamAssassin, Blacklist, Template Inspector, best-practice blog) · [MU] MailUp (Check-up/Controlla, HTML editor manual, email design checklist, "10 HTML mistakes") · [GY] Gmail/Yahoo bulk sender requirements · [WCAG] 2.2 AA · [XP] mistakes found across five revisions of a real welcome template, verified on Mailtrap.
 > Where the sources disagree, the **most restrictive rule verified in the field** wins ([XP] > [MT] > [MU]); the divergence is noted.
 
+## Contents
+
+- [0. Principles](#0-principles)
+- [1. Document structure](#1-document-structure)
+- [2. Weight](#2-weight)
+- [3. Inline CSS — closed whitelist](#3-inline-css--closed-whitelist)
+- [4. Mandatory substitutions (CSS → attributes)](#4-mandatory-substitutions-css--attributes)
+- [5. The `<style>` block — minimal, compact](#5-the-style-block--minimal-compact)
+- [6. Subject, preheader, charset, antispam](#6-subject-preheader-charset-antispam)
+- [7. Links, tracking, dynamic fields (MailUp Check-up)](#7-links-tracking-dynamic-fields-mailup-check-up)
+- [8. Colors, dark mode, accessibility, typography](#8-colors-dark-mode-accessibility-typography)
+- [9. Images](#9-images)
+- [10. Bulletproof CTA](#10-bulletproof-cta)
+- [11. Responsive](#11-responsive)
+- [12. Footer and compliance](#12-footer-and-compliance)
+- [13. Acceptance gates (Definition of Done)](#13-acceptance-gates-definition-of-done)
+- [14. Accepted residual warnings (Mailtrap HTML Check baseline)](#14-accepted-residual-warnings-mailtrap-html-check-baseline)
+- [15. Historical anti-patterns [XP]](#15-historical-anti-patterns-xp)
+
 ---
 
 ## 0. Principles

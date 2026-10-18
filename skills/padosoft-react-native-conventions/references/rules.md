@@ -11,6 +11,23 @@
 
 Levels: **MUST** blocks the commit · **SHOULD** is the default, an exception is justified in the report.
 
+## Contents
+
+- [RN-UI — Components and design system](#rn-ui--components-and-design-system)
+- [RN-PERF — Performance and memoisation](#rn-perf--performance-and-memoisation)
+- [RN-STATE — Store](#rn-state--store)
+- [RN-QUERY — Data fetching](#rn-query--data-fetching)
+- [RN-RENDER — Rendering and lifecycle](#rn-render--rendering-and-lifecycle)
+- [RN-LIST — Lists](#rn-list--lists)
+- [RN-ANIM — Animation](#rn-anim--animation)
+- [RN-NAV — Navigation](#rn-nav--navigation)
+- [RN-LAYOUT — Adaptive layout](#rn-layout--adaptive-layout)
+- [RN-THEME — Colour and theming](#rn-theme--colour-and-theming)
+- [RN-I18N — Localisation](#rn-i18n--localisation)
+- [RN-TS — TypeScript hygiene](#rn-ts--typescript-hygiene)
+- [RN-LOG — Logging](#rn-log--logging)
+- [RN-DIAG — Diagnosing](#rn-diag--diagnosing)
+
 ---
 
 ## RN-UI — Components and design system
