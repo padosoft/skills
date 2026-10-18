@@ -16,8 +16,11 @@ The workflow a project copies runs with least privilege and a pinned checker.
   The workflow-level permissions are empty. A security review of the first version flagged the single job that
   both executed repository-derived input and could write issues.
 - **The checker is always the pinned release**, downloaded from `SKILLS_REF`; the workflow no longer prefers a
-  copy found in the checkout, which a pull request could replace to pass its own gate. A project that pins its
-  actions by commit pins `SKILLS_REF` to the release's full commit too (the README says how).
+  copy found in the checkout, which a pull request could replace to pass its own gate. `SKILLS_REF` is the
+  release's full commit, with the tag in a comment, because a tag can be moved (the README says how to get it).
+- **Workflow commands in the checker's output are switched off.** The checker prints paths taken from the
+  repository and the runner reads `::add-mask::` and the like in anything a step prints, so a folder named like
+  one could hide the job outputs and silence the report. A random stop token wraps everything that is printed.
 - Package `padosoft-core` 0.15.2; `padosoft-skill-audit` 0.2.2.
 
 ## [1.19.1] - 2026-10-18

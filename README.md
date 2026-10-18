@@ -532,9 +532,9 @@ is specific to the project — stays in a session with a person.
    could replace that one.
 2. **Copy the workflow** [`project-audit.yml`](skills/padosoft-skill-audit/assets/project-audit.yml) to
    `.github/workflows/skills-audit.yml` in the project, set `SKILLS_REF` to the release of `padosoft/skills`
-   you installed (a project that pins its actions by commit pins this too: the full 40-character commit of the
-   release, `git rev-parse vX.Y.Z^{commit}`, with the tag in a comment), commit and push. Issues must be
-   enabled on the repository. No secret is needed.
+   you installed, as the full 40-character commit of the release with the tag in a comment
+   (`gh api repos/padosoft/skills/commits/vX.Y.Z -q .sha`: a tag can be moved), commit and push. Issues must
+   be enabled on the repository. No secret is needed.
 
 The workflow has two jobs so that the one that reads the repository cannot write issues: `audit` has a
 read-only token and no persisted credentials, and `report` has the `issues` permission and never checks the
