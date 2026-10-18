@@ -251,7 +251,8 @@
         "G-SAFE-01",
         "G-SAFE-02",
         "G-SAFE-03",
-        "G-MODEL-03"
+        "G-MODEL-03",
+        "G-PORT-06"
       ],
       "anchors": [
         {
@@ -344,6 +345,12 @@
           "text": "Run /skill-doctor",
           "rules": [
             "G-LIB-04"
+          ]
+        },
+        {
+          "text": "Skills support string substitution for dynamic values in the skill content",
+          "rules": [
+            "G-PORT-06"
           ]
         }
       ],

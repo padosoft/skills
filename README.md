@@ -288,7 +288,8 @@ claude plugin install padosoft-api@padosoft       # API package (security, Hono,
 claude plugin install padosoft-react-native@padosoft  # React Native / Expo package
 claude plugin install padosoft-laravel@padosoft   # Laravel package
 claude plugin install padosoft-email@padosoft     # email package
-claude plugin marketplace update padosoft         # check for and download updates
+claude plugin marketplace update padosoft         # refresh the catalogue (it does not touch what is installed)
+claude plugin update padosoft-core@padosoft       # update an installed package, once per package; restart to apply
 ```
 
 Inside a session, `/plugin marketplace add padosoft/skills`, `/plugin install padosoft-email@padosoft` and
@@ -498,7 +499,7 @@ Two different things go stale, and they are handled in two different places.
 | What notices | The weekly [`guidelines-freshness.yml`](.github/workflows/guidelines-freshness.yml) workflow, and the first phase of the audit on any machine | The [`project-audit.yml`](skills/padosoft-skill-audit/assets/project-audit.yml) workflow copied into the project, or the audit run by hand |
 | What it produces | An issue labelled `guidelines-drift` in this repository: *which* pages, rules and models moved. It does not propose the new wording | A failing check on a pull request that adds an ERROR, and one open issue labelled `skills-audit` in the project with the full report |
 | Who fixes | A maintainer, in a pull request here, following [`refresh-procedure.md`](skills/padosoft-skill-audit/references/refresh-procedure.md), then a release | A developer, in a session in the project: *"audit the skills of this repo and apply the report"*, then a pull request in the project |
-| How it reaches the other side | A release. Projects run `npx skills update` (or `claude plugin marketplace update padosoft`) | It does not: the project is checked against the rules of the version it installed |
+| How it reaches the other side | A release. Projects run `npx skills update`, or `claude plugin marketplace update padosoft` followed by `claude plugin update <package>@padosoft` for each installed package (a third-party marketplace does not auto-update unless you turn that on) | It does not: the project is checked against the rules of the version it installed |
 
 Neither loop calls a model or needs a secret. The workflows run Python scripts that read files and public
 web pages. The judgement — what a reworded page means for a rule, how to rewrite a skill without losing what
@@ -544,8 +545,9 @@ report"* (or paste [`audit-prompt.md`](skills/padosoft-skill-audit/assets/audit-
 not installed). The skill reviews each skill before it edits, keeps what is specific to the project,
 re-runs the checker, and leaves the pull request to you.
 
-**When this package publishes new rules.** `npx skills update` (or `claude plugin marketplace update
-padosoft`), then bump `SKILLS_REF`. The next run checks the project against the new rules.
+**When this package publishes new rules.** `npx skills update`, or `claude plugin marketplace update padosoft`
+followed by `claude plugin update <package>@padosoft` for each installed package (the first only refreshes the
+catalogue), then bump `SKILLS_REF`. The next run checks the project against the new rules.
 
 **Why it opens an issue and not a pull request.** The script sees what a script can decide; fixing is a
 judgement job (does this capitalised line record a real failure? is this reference worth keeping?). A pull
