@@ -968,34 +968,56 @@ class TestInFileAnchors(unittest.TestCase):
             skill = report_of(str(Path(tmp) / "demo"))[1]["skills"][0]
             return [f["message"] for f in skill["findings"] if f["id"] == "G-STRUCT-08" and f["level"] == "WARN"]
 
+    def dead(self, body: str) -> list[str]:
+        """The fragments reported as dead."""
+        return [m.split("#", 1)[1].split(" ", 1)[0] for m in self.findings(body)]
+
     def test_underscores_are_kept_and_punctuation_dropped(self) -> None:
-        body = "- [Playbook](#playbook-test_bug)\n- [Setup, step 1](#setup-step-1)\n\n## Playbook: `test_bug`\n\n## Setup, step 1\n"
-        self.assertEqual(self.findings(body), [])
+        body = "- [P](#playbook-test_bug)\n- [S](#setup-step-1)\n\n## Playbook: `test_bug`\n\n## Setup, step 1\n"
+        self.assertEqual(self.dead(body), [])
 
     def test_a_link_without_the_underscore_is_dead(self) -> None:
         body = "- [Playbook](#playbook-testbug)\n\n## Playbook: `test_bug`\n"
-        found = self.findings(body)
-        self.assertEqual(len(found), 1)
-        self.assertIn("#playbook-testbug", found[0])
+        self.assertEqual(self.dead(body), ["playbook-testbug"])
 
     def test_a_tag_in_backticks_stays_in_the_heading_text(self) -> None:
-        body = "- [Style](#5-the-style-block--minimal)" + chr(10) + chr(10) + "## 5. The `<style>` block — minimal" + chr(10)
-        self.assertEqual(self.findings(body), [])
+        body = "- [Style](#5-the-style-block--minimal)\n\n## 5. The `<style>` block — minimal\n"
+        self.assertEqual(self.dead(body), [])
 
     def test_a_dash_in_a_heading_gives_a_double_hyphen(self) -> None:
         body = "- [A](#a--b)\n- [Wrong](#a-b)\n\n## A — B\n"
-        self.assertEqual(len(self.findings(body)), 1)
+        self.assertEqual(self.dead(body), ["a-b"])
 
     def test_a_repeated_heading_is_numbered(self) -> None:
-        body = "- [One](#setup)\n- [Two](#setup-1)\n- [Three](#setup-2)\n\n## Setup\n\n## Setup\n"
-        found = self.findings(body)
-        self.assertEqual(len(found), 1)
-        self.assertIn("#setup-2", found[0])
+        body = "- [1](#setup)\n- [2](#setup-1)\n- [3](#setup-2)\n\n## Setup\n\n## Setup\n"
+        self.assertEqual(self.dead(body), ["setup-2"])
 
-    def test_code_and_an_explicit_html_anchor_are_left_alone(self) -> None:
-        body = ("`[x](#nowhere)` and [y](#custom)\n\n```md\n[z](#also-nowhere)\n```\n\n"
-                "<a id=\"custom\"></a>\n")
-        self.assertEqual(self.findings(body), [])
+    def test_a_number_that_is_already_taken_is_skipped(self) -> None:
+        # GitHub: Setup, Setup, Setup-1 -> setup, setup-1, setup-1-1 ; and Foo, Foo-1, Foo -> foo, foo-1, foo-2
+        body = "- [a](#setup-1-1)\n- [b](#foo-2)\n\n## Setup\n\n## Setup\n\n## Setup-1\n\n## Foo\n\n## Foo-1\n\n## Foo\n"
+        self.assertEqual(self.dead(body), [])
+
+    def test_a_link_with_a_title_is_checked(self) -> None:
+        body = '- [ok](#setup "Jump to setup")\n- [Go](#ghost "Go")\n- [Go](#ghost2 \'Go\')\n\n## Setup\n'
+        self.assertEqual(self.dead(body), ["ghost", "ghost2"])
+
+    def test_setext_headings_are_headings(self) -> None:
+        body = "- [a](#setup)\n- [b](#title)\n- [c](#para)\n\nSetup\n-----\n\nTitle\n=====\n\nPara\n\n---\n"
+        self.assertEqual(self.dead(body), ["para"])
+
+    def test_emphasis_and_character_references_are_not_part_of_the_anchor(self) -> None:
+        body = "- [a](#setup)\n- [b](#a--b)\n- [c](#my_var)\n- [d](#bold)\n\n## _Setup_\n\n## A &amp; B\n\n## my_var\n\n## **Bold**\n"
+        self.assertEqual(self.dead(body), [])
+
+    def test_explicit_html_anchors_count_only_outside_code(self) -> None:
+        body = ("- [a](#custom)\n- [b](#single)\n- [c](#Mixed)\n- [d](#ghost)\n- [e](#missing)\n- [f](#mixed)\n\n"
+                '<a id="custom"></a>\n<a id=\'single\'></a>\n<a name="Mixed"></a>\n<span data-testid="missing"></span>\n\n'
+                '```html\n<a id="ghost"></a>\n```\n')
+        self.assertEqual(self.dead(body), ["ghost", "missing", "mixed"])
+
+    def test_indented_lines_and_double_backtick_spans_are_left_alone(self) -> None:
+        body = "Text.\n\n    [Go](#ghost)\n\n``[Go](#ghost)`` and `[Go](#ghost)`\n"
+        self.assertEqual(self.dead(body), [])
 
 
 if __name__ == "__main__":

@@ -35,6 +35,7 @@ import argparse
 import ast
 import bisect
 import difflib
+import html
 import json
 import os
 import re
@@ -85,10 +86,14 @@ STDLIB = set(getattr(sys, "stdlib_module_names", ())) | {"__future__"}
 
 SUPPRESS = re.compile(r"audit-ok:\s*\S.{2,}")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
-IN_FILE_LINK = re.compile(r"\]\(\s*#([^)\s]+)\s*\)")
+IN_FILE_LINK = re.compile(r"\]\(\s*#([^)\s]+)(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)")
 HEADING_LINK = re.compile(r"\[([^\]\n]*)\]\([^)\n]*\)")
 HTML_TAG = re.compile(r"<[^>]+>")
-HTML_ANCHOR = re.compile(r'(?:id|name)="([^"]+)"')
+ANY_CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
+EMPHASIS_UNDERSCORE = re.compile(r"(?<!\w)_+|_+(?!\w)")  # the delimiters of _emphasis_, not the underscores inside a word
+ID_ATTRIBUTE = re.compile(r"""<[A-Za-z][^>]*?\sid\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""")
+NAME_ATTRIBUTE = re.compile(r"""<a(?=\s)[^>]*?\sname\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""", re.IGNORECASE)
+SETEXT_UNDERLINE = re.compile(r"^\s{0,3}(?:=+|-+)\s*$")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
 QUOTED = re.compile(r'"[^"\n]*"|“[^”\n]*”|«[^»\n]*»')
 HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.*)$")
@@ -1201,17 +1206,56 @@ def _phrase_findings(agg: "_Aggregate", path: Path, lines: list[str], start: int
 
 
 def github_anchor(heading: str) -> str:
-    """The anchor GitHub gives a heading: lowercase, markup and punctuation dropped, underscores and hyphens kept."""
-    text = HEADING_LINK.sub(r"\1", heading)
-    # a tag outside backticks is markup and disappears; inside backticks it is text ("`<style>` block")
-    pieces = re.split(r"(`[^`]*`)", text)
-    text = "".join(p if p.startswith("`") else HTML_TAG.sub("", p) for p in pieces)
-    text = re.sub(r"[`*]", "", text).strip().lower()
+    """The anchor GitHub gives a heading: of the rendered text, lowercase, punctuation dropped, `_` and `-` kept."""
+    kept: list[str] = []
+    position = 0
+    for span in ANY_CODE_SPAN.finditer(heading):
+        kept.append(_plain(heading[position:span.start()]))
+        kept.append(span.group(2).strip())  # inside backticks everything is text, a tag-looking `<style>` included
+        position = span.end()
+    kept.append(_plain(heading[position:]))
+    text = "".join(kept).strip().lower()
     return re.sub(r"[^\w\- ]", "", text).replace(" ", "-")
 
 
+def _plain(markdown: str) -> str:
+    """Markup outside code spans: character references, links, tags and emphasis delimiters go, their text stays."""
+    text = html.unescape(markdown)
+    text = HEADING_LINK.sub(r"\1", text)
+    text = HTML_TAG.sub("", text)
+    text = text.replace("*", "")
+    return EMPHASIS_UNDERSCORE.sub("", text)
+
+
+def _headings_of(lines: list[str], start: int) -> list[str]:
+    """Heading texts outside fenced code: ATX (`## x`) and Setext (a line underlined with === or ---)."""
+    prose = list(iter_prose(lines, start))
+    found: list[str] = []
+    for position, (index, line) in enumerate(prose):
+        atx = HEADING.match(line)
+        if atx:
+            found.append(atx.group(2).rstrip("#").strip())
+            continue
+        following = prose[position + 1] if position + 1 < len(prose) else None
+        if (following and following[0] == index + 1 and SETEXT_UNDERLINE.match(following[1])
+                and line.strip() and not re.match(r"^\s*(?:[-*+>|]|\d+[.)])", line)):
+            found.append(line.strip())
+    return found
+
+
+def _explicit_ids(lines: list[str], start: int) -> set[str]:
+    """`id` (any tag) and `name` (an <a>) attributes of real HTML outside fenced code and code spans."""
+    ids: set[str] = set()
+    for _, line in iter_prose(lines, start):
+        scrubbed = ANY_CODE_SPAN.sub(" ", line)
+        for pattern in (ID_ATTRIBUTE, NAME_ATTRIBUTE):
+            for m in pattern.finditer(scrubbed):
+                ids.add(next(g for g in m.groups() if g is not None))
+    return ids
+
+
 def check_anchors(skill: Skill, files: list[Path]) -> None:
-    """A link to #something inside a file must land on a heading of that file (a contents list that does not is dead)."""
+    """A link to #something inside a file must land on a heading or an explicit anchor of that file."""
     docs = [(skill.entry, skill.lines, skill.body_start)]
     for md in _md_files(skill, files):
         try:
@@ -1219,22 +1263,24 @@ def check_anchors(skill: Skill, files: list[Path]) -> None:
         except OSError:
             continue  # already reported by the link check
     for path, lines, start in docs:
-        anchors: set[str] = set(HTML_ANCHOR.findall("\n".join(lines)))
-        seen: dict[str, int] = {}
-        for _, line in iter_prose(lines, start):
-            h = HEADING.match(line)
-            if not h:
-                continue
-            base = github_anchor(h.group(2).rstrip("#").strip())
-            n = seen.get(base, 0)
-            seen[base] = n + 1
-            anchors.add(base if n == 0 else f"{base}-{n}")
+        used: set[str] = set()
+        suffix: dict[str, int] = {}
+        for title in _headings_of(lines, start):
+            base = github_anchor(title)
+            candidate, n = base, suffix.get(base, 0)
+            while candidate in used:  # GitHub numbers a repeated slug until it is unused, suffixed headings included
+                n += 1
+                candidate = f"{base}-{n}"
+            suffix[base] = n
+            used.add(candidate)
+        explicit = _explicit_ids(lines, start)
         for index, line in iter_prose(lines, start):
-            if _suppressed(lines, index):
+            # an indented line is an indented code block as often as a nested list: say nothing rather than guess
+            if _suppressed(lines, index) or line.startswith(("    ", "\t")):
                 continue
-            for m in IN_FILE_LINK.finditer(INLINE_CODE.sub(" ", line)):
-                fragment = unquote(m.group(1)).lower()
-                if fragment and fragment not in anchors:
+            for m in IN_FILE_LINK.finditer(ANY_CODE_SPAN.sub(" ", line)):
+                fragment = unquote(m.group(1))
+                if fragment and fragment not in explicit and fragment.lower() not in used:
                     skill.add("G-STRUCT-08", "WARN", path, index + 1,
                               f"the link to #{fragment} matches no heading of this file: GitHub keeps underscores and "
                               "drops punctuation, and a repeated heading gets -1, -2")
