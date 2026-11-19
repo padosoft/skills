@@ -5,9 +5,14 @@
 #   ./scripts/install-profile.sh laravel email      # two profiles, in the current project
 #   ./scripts/install-profile.sh --list             # available profiles
 #   ./scripts/install-profile.sh core --dry-run     # print the commands without running them
+#   ./scripts/install-profile.sh core -g --agent claude-code   # no questions asked (-y implied)
+#   ./scripts/install-profile.sh core -g --agent '*'           # every detected agent
 #
 # Works without cloning the repo too:
 #   curl -fsSL https://raw.githubusercontent.com/padosoft/skills/main/scripts/install-profile.sh | bash -s -- core --global
+#
+# Piped from curl, stdin is the script itself: the agent question is then asked on the terminal
+# (/dev/tty); without a terminal, pass --agent.
 #
 # Requirement: Node.js 18+ (for npx). No account, no configuration.
 set -euo pipefail
@@ -17,15 +22,19 @@ BRANCH="${PADOSOFT_SKILLS_BRANCH:-main}"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}/profiles.json"
 PROFILES=(); GLOBAL=0; DRY=0; LIST=0
 
-for arg in "$@"; do
-  case "$arg" in
+AGENT=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -g|--global) GLOBAL=1 ;;
     --dry-run)   DRY=1 ;;
     --list)      LIST=1 ;;
-    -h|--help)   sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    -*)          echo "Unknown option: $arg" >&2; exit 2 ;;
-    *)           PROFILES+=("$arg") ;;
+    -a|--agent)  [[ $# -ge 2 ]] || { echo "--agent needs a value (a name or '*')" >&2; exit 2; }
+                 AGENT="$2"; shift ;;
+    -h|--help)   sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*)          echo "Unknown option: $1" >&2; exit 2 ;;
+    *)           PROFILES+=("$1") ;;
   esac
+  shift
 done
 
 # Guard: npx is required
@@ -61,6 +70,14 @@ if [[ $LIST -eq 1 || ${#PROFILES[@]} -eq 0 ]]; then
 fi
 
 SCOPE_FLAG=""; [[ $GLOBAL -eq 1 ]] && SCOPE_FLAG="-g"
+# npx must never read this script's stdin (a pipe under curl | bash).
+# With --agent nothing is asked; otherwise the question goes to the real terminal.
+AGENT_ARGS=(); INPUT=/dev/null
+if [[ -n "$AGENT" ]]; then AGENT_ARGS=(--agent "$AGENT" -y)
+elif [[ $DRY -eq 0 ]]; then
+  if { : </dev/tty; } 2>/dev/null; then INPUT=/dev/tty
+  else echo "No terminal for the agent question: pass --agent <name> (or --agent '*')." >&2; exit 2; fi
+fi
 FAILED=0
 for profile in "${PROFILES[@]}"; do
   # No mapfile: it needs bash 4+, and macOS ships bash 3.2.
@@ -75,8 +92,9 @@ for profile in "${PROFILES[@]}"; do
   echo "== profile $profile ${SCOPE_FLAG:+(global)}"
   for skill in "${skills[@]}"; do
     url="https://github.com/${REPO}/tree/${BRANCH}/skills/${skill}"
-    if [[ $DRY -eq 1 ]]; then echo "npx skills add $SCOPE_FLAG $url"; else
-      echo "-- $skill"; npx --yes skills add $SCOPE_FLAG "$url" || { echo "   installation failed: $skill" >&2; FAILED=1; }
+    if [[ $DRY -eq 1 ]]; then echo "npx skills add $SCOPE_FLAG ${AGENT_ARGS[*]:-} $url"; else
+      echo "-- $skill"
+      npx --yes skills add $SCOPE_FLAG ${AGENT_ARGS[@]+"${AGENT_ARGS[@]}"} "$url" <"$INPUT" || { echo "   installation failed: $skill" >&2; FAILED=1; }
     fi
   done
 done
