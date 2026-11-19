@@ -30,4 +30,5 @@ Read the fixes you made and the lessons you hit (a red check, review findings, a
 - Python written inside a shell heredoc loses its backslash sequences (a newline escape becomes a real newline). Write such a script to a file and run the file.
 - `test_catalog … test_dry_run` needs `/bin/bash`: it fails on a Windows workstation and passes on CI. It is not a regression.
 - The symlink tests exercise real symlinks only on the Linux CI; locally they fall back to junctions.
+- Shell scripts that users run through `curl | bash` must run on bash 3.2 (the macOS default) and on Git Bash: no `mapfile`/`readarray`, no associative arrays, no `${var,,}`. Test with `/bin/bash script.sh --dry-run` on a Mac.
 - Request a Copilot review with the GraphQL `requestReviews` mutation, bot id `BOT_kgDOCnlnWA`, `union: true`, and confirm in the issue timeline that it landed.

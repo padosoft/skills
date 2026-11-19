@@ -63,7 +63,12 @@ fi
 SCOPE_FLAG=""; [[ $GLOBAL -eq 1 ]] && SCOPE_FLAG="-g"
 FAILED=0
 for profile in "${PROFILES[@]}"; do
-  mapfile -t skills < <(names_of "$profile")
+  # No mapfile: it needs bash 4+, and macOS ships bash 3.2.
+  skills=()
+  while IFS= read -r line; do
+    line="${line%$'\r'}"   # CRLF-safe (Windows checkouts)
+    [[ -n "$line" ]] && skills+=("$line")
+  done < <(names_of "$profile")
   if [[ ${#skills[@]} -eq 0 ]]; then
     echo "Unknown or empty profile: $profile (use --list)" >&2; FAILED=1; continue
   fi
