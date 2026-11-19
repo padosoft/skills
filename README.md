@@ -58,6 +58,10 @@ curl -fsSL https://raw.githubusercontent.com/padosoft/skills/main/scripts/instal
 curl -fsSL https://raw.githubusercontent.com/padosoft/skills/main/scripts/install-profile.sh | bash -s -- api devops
 ```
 
+For each skill the installer asks which agents to install to (space to select, enter to confirm), also
+when run through `curl | bash`. To skip the questions, add `--agent claude-code` (or `--agent '*'` for
+every detected agent) after `--global`; it is also what to use where there is no terminal (CI, plain SSH).
+
 The `core` profile installs the cross-project skills — the ones that stacks sharing no line of code
 arrived at independently, which is what earns a place there. It starts with **the router**, which from
 then on tells you by itself which skills are missing for the project you open, **the skill
@@ -257,6 +261,7 @@ bash scripts/install-profile.sh --list                  # available profiles and
 bash scripts/install-profile.sh core --global           # core profile, global installation
 bash scripts/install-profile.sh api devops              # two profiles, in the current project
 bash scripts/install-profile.sh core --dry-run          # print the commands without running them
+bash scripts/install-profile.sh core --global --agent '*'   # no questions: every detected agent (or --agent claude-code)
 
 # a single skill
 npx skills add https://github.com/padosoft/skills/tree/main/skills/padosoft-email-html-builder
